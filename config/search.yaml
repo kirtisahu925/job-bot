@@ -1,0 +1,173 @@
+# What the bot searches for, where, and how much it is allowed to spend per run.
+# Edit freely; every run reads this file.
+
+candidate:
+  # Skip jobs whose stated minimum experience is above this. Jobs that state nothing are kept.
+  max_required_years: 4
+
+# One track per kind of role. Queries go to the job sites; keywords decide which track a job belongs to.
+tracks:
+  java:
+    label: Java backend
+    queries: ["java backend developer", "java spring boot developer"]
+    keywords: ["java", "spring", "spring boot", "hibernate", "jvm", "kotlin", "microservices"]
+  python:
+    label: Python backend
+    queries: ["python backend developer", "python django fastapi developer"]
+    keywords: ["python", "django", "fastapi", "flask", "celery"]
+  fullstack:
+    label: Full-stack JS / Node
+    queries: ["full stack developer node react", "node.js backend developer"]
+    keywords: ["node", "node.js", "nodejs", "express", "react", "next.js", "typescript", "javascript", "full stack", "fullstack", "mern"]
+
+# A title must contain one of these (case-insensitive) to be considered at all.
+title_include:
+  - software engineer
+  - software developer
+  - software development engineer
+  - sde
+  - backend
+  - back-end
+  - back end
+  - full stack
+  - fullstack
+  - full-stack
+  - java
+  - python
+  - node
+  - developer
+  - programmer
+  - member of technical staff
+  - mts
+
+# A title containing any of these is dropped.
+title_exclude:
+  - staff
+  - principal
+  - lead
+  - manager
+  - director
+  - head of
+  - vice president
+  - vp
+  - architect
+  - intern
+  - internship
+  - trainee
+  - fresher
+  - qa
+  - quality
+  - test
+  - sdet
+  - android
+  - ios
+  - flutter
+  - mobile
+  - data scientist
+  - data analyst
+  - data engineer
+  - machine learning
+  - ml engineer
+  - devops
+  - sre
+  - site reliability
+  - support
+  - sales
+  - salesforce
+  - sap
+  - abap
+  - servicenow
+  - sharepoint
+  - dynamics
+  - wordpress
+  - php
+  - magento
+  - drupal
+  - .net
+  - dotnet
+  - c#
+  - unity
+  - embedded
+  - firmware
+  - mainframe
+  - cobol
+  - mulesoft
+  - pega
+
+locations:
+  cities: [Gurugram, Noida, Delhi, Bengaluru, Hyderabad, Pune, Chennai]
+  include_remote: true
+  # Remote roles must be open to candidates in one of these regions (checked on "remote" jobs only).
+  remote_regions: [india, anywhere, worldwide, global, apac, asia]
+  aliases:
+    gurgaon: Gurugram
+    "new delhi": Delhi
+    "delhi ncr": Delhi
+    ncr: Delhi
+    "greater noida": Noida
+    bangalore: Bengaluru
+    bengaluru: Bengaluru
+    secunderabad: Hyderabad
+    madras: Chennai
+
+limits:
+  score_top_k: 30        # new jobs sent to the LLM for scoring per run
+  score_batch_size: 8    # jobs per scoring request
+  tailor_per_run: 4      # tailored resumes per run (queued jobs first)
+  min_score: 70          # auto-tailor only jobs scoring at least this
+  max_revisions: 1       # LLM fix-up calls per resume after lint/compile checks
+  board_max_age_days: 30 # company career boards: ignore postings older than this
+
+# Each job site can be switched off, or moved to another method, without code changes.
+# method: jobspy (LinkedIn/Indeed/Naukri), native (own client), apify (paid-per-result actor)
+sources:
+  linkedin:
+    enabled: true
+    method: jobspy
+    location: India
+    results_wanted: 30
+    hours_old: 13
+    fetch_description: true
+  indeed:
+    enabled: true
+    method: jobspy
+    location: India
+    results_wanted: 30
+    hours_old: 13
+  naukri:
+    enabled: true
+    method: jobspy
+    location: ""
+    results_wanted: 30
+    hours_old: 13
+  foundit:
+    # Experimental: Foundit's own search JSON, not an official API. Its shape can change.
+    enabled: true
+    method: native
+    results_wanted: 30
+  wellfound:
+    enabled: true
+    method: apify
+    # Open the actor on apify.com, check its Input tab, and adjust `input` to match.
+    actor_id: igolaizola~wellfound-jobs-scraper
+    queries: ["backend engineer", "full stack engineer"]
+    input:
+      keyword: "{query}"
+      location: India
+      maxItems: 25
+    max_charge_usd: 0.10   # hard cap per actor run
+    timeout_s: 300
+  adzuna:
+    enabled: true
+    pages: 2
+    daily_cap: 200
+  jsearch:
+    enabled: true
+    monthly_cap: 190       # Basic plan is 200/month; keep a margin
+  jooble:
+    enabled: false
+    daily_cap: 100
+  remotive:
+    enabled: true
+  boards:
+    enabled: true          # Greenhouse / Lever / Ashby boards listed in config/companies.yaml

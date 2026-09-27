@@ -1,0 +1,17 @@
+{
+ "https://www.linkedin.com/jobs/view/4012345678/": "linkedin:4012345678",
+ "https://www.linkedin.com/jobs/view/backend-engineer-at-acme-4012345678?trk=abc": "linkedin:4012345678",
+ "https://www.linkedin.com/jobs/search/?currentJobId=4012345678&keywords=java": "linkedin:4012345678",
+ "https://in.indeed.com/viewjob?jk=abc123def456&from=serp": "indeed:abc123def456",
+ "https://www.indeed.com/rc/clk?jk=abc123def456&fccid=x": "indeed:abc123def456",
+ "https://www.naukri.com/job-listings-backend-engineer-acme-bengaluru-2-to-4-years-260926500123": "naukri:260926500123",
+ "https://www.naukri.com/job-listings-backend-engineer-acme-bengaluru-2-to-4-years-260926500123?src=jobsearchDesk": "naukri:260926500123",
+ "https://www.foundit.in/job/full-stack-developer-brightcart-noida-41234567": "foundit:41234567",
+ "https://wellfound.com/jobs/3141592-software-engineer-backend": "wellfound:3141592",
+ "https://boards.greenhouse.io/acmefintech/jobs/7654321": "greenhouse:7654321",
+ "https://job-boards.greenhouse.io/acmefintech/jobs/7654321?gh_src=abc": "greenhouse:7654321",
+ "https://acme.com/careers/job?gh_jid=7654321": "greenhouse:7654321",
+ "https://jobs.lever.co/acme/0b5a3c1e-1111-2222-3333-444455556666/apply": "lever:0b5a3c1e-1111-2222-3333-444455556666",
+ "https://jobs.ashbyhq.com/acme/9d8c7b6a-1111-2222-3333-444455556666/application": "ashby:9d8c7b6a-1111-2222-3333-444455556666",
+ "https://careers.example.com/jobs/123/?utm_source=x#top": "careers.example.com/jobs/123"
+}

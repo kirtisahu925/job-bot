@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# Bot outputs and local state
+out/
+data/
+*.db
+*.sqlite
+
+# Real personal data never goes in git
+profile/master_profile.yaml
+.env
+.env.*
+
+# LaTeX build junk
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Node
+node_modules/
+dashboard/dist/
+dashboard/.env.local
+test-results/
+playwright-report/

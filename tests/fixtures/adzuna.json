@@ -1,0 +1,38 @@
+{
+ "count": 2,
+ "results": [
+  {
+   "id": "4855123",
+   "title": "Java Developer",
+   "company": {
+    "display_name": "Nimbus Tech"
+   },
+   "location": {
+    "display_name": "Gurgaon, Haryana",
+    "area": [
+     "India",
+     "Haryana",
+     "Gurgaon"
+    ]
+   },
+   "description": "Spring Boot microservices, 2+ years of experience...",
+   "redirect_url": "https://www.adzuna.in/land/ad/4855123",
+   "created": "2026-09-26T07:12:00Z",
+   "salary_min": 900000,
+   "salary_max": 1500000
+  },
+  {
+   "id": "4855124",
+   "title": "Node.js Developer",
+   "company": {
+    "display_name": "Pixel Works"
+   },
+   "location": {
+    "display_name": "Pune, Maharashtra"
+   },
+   "description": "Node, Express, MongoDB",
+   "redirect_url": "https://www.adzuna.in/land/ad/4855124",
+   "created": "2026-09-26T06:00:00Z"
+  }
+ ]
+}

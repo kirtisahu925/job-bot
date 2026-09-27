@@ -1,0 +1,19 @@
+{
+ "jobs": [
+  {
+   "id": "9d8c7b6a-1111-2222-3333-444455556666",
+   "title": "Full Stack Engineer",
+   "location": "Remote - India",
+   "secondaryLocations": [
+    {
+     "location": "Bengaluru"
+    }
+   ],
+   "isRemote": true,
+   "descriptionPlain": "TypeScript, Node.js, React. 2+ years of experience.",
+   "publishedAt": "2026-09-20T00:00:00.000Z",
+   "jobUrl": "https://jobs.ashbyhq.com/acme/9d8c7b6a-1111-2222-3333-444455556666",
+   "applyUrl": "https://jobs.ashbyhq.com/acme/9d8c7b6a-1111-2222-3333-444455556666/application"
+  }
+ ]
+}

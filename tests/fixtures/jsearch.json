@@ -1,0 +1,21 @@
+{
+ "status": "OK",
+ "data": [
+  {
+   "job_id": "jX1",
+   "job_title": "Software Engineer - Backend (Java)",
+   "employer_name": "Quanta",
+   "job_city": "Hyderabad",
+   "job_state": "Telangana",
+   "job_country": "IN",
+   "job_is_remote": false,
+   "job_apply_link": "https://jobs.lever.co/quanta/0b5a3c1e-1111-2222-3333-444455556666/apply",
+   "job_google_link": "https://www.google.com/search?q=jX1",
+   "job_description": "Java, Spring Boot, 2-5 years of experience",
+   "job_posted_at_datetime_utc": "2026-09-26T04:00:00.000Z",
+   "job_min_salary": null,
+   "job_max_salary": null,
+   "job_salary_currency": null
+  }
+ ]
+}

@@ -1,0 +1,12 @@
+# Companies whose public career boards the bot reads directly (free, no key).
+# Find a company's board slug with:  python -m jobbot probe-company <slug>
+# e.g. a board at https://jobs.lever.co/acme has the Lever slug "acme".
+#
+# Format:  - {slug: <board slug>, name: <display name>}
+
+greenhouse: []
+#  - {slug: examplecompany, name: Example Company}
+
+lever: []
+
+ashby: []

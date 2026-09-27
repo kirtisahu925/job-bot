@@ -1,0 +1,16 @@
+{
+ "data": {
+  "monthlyUsageCycle": {
+   "startAt": "2026-09-01T00:00:00.000Z",
+   "endAt": "2026-09-30T23:59:59.999Z"
+  },
+  "limits": {
+   "maxMonthlyUsageUsd": 5,
+   "maxMonthlyActorComputeUnits": 1000
+  },
+  "current": {
+   "monthlyUsageUsd": 1.25,
+   "monthlyActorComputeUnits": 12.5
+  }
+ }
+}

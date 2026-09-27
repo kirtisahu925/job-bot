@@ -1,0 +1,35 @@
+# Which LLM does what, what it costs, and how much the bot may use.
+# Prices are USD per million tokens. Free-tier models cost 0; shadow prices show
+# what the same usage would cost on a paid model.
+
+llm:
+  provider: gemini            # gemini | anthropic | fake
+  score_models: [gemini-flash-lite-latest]
+  tailor_models: [gemini-flash-latest, gemini-flash-lite-latest]   # first is preferred; rest are fallbacks on 429
+
+  # Used when provider: anthropic. Pick any row from `models` below.
+  anthropic_score_model: claude-haiku-4-5
+  anthropic_tailor_model: claude-opus-5
+
+models:
+  # Gemini free tier: Google adjusts these caps without notice; check your limits in AI Studio.
+  gemini-flash-latest:      {provider: gemini, tier: free, daily_request_cap: 18, input: 0, output: 0}
+  gemini-flash-lite-latest: {provider: gemini, tier: free, daily_request_cap: 450, input: 0, output: 0}
+
+  # Anthropic list prices (per MTok).
+  claude-opus-5:    {provider: anthropic, tier: paid, input: 5.00, output: 25.00, cache_read: 0.50}
+  claude-sonnet-5:  {provider: anthropic, tier: paid, input: 2.00, output: 10.00, cache_read: 0.20}
+  claude-haiku-4-5: {provider: anthropic, tier: paid, input: 1.00, output: 5.00, cache_read: 0.10}
+
+# What free-tier calls would cost if they ran on this paid model instead.
+shadow_model: claude-sonnet-5
+
+# Money budgets for paid providers. Balance = top-ups entered on the dashboard - spend.
+budgets:
+  anthropic:
+    monthly_budget_usd: 10.0
+  apify:
+    free_monthly_credit_usd: 5.0
+
+# Shown next to USD on the dashboard.
+fx_usd_inr: 88.0

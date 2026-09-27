@@ -1,0 +1,38 @@
+{
+ "jobSearchResponse": {
+  "meta": {
+   "paging": {
+    "total": 1
+   }
+  },
+  "data": [
+   {
+    "jobId": 41234567,
+    "title": "Full Stack Developer - Node.js/React",
+    "companyName": "Brightcart Technologies",
+    "locations": [
+     {
+      "city": "Noida"
+     }
+    ],
+    "minimumExperience": {
+     "years": 1
+    },
+    "maximumExperience": {
+     "years": 3
+    },
+    "jobDescription": "Node.js, React, TypeScript",
+    "skills": [
+     {
+      "name": "Node.js"
+     },
+     {
+      "name": "React"
+     }
+    ],
+    "seoJdUrl": "/job/full-stack-developer-brightcart-noida-41234567",
+    "postedAt": 1790000000000
+   }
+  ]
+ }
+}

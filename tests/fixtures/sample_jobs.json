@@ -1,0 +1,96 @@
+[
+ {
+  "source": "linkedin",
+  "source_job_id": "4012345678",
+  "title": "Backend Engineer (SDE-2), Payments",
+  "company": "Acme Fintech Pvt Ltd",
+  "location": "Bengaluru, Karnataka, India",
+  "url": "https://www.linkedin.com/jobs/view/4012345678/",
+  "apply_url": "https://boards.greenhouse.io/acmefintech/jobs/7654321",
+  "description": "About the role\nWe are hiring a Backend Engineer (SDE-2) to build payment and order services.\nWhat you will do\n- Design and build REST APIs and microservices in Java and Spring Boot\n- Own PostgreSQL schemas, Flyway migrations and Redis caching\n- Run services on Docker with CI in GitHub Actions\nRequirements\n- 2-4 years of experience in backend development with Java\n- Strong knowledge of Spring Boot, JPA/Hibernate, REST, SQL\n- Exposure to cloud platforms such as Azure or AWS\nBenefits\n- Health insurance, flexible hours",
+  "posted_at": "2026-09-26T08:00:00Z"
+ },
+ {
+  "source": "naukri",
+  "source_job_id": "260926500123",
+  "title": "Backend Engineer (SDE 2) Payments",
+  "company": "Acme Fintech",
+  "location": "Bangalore",
+  "url": "https://www.naukri.com/job-listings-backend-engineer-sde-2-acme-fintech-bengaluru-2-to-4-years-260926500123",
+  "description": "About the role\nWe are hiring a Backend Engineer (SDE-2) to build payment and order services.\nWhat you will do\n- Design and build REST APIs and microservices in Java and Spring Boot\n- Own PostgreSQL schemas, Flyway migrations and Redis caching\n- Run services on Docker with CI in GitHub Actions\nRequir",
+  "experience_text": "2-4 Yrs",
+  "posted_at": "2026-09-26T09:00:00Z"
+ },
+ {
+  "source": "indeed",
+  "source_job_id": "in-abc123",
+  "title": "Python Developer",
+  "company": "Orbit Labs",
+  "location": "Gurgaon, Haryana",
+  "url": "https://in.indeed.com/viewjob?jk=abc123def456",
+  "description": "Python Developer\nBuild internal platforms with Python, FastAPI and Django. Integrate third-party APIs, write pytest suites,\ndeploy on Azure Functions and Linux VMs.\nMinimum 2 years of experience with Python and REST APIs. Experience with PostgreSQL and Docker is a plus.",
+  "posted_at": "2026-09-26T05:00:00Z"
+ },
+ {
+  "source": "foundit",
+  "source_job_id": "41234567",
+  "title": "Full Stack Developer - Node.js/React",
+  "company": "Brightcart Technologies",
+  "location": "Noida",
+  "url": "https://www.foundit.in/job/full-stack-developer-brightcart-noida-41234567",
+  "description": "Full Stack Developer (Node.js + React)\nYou will work across Node.js/Express services and React front ends. 1-3 years of experience required.\nTypeScript, REST APIs, MySQL, Git.",
+  "experience_text": "1-3 years"
+ },
+ {
+  "source": "wellfound",
+  "title": "Software Engineer, Backend",
+  "company": "Tiny Startup",
+  "location": "Remote",
+  "remote": true,
+  "remote_region": "India",
+  "url": "https://wellfound.com/jobs/3141592-software-engineer-backend",
+  "description": "Python Developer\nBuild internal platforms with Python, FastAPI and Django. Integrate third-party APIs, write pytest suites,\ndeploy on Azure Functions and Linux VMs.\nMinimum 2 years of experience with Python and REST APIs. Experience with PostgreSQL and Docker is a plus."
+ },
+ {
+  "source": "linkedin",
+  "title": "Principal Engineer, Platform",
+  "company": "Bigco",
+  "location": "Bengaluru",
+  "url": "https://www.linkedin.com/jobs/view/4000000001/",
+  "description": "Principal Engineer to lead platform architecture. 10+ years of experience with distributed systems."
+ },
+ {
+  "source": "indeed",
+  "title": "Backend Engineer",
+  "company": "Scale Corp",
+  "location": "Hyderabad",
+  "url": "https://in.indeed.com/viewjob?jk=heavy777",
+  "description": "Backend Engineer. We need 7+ years of experience in Java and Kafka at scale."
+ },
+ {
+  "source": "remotive",
+  "title": "Backend Developer (Python)",
+  "company": "Global Remote Co",
+  "location": "Remote (USA only)",
+  "remote": true,
+  "remote_region": "USA only",
+  "url": "https://remotive.com/remote-jobs/software-dev/backend-developer-1",
+  "description": "Python Developer\nBuild internal platforms with Python, FastAPI and Django. Integrate third-party APIs, write pytest suites,\ndeploy on Azure Functions and Linux VMs.\nMinimum 2 years of experience with Python and REST APIs. Experience with PostgreSQL and Docker is a plus."
+ },
+ {
+  "source": "naukri",
+  "title": "Java Developer",
+  "company": "Mumbai Softworks",
+  "location": "Mumbai",
+  "url": "https://www.naukri.com/job-listings-java-developer-mumbai-softworks-270926000111",
+  "description": "About the role\nWe are hiring a Backend Engineer (SDE-2) to build payment and order services.\nWhat you will do\n- Design and build REST APIs and microservices in Java and Spring Boot\n- Own PostgreSQL schemas, Flyway migrations and Redis caching\n- Run services on Docker with CI in GitHub Actions\nRequirements\n- 2-4 years of experience in backend development with Java\n- Strong knowledge of Spring Boot, JPA/Hibernate, REST, SQL\n- Exposure to cloud platforms such as Azure or AWS\nBenefits\n- Health insurance, flexible hours"
+ },
+ {
+  "source": "linkedin",
+  "title": "Salesforce Developer",
+  "company": "CRM House",
+  "location": "Pune",
+  "url": "https://www.linkedin.com/jobs/view/4000000002/",
+  "description": "Apex, Lightning. 2 years of experience."
+ }
+]

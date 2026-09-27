@@ -1,0 +1,23 @@
+[
+ {
+  "id": "0b5a3c1e-1111-2222-3333-444455556666",
+  "text": "Software Engineer - Backend (Java)",
+  "categories": {
+   "location": "Hyderabad",
+   "team": "Engineering",
+   "commitment": "Full-time"
+  },
+  "descriptionPlain": "Join our payments team.",
+  "lists": [
+   {
+    "text": "Requirements",
+    "content": "<li>2-5 years of experience with Java</li>"
+   }
+  ],
+  "additionalPlain": "We are an equal opportunity employer.",
+  "hostedUrl": "https://jobs.lever.co/quanta/0b5a3c1e-1111-2222-3333-444455556666",
+  "applyUrl": "https://jobs.lever.co/quanta/0b5a3c1e-1111-2222-3333-444455556666/apply",
+  "createdAt": 1790000000000,
+  "workplaceType": "onsite"
+ }
+]

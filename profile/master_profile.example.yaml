@@ -1,0 +1,90 @@
+# MASTER PROFILE: the single source of truth the bot tailors from.
+#
+# This is an EXAMPLE with illustrative content. Replace every value with your real history, then either:
+#   - save it as profile/master_profile.yaml (git-ignored) for local runs, or
+#   - paste the whole file into the GitHub secret MASTER_PROFILE_YAML for scheduled runs.
+# Delete the `example: true` line when done; the bot refuses to run on an example profile.
+#
+# Rules that keep the tailoring honest:
+#   - Only write what you can defend in an interview. The LLM may reword and reorder, never invent.
+#   - Every skill the resume may mention must appear in `skills` or `extra_vocabulary`.
+#   - `contact` never leaves your machine or GitHub: it is not sent to any LLM.
+#   - Bullets read best at 100-113 characters (one line) or 205-226 (two lines).
+
+example: true
+
+contact:
+  name: Your Name
+  email: you@example.com
+  phone: "+91 90000 00000"
+  location: Gurugram, India
+  links:
+    linkedin: linkedin.com/in/your-handle
+    github: github.com/your-handle
+
+headline: Backend developer (Python, JavaScript, Azure Functions) moving toward Java backend SDE-2 roles
+years_experience: 2.5
+
+summary: >-
+  Backend developer with 2.5 years building Python and Node.js services, Azure Functions and Linux automation for a
+  multi-city restaurant chain, now focused on building Java and Spring Boot microservices for product teams.
+
+experience:
+  - id: current
+    company: Example Restaurant Chain
+    role: Assistant Manager, Software Development
+    location: Gurugram, India
+    start: Jan 2024
+    end: Present
+    bullets:
+      - Built Python Azure Functions syncing orders from 3 delivery platforms into one dashboard, ending manual entry
+      - Automated nightly sales reconciliation with Python and Azure Timer triggers, cutting finance close time by 60%
+      - Designed REST APIs in Node.js and Express for inventory updates across 100+ outlets with role-based access
+      - Migrated cron jobs from one Linux VM to Azure Functions, removing a single point of failure for daily reports
+      - Wrote SQL reports and Python scripts that flag stock-outs early, so outlet managers reorder before rush hours
+
+  - id: previous
+    company: Example Software Services
+    role: Software Developer
+    location: Delhi, India
+    start: Jul 2022
+    end: Dec 2023
+    bullets:
+      - Developed JavaScript front ends and Python Flask APIs for internal tools used daily by 40 operations staff
+      - Containerised two legacy services with Docker and documented deploys, cutting new environment setup to 1 hour
+
+projects:
+  - id: jobbot
+    name: SDE Job Bot
+    tech: [Python, GitHub Actions, Supabase, React, LaTeX]
+    link: github.com/your-handle/sde-job-bot
+    bullets:
+      - Built a scheduled job scanner over 10 sources with cross-source dedupe, LLM scoring and per-job one-page resumes
+      - Added a token and spend ledger with per-provider quotas, shown on a React dashboard backed by Postgres and RLS
+  - id: springshop
+    name: Spring Boot Order Service
+    tech: [Java, Spring Boot, PostgreSQL, Docker, JUnit]
+    link: github.com/your-handle/order-service
+    bullets:
+      - Implemented an order service in Java 21 and Spring Boot with JPA, Flyway migrations and 85 percent test coverage
+      - Added idempotent payment callbacks and optimistic locking, preventing duplicate charges under concurrent retries
+
+skills:
+  Languages: [Java, Python, JavaScript, TypeScript, SQL]
+  Backend: [Spring Boot, Node.js, Express, Flask, FastAPI, REST APIs, Microservices]
+  Cloud and DevOps: [Azure Functions, Azure VMs, Linux, Docker, GitHub Actions]
+  Data: [PostgreSQL, MySQL, Redis]
+  Testing: [JUnit, pytest]
+
+# Extra terms you genuinely know that may appear on a tailored resume (anti-mirroring allowlist).
+extra_vocabulary: [Git, Postman, Jira, JPA, Hibernate, Flyway, Agile]
+
+education:
+  - institution: Example Institute of Technology
+    degree: B.Tech, Computer Science
+    location: India
+    start: "2018"
+    end: "2022"
+    score: "CGPA 8.0/10"
+
+certifications: []
