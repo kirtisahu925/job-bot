@@ -1,0 +1,25 @@
+name: Source smoke test
+
+# Hits the unofficial sources (LinkedIn, Indeed, Naukri, Foundit) without any LLM or database, to spot
+# a site that changed or started blocking GitHub runners. Informational: it never fails the build.
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # Mondays 11:30 IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -q .
+      - name: Scan unofficial sources
+        run: python -m jobbot scan --sources linkedin,indeed,naukri,foundit | tee -a "$GITHUB_STEP_SUMMARY"

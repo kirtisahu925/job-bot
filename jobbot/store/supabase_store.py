@@ -195,7 +195,13 @@ class SupabaseStore:
 
     def record_balances(self, run_id: str, rows: list[BalanceSnapshot]) -> None:
         if rows:
-            self._post("balance_snapshots", [r.model_dump() | {"run_id": run_id} for r in rows])
+            # `limit` is a PostgREST query keyword, so the column is limit_value
+            payload = []
+            for r in rows:
+                data = r.model_dump()
+                data["limit_value"] = data.pop("limit")
+                payload.append(data | {"run_id": run_id})
+            self._post("balance_snapshots", payload)
 
     def llm_requests_since(self, since: datetime) -> dict[str, int]:
         counts: dict[str, int] = {}

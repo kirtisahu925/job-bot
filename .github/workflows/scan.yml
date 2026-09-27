@@ -1,0 +1,77 @@
+name: Job scan
+
+# 10:00 and 22:00 IST (UTC+5:30). GitHub runs scheduled workflows only from the default branch,
+# and a scheduled start can lag by 5-20 minutes when runners are busy.
+on:
+  schedule:
+    - cron: "30 4 * * *"
+    - cron: "30 16 * * *"
+  workflow_dispatch:
+    inputs:
+      max_tailor:
+        description: "Resumes to tailor this run (blank = config/search.yaml)"
+        required: false
+        default: ""
+      sources:
+        description: "Comma-separated subset, e.g. linkedin,naukri (blank = all enabled)"
+        required: false
+        default: ""
+
+concurrency:
+  group: jobbot-scan
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install LaTeX (pdflatex + Latin Modern)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            texlive-latex-base texlive-latex-recommended texlive-fonts-recommended lmodern > /dev/null
+
+      - name: Install bot
+        run: pip install -q .
+
+      - name: Run scan
+        env:
+          JOBBOT_TEX_ENGINE: pdflatex
+          MASTER_PROFILE_YAML: ${{ secrets.MASTER_PROFILE_YAML }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          JOOBLE_API_KEY: ${{ secrets.JOOBLE_API_KEY }}
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TRIGGER: ${{ github.event_name == 'schedule' && 'schedule' || 'manual' }}
+          MAX_TAILOR: ${{ inputs.max_tailor }}
+          SOURCES: ${{ inputs.sources }}
+        run: |
+          args=(--store supabase --trigger "$TRIGGER")
+          if [ -n "$MAX_TAILOR" ]; then args+=(--max-tailor "$MAX_TAILOR"); fi
+          if [ -n "$SOURCES" ]; then args+=(--sources "$SOURCES"); fi
+          python -m jobbot run "${args[@]}"
+
+      - name: Keep run summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-summary
+          path: out/last_run.json
+          retention-days: 14
+          if-no-files-found: ignore

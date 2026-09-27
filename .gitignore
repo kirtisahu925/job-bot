@@ -19,6 +19,7 @@ data/
 profile/master_profile.yaml
 .env
 .env.*
+!.env.example
 
 # LaTeX build junk
 *.aux
@@ -31,6 +32,7 @@ profile/master_profile.yaml
 # Node
 node_modules/
 dashboard/dist/
+*.tsbuildinfo
 dashboard/.env.local
 test-results/
 playwright-report/
