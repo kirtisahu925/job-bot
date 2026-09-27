@@ -109,7 +109,8 @@ await browser.close();
 
 await check("unpacked extension loads: service worker, popup and options render", async () => {
   const context = await chromium.launchPersistentContext(mkdtempSync(path.join(tmpdir(), "jobbot-ext-")), {
-    executablePath,
+    // the default headless shell cannot load extensions; the full Chromium build in new headless mode can
+    ...(executablePath ? { executablePath } : { channel: "chromium" }),
     headless: true,
     args: [`--disable-extensions-except=${ext}`, `--load-extension=${ext}`],
   });
