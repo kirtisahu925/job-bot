@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="ui.css" />
+    <style>
+      body { width: 340px; padding: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>Job Tracker</h1>
+    <div id="account" class="muted">Checking sign-in…</div>
+
+    <div class="card">
+      <div class="row">
+        <button id="autofill" class="primary">Autofill this page</button>
+        <label class="row muted"><input id="with-resume" type="checkbox" checked /> attach resume</label>
+      </div>
+      <div id="fill-result" class="muted" style="margin-top: 6px"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top: 0">This job in your tracker</h2>
+      <div id="job" class="muted">Looking up this page…</div>
+      <div class="row" style="margin-top: 6px">
+        <input id="company" placeholder="or search by company" style="flex: 1" />
+        <button id="search">Find</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="save">Save this job</button>
+      <button id="options">Profile & settings</button>
+    </div>
+    <p class="muted">The extension fills fields and attaches your resume. You review and submit yourself.</p>
+    <script src="lib/urlkey.js"></script>
+    <script src="lib/fieldmap.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

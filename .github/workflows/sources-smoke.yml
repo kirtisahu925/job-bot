@@ -20,6 +20,6 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install -q .
+      - run: pip install -q -e .
       - name: Scan unofficial sources
         run: python -m jobbot scan --sources linkedin,indeed,naukri,foundit | tee -a "$GITHUB_STEP_SUMMARY"

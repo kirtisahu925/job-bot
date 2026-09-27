@@ -43,7 +43,7 @@ jobs:
             texlive-latex-base texlive-latex-recommended texlive-fonts-recommended lmodern > /dev/null
 
       - name: Install bot
-        run: pip install -q .
+        run: pip install -q -e .
 
       - name: Run scan
         env:

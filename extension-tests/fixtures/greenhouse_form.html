@@ -1,0 +1,55 @@
+<!doctype html>
+<!-- Hand-made approximation of a Greenhouse application form (label[for] + name="job_application[...]"). -->
+<html>
+  <body>
+    <form id="application_form" onsubmit="window.__submitted = true; return false;">
+      <label for="first_name">First Name <span>*</span></label>
+      <input id="first_name" name="job_application[first_name]" type="text" required />
+      <label for="last_name">Last Name *</label>
+      <input id="last_name" name="job_application[last_name]" type="text" required />
+      <label for="email">Email *</label>
+      <input id="email" name="job_application[email]" type="text" required />
+      <label for="phone">Phone</label>
+      <input id="phone" name="job_application[phone]" type="text" />
+      <div class="field">
+        <label for="resume">Resume/CV *</label>
+        <input id="resume" type="file" name="job_application[resume]" required />
+      </div>
+      <label for="q1">LinkedIn Profile</label>
+      <input id="q1" name="job_application[answers_attributes][0][text_value]" type="text" />
+      <label for="q2">Current CTC</label>
+      <input id="q2" name="job_application[answers_attributes][1][text_value]" type="text" />
+      <label for="q3">Notice period</label>
+      <select id="q3" name="job_application[answers_attributes][2][answer_selected_options_attributes]">
+        <option value="">Please select</option>
+        <option value="1">Immediate</option>
+        <option value="2">15 days</option>
+        <option value="3">30 days</option>
+        <option value="4">60 days or more</option>
+      </select>
+      <label for="q4">How did you hear about us?</label>
+      <input id="q4" name="job_application[answers_attributes][3][text_value]" type="text" />
+      <label for="q5">Why do you want to join us? *</label>
+      <textarea id="q5" name="job_application[answers_attributes][4][text_value]" required></textarea>
+      <fieldset>
+        <legend>Are you legally authorized to work in India?</legend>
+        <label><input type="radio" name="auth" value="yes" /> Yes</label>
+        <label><input type="radio" name="auth" value="no" /> No</label>
+      </fieldset>
+      <fieldset>
+        <legend>Will you require visa sponsorship?</legend>
+        <label><input type="radio" name="sponsor" value="yes" /> Yes</label>
+        <label><input type="radio" name="sponsor" value="no" /> No</label>
+      </fieldset>
+      <label for="gender">Gender</label>
+      <select id="gender" name="gender">
+        <option value="">Select…</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Prefer not to say</option>
+      </select>
+      <input type="checkbox" id="consent" /> <label for="consent">I agree to the privacy policy</label>
+      <button type="submit" id="submit">Submit application</button>
+    </form>
+  </body>
+</html>
