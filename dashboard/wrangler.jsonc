@@ -1,0 +1,11 @@
+// Cloudflare Worker that serves the built dashboard (Workers & Pages > fairsheet).
+// Build: `npm run build` (root directory: dashboard). Deploy: `npx wrangler deploy`.
+{
+  "name": "fairsheet",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist",
+    // client-side routes such as /jobs/<id> fall back to index.html
+    "not_found_handling": "single-page-application"
+  }
+}
