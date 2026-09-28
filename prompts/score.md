@@ -5,7 +5,7 @@ For every job in the input, return a result with:
 - `score`: realistic 0-100 fit, weighing domain fit, required experience versus the candidate's years,
   and overlap between the job's must-have skills and the candidate's real skills.
   90+: apply today. 70-89: strong. 50-69: stretch. Below 50: poor fit.
-- `track`: one of the track names given in the input that best describes the role.
+- `track`: the key of the input `tracks` entry that best describes the role (for example `java`), not its label.
 - `reason`: one sentence, under 160 characters, naming the deciding factor.
 - `missing_keywords`: up to 5 must-have skills from the job that the candidate lacks.
 - `required_skills`: the job's must-have technologies, tools, languages and methods as short standard names

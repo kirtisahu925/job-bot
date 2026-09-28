@@ -7,7 +7,7 @@ from jobbot.llm.base import LLMError
 from jobbot.llm.fake import FakeProvider
 from jobbot.llm.ledger import Ledger
 from jobbot.models import Job
-from jobbot.scoring import score_jobs
+from jobbot.scoring import canonical_track, score_jobs
 from jobbot.sources.base import Source, describe
 from jobbot.store.local_store import LocalStore
 
@@ -103,3 +103,13 @@ def test_source_errors_keep_what_the_server_said():
 
     result = Broken().run()
     assert result.status == "error" and "does not exist" in result.error
+
+
+def test_track_labels_from_the_model_become_track_names():
+    cfg = load_settings().search
+    assert canonical_track("java", cfg) == "java"
+    assert canonical_track("Java backend", cfg) == "java"
+    assert canonical_track("Full-stack JS / Node", cfg) == "fullstack"
+    assert canonical_track("Python Backend", cfg) == "python"
+    assert canonical_track("devops", cfg, "java") == "java"
+    assert canonical_track(None, cfg) is None

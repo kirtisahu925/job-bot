@@ -84,7 +84,7 @@ class JSearchSource(Source):
     """Google for Jobs via RapidAPI: picks up LinkedIn, Indeed, Glassdoor and Naukri listings."""
 
     name = "jsearch"
-    URL = "https://jsearch.p.rapidapi.com/search"
+    URL = "https://jsearch.p.rapidapi.com/search-v2"
 
     def __init__(self, client, api_key, queries, conf, calls_this_month: Callable[[str], int]):
         self.client, self.api_key, self.queries = client, api_key, queries
@@ -94,8 +94,11 @@ class JSearchSource(Source):
 
     @staticmethod
     def parse(payload: dict[str, Any]) -> list[RawJob]:
+        data = payload.get("data") or []
+        # /search-v2 wraps the list as {"jobs": [...], "cursor": ...}; the retired /search returned the list itself
+        rows = (data.get("jobs") or []) if isinstance(data, dict) else data
         jobs = []
-        for r in payload.get("data") or []:
+        for r in rows:
             parts = [r.get("job_city"), r.get("job_state"), r.get("job_country")]
             jobs.append(
                 RawJob(
@@ -103,7 +106,7 @@ class JSearchSource(Source):
                     source_job_id=r.get("job_id"),
                     title=r.get("job_title") or "",
                     company=r.get("employer_name") or "Unknown",
-                    location=", ".join(p for p in parts if p),
+                    location=", ".join(p for p in parts if p) or r.get("job_location") or "",
                     remote=bool(r.get("job_is_remote")),
                     url=r.get("job_google_link") or r.get("job_apply_link") or "",
                     apply_url=r.get("job_apply_link"),
@@ -133,7 +136,6 @@ class JSearchSource(Source):
                 headers=headers,
                 params={
                     "query": f"{query} in India",
-                    "page": 1,
                     "num_pages": 1,
                     "country": "in",
                     "date_posted": "today",

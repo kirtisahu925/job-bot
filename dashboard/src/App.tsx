@@ -69,10 +69,11 @@ export default function App() {
   const [email, setEmail] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
-    api.currentEmail().then(setEmail);
+    // a failed session check means "signed out", never a blank page
+    api.currentEmail().then(setEmail, () => setEmail(null));
   }, []);
 
-  if (email === undefined) return null;
+  if (email === undefined) return <p className="boot">Opening Fairsheet…</p>;
   if (email === null) return <Login onSignedIn={() => api.currentEmail().then(setEmail)} />;
 
   const signOut = () => api.signOut().then(() => setEmail(null));

@@ -25,6 +25,20 @@ def test_jsearch_parse_uses_apply_link():
     assert job.apply_url.startswith("https://jobs.lever.co/") and job.location == "Hyderabad, Telangana, IN"
 
 
+def test_jsearch_parse_reads_search_v2_shape():
+    v1 = fixture_json("jsearch.json")
+    v2 = {"status": "OK", "data": {"jobs": v1["data"], "cursor": "abc"}}
+    assert [j.url for j in JSearchSource.parse(v2)] == [j.url for j in JSearchSource.parse(v1)]
+    row = {
+        "job_id": "x",
+        "job_title": "Java Developer",
+        "employer_name": "Acme",
+        "job_location": "Pune, India",
+        "job_apply_link": "https://acme.example/apply",
+    }
+    assert JSearchSource.parse({"data": {"jobs": [row]}})[0].location == "Pune, India"
+
+
 def test_board_parsers():
     gh = GreenhouseSource.parse(fixture_json("greenhouse.json"), "Acme Fintech")[0]
     assert gh.company == "Acme Fintech" and gh.location == "Bengaluru" and "&lt;" in gh.description
@@ -165,10 +179,9 @@ def test_adzuna_fetch_respects_daily_cap():
 
 @respx.mock
 def test_jsearch_reads_remaining_quota_header():
-    respx.get("https://jsearch.p.rapidapi.com/search").mock(
-        return_value=httpx.Response(
-            200, json=fixture_json("jsearch.json"), headers={"x-ratelimit-requests-remaining": "57"}
-        )
+    v2 = {"status": "OK", "data": {"jobs": fixture_json("jsearch.json")["data"]}}
+    respx.get("https://jsearch.p.rapidapi.com/search-v2").mock(
+        return_value=httpx.Response(200, json=v2, headers={"x-ratelimit-requests-remaining": "57"})
     )
     with httpx.Client() as client:
         result = JSearchSource(client, "k", ["java"], {"monthly_cap": 190}, lambda s: 10).run()

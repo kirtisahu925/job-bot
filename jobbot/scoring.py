@@ -68,6 +68,20 @@ def condensed_profile(profile: dict) -> dict:
     }
 
 
+def canonical_track(value: str | None, cfg: SearchConfig, fallback: str | None = None) -> str | None:
+    """The model sometimes answers with a track's label ("Java backend") instead of its name ("java")."""
+    squash = lambda s: re.sub(r"[^a-z0-9]", "", (s or "").lower())  # noqa: E731
+    got = squash(value)
+    if got:
+        for name, t in cfg.tracks.items():
+            if got in (squash(name), squash(t.label)):
+                return name
+        for name in cfg.tracks:
+            if squash(name) in got:
+                return name
+    return fallback
+
+
 def build_prompt(jobs: list[Job], profile: dict, cfg: SearchConfig) -> str:
     payload = {
         "candidate": condensed_profile(profile),
@@ -113,9 +127,10 @@ def score_jobs(
                 break
             continue
         failures = 0
-        valid = {j.id for j in batch}
+        valid = {j.id: j for j in batch}
         for item in result.results:
             if item.job_id in valid:
                 item.score = max(0, min(100, item.score))
+                item.track = canonical_track(item.track, cfg, valid[item.job_id].track) or item.track
                 scores[item.job_id] = item
     return scores

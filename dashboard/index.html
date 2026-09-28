@@ -7,7 +7,35 @@
     <title>Fairsheet</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><p class="boot">Opening Fairsheet…</p></div>
+    <noscript><p class="boot">Fairsheet needs JavaScript switched on.</p></noscript>
+    <script>
+      // If the app cannot start, say why on the page instead of leaving it blank.
+      (function () {
+        function show(why) {
+          var root = document.getElementById("root");
+          if (!root || root.dataset.started) return;
+          var p = document.createElement("p");
+          p.className = "boot failed";
+          p.setAttribute("role", "alert");
+          p.textContent =
+            "Fairsheet could not start: " + why + ". Reload the page; if this stays, send this message and the red lines from the browser console (F12).";
+          root.replaceChildren(p);
+        }
+        window.addEventListener(
+          "error",
+          function (e) {
+            var el = e.target;
+            if (el && (el.tagName === "SCRIPT" || el.tagName === "LINK")) show("could not load " + (el.src || el.href));
+            else show(e.message || "a script failed");
+          },
+          true,
+        );
+        window.addEventListener("unhandledrejection", function (e) {
+          show(String((e.reason && e.reason.message) || e.reason));
+        });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

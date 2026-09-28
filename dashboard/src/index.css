@@ -102,6 +102,8 @@
 * { box-sizing: border-box; }
 html { scrollbar-color: var(--control) var(--page); }
 body { margin: 0; background: var(--page); color: var(--ink); font-size: var(--fs-body); caret-color: var(--accent); }
+.boot { margin: 0 auto; padding: 48px 16px; max-width: 64ch; color: var(--ink-3); font: 500 var(--fs-body)/1.5 "Barlow", system-ui, sans-serif; }
+.boot.failed { color: var(--bad); }
 ::selection { background: var(--selection); color: var(--ink); }
 a { color: var(--ink); text-decoration-color: var(--control); text-underline-offset: 3px; }
 a:hover { text-decoration-color: var(--ink); }
