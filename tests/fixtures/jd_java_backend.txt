@@ -1,0 +1,23 @@
+Software Development Engineer II - Backend (Java)
+
+About the team
+Our payments platform processes millions of transactions a day. We are looking for an SDE-2 to design and build
+backend services that are secure, observable and fast.
+
+What you will do
+- Design, build and own microservices in Java and Spring Boot that expose REST APIs to internal and partner teams.
+- Model data in PostgreSQL, write efficient SQL and tune queries; use Redis for caching hot paths.
+- Build event-driven flows with Kafka and make services resilient with retries and idempotency.
+- Secure APIs with JWT and OAuth2 using Spring Security; work with role-based access control.
+- Ship through CI/CD pipelines with Docker and Kubernetes on AWS.
+- Write unit and integration tests with JUnit and Mockito; take part in code reviews and on-call.
+
+Requirements
+- 2-5 years of experience building backend services in Java.
+- Strong knowledge of Spring Boot, Hibernate/JPA, microservices architecture and REST API design.
+- Hands-on experience with PostgreSQL or MySQL, Docker and Kubernetes.
+- B.Tech / B.E. in Computer Science or a related field.
+
+Good to have
+- Experience with Kafka, Redis, AWS and GraphQL.
+- Exposure to system design for high-throughput distributed systems.

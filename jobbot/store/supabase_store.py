@@ -23,7 +23,9 @@ class SupabaseStore:
     def __init__(self, url: str, service_key: str, client: httpx.Client | None = None):
         self.base = url.rstrip("/")
         self.client = client or httpx.Client(timeout=60)
-        self.headers = {"apikey": service_key, "Authorization": f"Bearer {service_key}"}
+        self.headers = {"apikey": service_key}
+        if service_key.startswith("eyJ"):  # legacy service_role JWT; new sb_secret_ keys go in apikey only
+            self.headers["Authorization"] = f"Bearer {service_key}"
 
     # low-level ------------------------------------------------------------
     def _get(self, table: str, params: dict[str, Any]) -> list[dict[str, Any]]:
@@ -39,10 +41,13 @@ class SupabaseStore:
         returning: bool = False,
         on_conflict: str | None = None,
         ignore_duplicates: bool = False,
+        merge: bool = False,
     ) -> list[dict[str, Any]]:
         prefer = ["return=representation" if returning else "return=minimal"]
         if ignore_duplicates:
             prefer.append("resolution=ignore-duplicates")
+        if merge:
+            prefer.append("resolution=merge-duplicates")
         params = {"on_conflict": on_conflict} if on_conflict else None
         resp = self.client.post(
             f"{self.base}/rest/v1/{table}",
@@ -230,6 +235,21 @@ class SupabaseStore:
             "api_usage", {"select": "cost_usd", "source": f"eq.{source}", "ts": f"gte.{since.isoformat()}"}
         )
         return float(sum(r["cost_usd"] or 0 for r in rows))
+
+    def get_job(self, job_id: str) -> Job | None:
+        found = self._jobs({"id": f"eq.{job_id}", "limit": 1})
+        return found[0] if found else None
+
+    def known_skills(self) -> list[str]:
+        return [r["skill"] for r in self._get("skill_status", {"select": "skill", "status": "eq.known"})]
+
+    def save_profile_snapshot(self, snapshot: dict[str, Any]) -> None:
+        self._post(
+            "profile_snapshot",
+            {"id": 1, **snapshot, "updated_at": datetime.now(UTC).isoformat()},
+            on_conflict="id",
+            merge=True,
+        )
 
     def topups(self, provider: str) -> list[dict[str, Any]]:
         return self._get(

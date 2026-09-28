@@ -9,10 +9,13 @@ from datetime import UTC, datetime, timedelta
 import httpx
 
 from jobbot import balances
+from jobbot.ats.keywords import extract_keywords
+from jobbot.ats.score import JDKeywords
+from jobbot.ats.skills import canonical, profile_vocabulary
 from jobbot.config import Settings
 from jobbot.llm.base import BudgetExceeded, LLMError, LLMProvider, QuotaExhausted
 from jobbot.llm.ledger import Ledger
-from jobbot.models import ApiUsage, SourceResult
+from jobbot.models import ApiUsage, Job, SourceResult
 from jobbot.pipeline.filters import Filters, prerank
 from jobbot.pipeline.normalize import merge, normalize
 from jobbot.scoring import score_jobs
@@ -44,6 +47,135 @@ def _models(settings: Settings, provider: LLMProvider) -> tuple[list[str], list[
     return llm.score_models, llm.tailor_models
 
 
+def profile_snapshot(profile: dict) -> dict:
+    """What the dashboard's Skills tab needs to know about you (no contact details)."""
+    return {
+        "headline": profile.get("headline"),
+        "years_experience": profile.get("years_experience"),
+        "skills": sorted({canonical(t) for t in profile_vocabulary(profile)}, key=str.lower),
+        "categories": profile.get("skills") or {},
+    }
+
+
+def _save_profile_snapshot(store, profile: dict, summary: dict) -> None:
+    try:
+        store.save_profile_snapshot(profile_snapshot(profile))
+    except Exception as exc:  # noqa: BLE001 - informational only
+        summary["errors"].append(f"profile snapshot: {exc!r}"[:300])
+
+
+def tailor_jobs(
+    settings: Settings,
+    store,
+    ledger: Ledger,
+    provider: LLMProvider,
+    jobs: list[Job],
+    summary: dict,
+    compile_pdf: bool = True,
+) -> None:
+    """Tailor each job (with ATS scoring and revision rounds), save the result, and note it in `summary`."""
+    cfg = settings.search
+    profile = settings.profile
+    score_models, tailor_models = _models(settings, provider)
+    engine = find_engine() if compile_pdf else None
+    if compile_pdf and engine is None:
+        summary["errors"].append("no LaTeX engine found (install tectonic or pdflatex); saved .tex only")
+    known = store.known_skills()
+    summary.setdefault("ats", [])
+    for job in jobs:
+        jd = JDKeywords.model_validate(job.jd_keywords) if job.jd_keywords else None
+        try:
+            if jd is None or not (jd.required or jd.preferred):
+                jd = extract_keywords(job, ledger, score_models)
+                store.update_job(job.id, {"jd_keywords": jd.model_dump()})
+            outcome = tailor_job(
+                job,
+                profile,
+                ledger,
+                tailor_models,
+                engine,
+                cfg.ats.max_rounds,
+                jd=jd,
+                target=cfg.ats.target,
+                known_skills=known,
+            )
+        except (QuotaExhausted, BudgetExceeded) as exc:
+            summary["tailor_stopped"] = str(exc)[:300]
+            break
+        except LLMError as exc:
+            summary["errors"].append(f"tailor {job.id}: {exc}"[:300])
+            continue
+        model = next(
+            (r.model for r in reversed(ledger.rows) if r.job_id == job.id and r.status == "ok"), None
+        )
+        record = outcome.record() | {"provider": provider.name, "model": model}
+        store.save_tailoring(job.id, record, outcome.tex.encode(), outcome.pdf)
+        store.update_job(
+            job.id, {"status": "tailored", "ats_score": outcome.ats.score if outcome.ats else None}
+        )
+        summary["tailored"] = summary.get("tailored", 0) + 1
+        if outcome.ats:
+            summary["ats"].append(
+                {
+                    "job_id": job.id,
+                    "title": job.title,
+                    "company": job.company,
+                    "score": outcome.ats.score,
+                    "max_achievable": outcome.ats.max_achievable,
+                    "rounds": outcome.ats_rounds,
+                    "gaps": outcome.ats.missing_gaps,
+                }
+            )
+
+
+def tailor_queued(
+    settings: Settings,
+    store,
+    provider: LLMProvider,
+    client: httpx.Client,
+    job_ids: list[str] | None = None,
+    limit: int = 3,
+) -> dict:
+    """Tailor now: the given jobs, or every job queued from the dashboard/extension."""
+    now = datetime.now(UTC)
+    run_id = store.start_run("tailor-now")
+    ledger = Ledger(provider, settings.pricing, store, now)
+    summary: dict = {
+        "run_id": run_id,
+        "started_at": now.isoformat(),
+        "sources": [],
+        "tailored": 0,
+        "errors": [],
+    }
+    status = "ok"
+    try:
+        if job_ids:
+            jobs = [j for j in (store.get_job(i) for i in job_ids) if j is not None]
+            missing = set(job_ids) - {j.id for j in jobs}
+            if missing:
+                summary["errors"].append(f"unknown job ids: {sorted(missing)}")
+        else:
+            jobs = store.tailor_candidates(limit, min_score=101)  # queued jobs only
+        tailor_jobs(settings, store, ledger, provider, jobs, summary)
+    except Exception as exc:
+        status = "error"
+        summary["errors"].append(repr(exc)[:500])
+        raise
+    finally:
+        _save_profile_snapshot(store, settings.profile, summary)
+        store.record_llm_usage(run_id, ledger.rows)
+        summary["llm"] = ledger.totals()
+        try:
+            snaps = balances.collect(settings, store, client, [])
+            store.record_balances(run_id, snaps)
+            summary["balances"] = [s.model_dump() | {"low": s.low} for s in snaps]
+        except Exception as exc:  # noqa: BLE001
+            summary["errors"].append(f"balances: {exc!r}"[:300])
+        summary["finished_at"] = datetime.now(UTC).isoformat()
+        store.finish_run(run_id, status, summary)
+    return summary
+
+
 def run(
     settings: Settings,
     store,
@@ -61,8 +193,8 @@ def run(
         and provider.name != "fake"
     ):
         raise ExampleProfileError(
-            "The master profile is still the example. Fill in profile/master_profile.yaml (or the "
-            "MASTER_PROFILE_YAML secret) and remove `example: true`."
+            "The master profile is still the example. Fill in profile/master_profile.yaml and remove "
+            "`example: true`."
         )
     cfg = settings.search
     now = datetime.now(UTC)
@@ -132,42 +264,22 @@ def run(
                         "score_reason": s.reason,
                         "missing_keywords": s.missing_keywords,
                         "track": s.track,
+                        "jd_keywords": s.jd_keywords(),
                     },
                 )
             summary["scored"] = len(scores)
             summary["score_pending"] = len(pending) - len(scores)
 
         if ledger and opts.tailor:
-            _, tailor_models = _models(settings, provider)
-            engine = find_engine() if opts.compile_pdf else None
-            if opts.compile_pdf and engine is None:
-                summary["errors"].append(
-                    "no LaTeX engine found (install tectonic or pdflatex); saved .tex only"
-                )
             limit = cfg.limits.tailor_per_run if opts.max_tailor is None else opts.max_tailor
-            for job in store.tailor_candidates(limit, cfg.limits.min_score):
-                try:
-                    outcome = tailor_job(
-                        job, profile, ledger, tailor_models, engine, cfg.limits.max_revisions
-                    )
-                except (QuotaExhausted, BudgetExceeded) as exc:
-                    summary["tailor_stopped"] = str(exc)[:300]
-                    break
-                except LLMError as exc:
-                    summary["errors"].append(f"tailor {job.id}: {exc}"[:300])
-                    continue
-                model = next(
-                    (r.model for r in reversed(ledger.rows) if r.job_id == job.id and r.status == "ok"), None
-                )
-                record = outcome.record() | {"provider": provider.name, "model": model}
-                store.save_tailoring(job.id, record, outcome.tex.encode(), outcome.pdf)
-                store.update_job(job.id, {"status": "tailored"})
-                summary["tailored"] += 1
+            jobs = store.tailor_candidates(limit, cfg.limits.min_score)
+            tailor_jobs(settings, store, ledger, provider, jobs, summary, compile_pdf=opts.compile_pdf)
     except Exception as exc:
         status = "error"
         summary["errors"].append(repr(exc)[:500])
         raise
     finally:
+        _save_profile_snapshot(store, profile, summary)
         if ledger:
             store.record_llm_usage(run_id, ledger.rows)
             summary["llm"] = ledger.totals()

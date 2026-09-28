@@ -96,21 +96,10 @@ class Filters:
         return kept, dropped
 
 
-def skill_vocabulary(profile: dict) -> list[str]:
-    vocab: list[str] = []
-    for items in (profile.get("skills") or {}).values():
-        vocab.extend(items or [])
-    vocab.extend(profile.get("extra_vocabulary") or [])
-    for project in profile.get("projects") or []:
-        vocab.extend(project.get("tech") or [])
-    seen: set[str] = set()
-    out = []
-    for v in vocab:
-        key = v.lower().strip()
-        if key and key not in seen:
-            seen.add(key)
-            out.append(v)
-    return out
+def skill_vocabulary(profile: dict, extra: list[str] | None = None) -> list[str]:
+    from jobbot.ats.skills import profile_vocabulary
+
+    return profile_vocabulary(profile, extra)
 
 
 def prerank(jobs: list[Job], profile: dict, now: datetime | None = None) -> list[Job]:

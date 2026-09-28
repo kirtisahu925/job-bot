@@ -1,0 +1,55 @@
+name: Tailor now
+
+# Started by the dashboard / extension "Tailor now" button (through the tailor-now Edge Function), or by hand
+# from the Actions tab. Tailors one job, or every queued job when job_id is blank.
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: "Job id (blank = every queued job)"
+        required: false
+        default: ""
+
+concurrency:
+  group: jobbot-tailor-${{ inputs.job_id || 'queued' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  tailor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install LaTeX (pdflatex + Latin Modern)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            texlive-latex-base texlive-latex-recommended texlive-fonts-recommended lmodern > /dev/null
+
+      - name: Install bot
+        run: pip install -q -e .
+
+      - name: Tailor
+        env:
+          JOBBOT_TEX_ENGINE: pdflatex
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          JOB_ID: ${{ inputs.job_id }}
+        run: |
+          if [ -n "$JOB_ID" ]; then
+            python -m jobbot tailor-queued --store supabase --job-id "$JOB_ID"
+          else
+            python -m jobbot tailor-queued --store supabase
+          fi

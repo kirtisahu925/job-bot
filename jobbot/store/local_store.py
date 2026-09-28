@@ -33,7 +33,13 @@ create table if not exists balance_snapshots (id text primary key, run_id text, 
   kind text, unit text, used real, "limit" real, remaining real, period text, method text, note text);
 create table if not exists credit_topups (id text primary key, provider text, amount_usd real,
   purchased_at text, note text);
+create table if not exists skill_status (skill text primary key, status text, note text, updated_at text);
+create table if not exists profile_snapshot (id integer primary key, data text, updated_at text);
 """
+
+# columns added after the first release; applied to older local databases on open
+LATER_COLUMNS = {"jobs": ("jd_keywords text", "ats_score integer", "tailor_requested_at text")}
+JSON_FIELDS = ("missing_keywords", "jd_keywords")
 
 
 def _now() -> str:
@@ -47,6 +53,11 @@ class LocalStore:
         self.db = sqlite3.connect(str(path))
         self.db.row_factory = sqlite3.Row
         self.db.executescript(SCHEMA)
+        for table, columns in LATER_COLUMNS.items():
+            existing = {r["name"] for r in self.db.execute(f"pragma table_info({table})")}
+            for column in columns:
+                if column.split()[0] not in existing:
+                    self.db.execute(f"alter table {table} add column {column}")
         self.out_dir = out_dir
 
     # runs -----------------------------------------------------------------
@@ -70,6 +81,7 @@ class LocalStore:
         data = dict(row)
         data["remote"] = bool(data["remote"])
         data["missing_keywords"] = json.loads(data["missing_keywords"] or "[]")
+        data["jd_keywords"] = json.loads(data["jd_keywords"]) if data.get("jd_keywords") else None
         links = self.db.execute("select * from job_links where job_id=?", (data["id"],)).fetchall()
         data["links"] = [
             JobLink(**{k: row[k] for k in ("source", "url", "url_key", "source_job_id")}) for row in links
@@ -137,8 +149,9 @@ class LocalStore:
 
     def update_job(self, job_id: str, fields: dict[str, Any]) -> None:
         fields = dict(fields)
-        if "missing_keywords" in fields:
-            fields["missing_keywords"] = json.dumps(fields["missing_keywords"])
+        for key in JSON_FIELDS:
+            if key in fields and fields[key] is not None:
+                fields[key] = json.dumps(fields[key])
         fields["updated_at"] = _now()
         sets = ",".join(f"{k}=?" for k in fields)
         self.db.execute(f"update jobs set {sets} where id=?", [*fields.values(), job_id])
@@ -277,6 +290,25 @@ class LocalStore:
             "select * from credit_topups where provider=? order by purchased_at", (provider,)
         )
         return [dict(r) for r in rows.fetchall()]
+
+    def known_skills(self) -> list[str]:
+        rows = self.db.execute("select skill from skill_status where status='known' order by skill")
+        return [r["skill"] for r in rows.fetchall()]
+
+    def set_skill_status(self, skill: str, status: str) -> None:
+        self.db.execute(
+            "insert into skill_status values (?,?,?,?) on conflict(skill) do update set status=excluded.status",
+            (skill, status, None, _now()),
+        )
+        self.db.commit()
+
+    def save_profile_snapshot(self, snapshot: dict[str, Any]) -> None:
+        self.db.execute(
+            "insert into profile_snapshot values (1,?,?) on conflict(id) do update set data=excluded.data, "
+            "updated_at=excluded.updated_at",
+            (json.dumps(snapshot), _now()),
+        )
+        self.db.commit()
 
     def add_topup(self, provider: str, amount_usd: float, purchased_at: datetime, note: str = "") -> None:
         self.db.execute(

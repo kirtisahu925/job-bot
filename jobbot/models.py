@@ -91,6 +91,8 @@ class Job(BaseModel):
     links: list[JobLink] = Field(default_factory=list)
     remote_region: str | None = None
     experience_text: str | None = None
+    jd_keywords: dict | None = None
+    ats_score: int | None = None
 
     @property
     def sources(self) -> list[str]:

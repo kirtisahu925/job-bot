@@ -39,6 +39,12 @@ class Limits(BaseModel):
     board_max_age_days: int = 30
 
 
+class AtsConfig(BaseModel):
+    target: int = 90  # keep revising (within max_rounds) until the ATS score reaches this
+    minimum: int = 80  # below this the dashboard flags the resume
+    max_rounds: int = 2  # revision calls per resume (each fixes lint issues and ATS keywords)
+
+
 class SearchConfig(BaseModel):
     candidate: dict[str, Any] = Field(default_factory=dict)
     tracks: dict[str, Track]
@@ -46,6 +52,7 @@ class SearchConfig(BaseModel):
     title_exclude: list[str]
     locations: Locations
     limits: Limits = Field(default_factory=Limits)
+    ats: AtsConfig = Field(default_factory=AtsConfig)
     sources: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
     @property
@@ -158,7 +165,22 @@ def load_profile(path: Path | None = None) -> dict[str, Any]:
     return _read_yaml(EXAMPLE_PROFILE_PATH)
 
 
+def load_dotenv(path: Path = ROOT / ".env") -> None:
+    """Minimal .env support for local runs: KEY=VALUE lines; never overrides variables already set."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key, value = key.strip().removeprefix("export ").strip(), value.strip().strip('"').strip("'")
+        if key and value and key not in os.environ:
+            os.environ[key] = value
+
+
 def load_settings(config_dir: Path = CONFIG_DIR, profile_path: Path | None = None) -> Settings:
+    load_dotenv()
     return Settings(
         search=SearchConfig.model_validate(_read_yaml(config_dir / "search.yaml")),
         pricing=PricingConfig.model_validate(_read_yaml(config_dir / "pricing.yaml")),

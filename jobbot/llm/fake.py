@@ -10,23 +10,39 @@ import json
 import re
 
 from jobbot.llm.base import LLMError, RawUsage, T
+from jobbot.profile import experience_units
 from jobbot.scoring import ScoreBatch
 from jobbot.tailor.schema import Bullet, Diagnostics, EntryRewrite, SkillRow, TailoredResume, Verification
 
 
-def resume_from_profile(profile: dict, max_projects: int = 2) -> TailoredResume:
+def skills_in(text: str) -> list[str]:
+    """Known skill names (from config/skills_synonyms.yaml) mentioned in the text, in first-mention order."""
+    from jobbot.ats.skills import _synonyms, in_text, normalize_text
+
+    norm = normalize_text(text)
+    hits = [(norm.find(" " + c.lower().split()[0]), c) for c in _synonyms()[1] if in_text(c, norm)]
+    return [c for _, c in sorted(hits)]
+
+
+def resume_from_profile(profile: dict, max_projects: int = 2, max_bullets: int = 14) -> TailoredResume:
+    """The profile's own bullets, most recent sub-projects first, within a bullet budget (roughly a page)."""
+    experience: list[EntryRewrite] = []
+    budget = max_bullets
+    for unit in experience_units(profile):
+        take = unit.bullets[: max(0, min(len(unit.bullets), budget))]
+        if not take:
+            continue
+        experience.append(
+            EntryRewrite(id=unit.id, bullets=[Bullet(text=b, impact_rank=i + 1) for i, b in enumerate(take)])
+        )
+        budget -= len(take)
     return TailoredResume(
         diagnostics=Diagnostics(
             match_score=75, missing_keywords=[], red_flags=[], strong_sections=[], weak_sections=[]
         ),
+        headline=profile.get("headline") or "",
         summary=" ".join(str(profile.get("summary", "")).split()),
-        experience=[
-            EntryRewrite(
-                id=e["id"],
-                bullets=[Bullet(text=b, impact_rank=i + 1) for i, b in enumerate(e.get("bullets") or [])],
-            )
-            for e in profile.get("experience") or []
-        ],
+        experience=experience,
         projects=[
             EntryRewrite(
                 id=p["id"],
@@ -58,6 +74,11 @@ class FakeProvider:
         if model in self.fail_models:
             raise LLMError(f"{model}: fake failure")
         usage = RawUsage(input_tokens=len(system + user) // 4, output_tokens=400, thinking_tokens=100)
+        if schema.__name__ == "ExtractedKeywords":
+            found = skills_in(user)
+            return schema.model_validate(
+                {"required_skills": found[:10], "preferred_skills": found[10:15], "degree_required": False}
+            ), usage
         payload = json.loads(user)
         if schema is ScoreBatch:
             return self._score(payload), usage  # type: ignore[return-value]
@@ -76,6 +97,7 @@ class FakeProvider:
             text = f"{job['title']} {job['description']}".lower()
             hits = [s for s in skills if re.search(rf"(?<![a-z0-9]){re.escape(s)}(?![a-z0-9])", text)]
             track = next((t for t in tracks if t in job["title"].lower()), tracks[0])
+            found = skills_in(f"{job['title']} {job['description']}")
             results.append(
                 {
                     "job_id": job["job_id"],
@@ -83,6 +105,8 @@ class FakeProvider:
                     "track": track,
                     "reason": f"{len(hits)} of your skills appear in the ad",
                     "missing_keywords": [],
+                    "required_skills": found[:10],
+                    "preferred_skills": found[10:15],
                 }
             )
         return ScoreBatch.model_validate({"results": results})

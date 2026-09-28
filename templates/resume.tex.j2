@@ -28,7 +28,8 @@
 \fontsize{((( L.font_pt )))}{((( L.baseline_pt )))}\selectfont
 
 {\centering
-{\LARGE\bfseries ((( header.name )))}\par\vspace{3pt}
+{\LARGE\bfseries ((( header.name )))}\par\vspace{2pt}
+((* if header.headline *)){\large ((( header.headline )))}\par\vspace{2pt}((* endif *))
 ((( header.line1 )))\par
 ((* if header.line2 *))((( header.line2 )))\par((* endif *))
 }
@@ -48,11 +49,14 @@
 ((* else *))
 \textbf{((( e.role )))}, ((( e.company )))((* if e.location *)), ((( e.location )))((* endif *)) \hfill ((( e.dates )))\par
 ((* endif *))
+((* for u in e.units *))
+((* if u.title *))\textbf{\textit{((( u.title )))}}\par((* endif *))
 \begin{resbullets}
-((* for b in e.bullets *))
+((* for b in u.bullets *))
   \item ((( b )))
 ((* endfor *))
 \end{resbullets}
+((* endfor *))
 ((* endfor *))
 ((* endif *))
 
@@ -88,6 +92,15 @@
 \textbf{((( ed.institution )))}((* if ed.location *)), ((( ed.location )))((* endif *)) \hfill ((( ed.dates )))\par
 ((( ed.degree )))((* if ed.score *)), ((( ed.score )))((* endif *))\par
 ((* endfor *))
+((* endif *))
+
+((* if achievements *))
+\ressection{Achievements}
+\begin{resbullets}
+((* for a in achievements *))
+  \item ((( a )))
+((* endfor *))
+\end{resbullets}
 ((* endif *))
 
 ((* if certifications *))

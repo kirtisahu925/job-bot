@@ -1,0 +1,153 @@
+# Ankit Shilarkar: master profile (single source of truth for every tailored resume).
+# Transcribed from Ankit_Shilarkar_V2-08072026.pdf. Edit freely; the next run uses it.
+#
+# Rules the tailoring follows:
+#   - The LLM may reword, reorder and choose; it may not invent facts, numbers, employers or dates.
+#   - A skill can appear on a resume only if it is listed under `skills` or `extra_vocabulary`
+#     (or marked "I know this" on the dashboard's Skills tab).
+#   - `contact` is never sent to any LLM.
+
+contact:
+  name: Ankit Shilarkar
+  email: ankitshilarkar2504@gmail.com
+  phone: "+91 9891037790"
+  location: Gurgaon, India
+  links:
+    linkedin: linkedin.com/in/ankit-shilarkar2504
+    github: github.com/ankit-shilarkar
+
+headline: Backend Software Engineer
+# Headline variants the tailor may choose from to mirror a job's title honestly.
+allowed_titles:
+  - Backend Software Engineer
+  - Software Engineer
+  - Backend Engineer
+  - Software Development Engineer
+  - Java Backend Developer
+  - Backend Developer
+years_experience: 2.4  # Apr 2024 to Sep 2026
+
+summary: >-
+  Backend Software Engineer with 2+ years of experience building scalable microservices, secure REST APIs, and
+  data pipelines in production environments. Proficient in Java, Spring Boot, and PostgreSQL, with hands-on
+  exposure to multi-tenant SaaS architecture, event-driven systems, and cloud deployments on Azure and AWS.
+  Track record of shipping end-to-end features, from DB schema design and RLS policies to API security,
+  third-party integrations, and containerized deployments.
+
+experience:
+  - id: burger-singh
+    company: Burger Singh India
+    role: Software Development Engineer
+    location: Gurgaon, India
+    start: Feb 2026
+    end: Present
+    groups:
+      - id: burger-singh/franchise
+        title: Franchise Management Platform (Full-Stack Backend + Supabase)
+        bullets:
+          - Redesigned frontend architecture of the Franchise app end-to-end; participated in complete DB schema design and post-migration data validation.
+          - Implemented Row-Level Security (RLS) policies on Supabase to enforce tenant-level data isolation across the platform.
+          - Auditing and optimizing existing RPCs; developing new Supabase RPCs for business logic encapsulation.
+          - Designing a centralized notification system to consolidate cross-feature alerts and events.
+          - Integrated a Zoho-backed ticketing system as a wrapper service within the platform.
+      - id: burger-singh/aadhaar
+        title: Aadhaar Onboarding Portal (Identity Verification Pipeline)
+        bullets:
+          - Architected and shipped an Aadhaar onboarding portal integrating Surepass DigiLocker verification API for real-time identity validation.
+          - Replaced legacy OTP system with a secure, configurable flow and implemented AES encryption for all stored Aadhaar data at rest.
+          - Actively migrating file uploads from on-premise VM storage to Azure Blob Storage for scalability and cost reduction.
+          - "Leading DB migration from MongoDB to Snowflake-managed PostgreSQL to reduce infrastructure costs (current MongoDB spend: $90/month)."
+      - id: burger-singh/serverless
+        title: Serverless Automation & Backend Infrastructure
+        bullets:
+          - Built and deployed serverless workflows using Azure Functions for data pipelines and scheduled backend jobs (offer validation, call log ingestion to Snowflake).
+          - Developed secure wrapper APIs to abstract sensitive third-party keys and enable safe external integrations.
+          - Provisioned infrastructure (VMs, Docker environments) and managed configurations across UAT and production.
+      - id: burger-singh/knowlarity
+        title: Knowlarity Mobile Middleware App (React Native)
+        bullets:
+          - Developed a mobile application acting as a middleware layer for Knowlarity's telephony platform.
+          - Implemented incoming call interception with real-time caller identification and outbound call initiation via Knowlarity APIs.
+
+  - id: netlink
+    company: Netlink America Private Limited
+    role: Associate Software Engineer
+    location: Bhopal, India
+    start: Apr 2024
+    end: Feb 2026
+    groups:
+      - id: netlink/kmi-ovie
+        title: "KMI Ovie: Insurance Insights Platform (B2B SaaS Microservices)"
+        bullets:
+          - Built and maintained backend microservices using Java and Spring Boot in a distributed microservice architecture serving multiple enterprise clients.
+          - Designed and implemented secure REST APIs with JWT authentication and role-based authorization (Spring Security).
+          - Modeled and optimized PostgreSQL schemas and complex queries, measurably improving API response times.
+          - Implemented ORM layer using Hibernate/JPA for efficient data access, transaction management, and lazy-loading optimization.
+          - Debugged production incidents using Kubernetes logs and monitoring tooling, reducing system downtime.
+          - Delivered features end-to-end in a CI/CD-enabled Agile environment with cross-functional teams (Product, QA, DevOps).
+      - id: netlink/onbase
+        title: "OnBase: Enterprise Document Management System"
+        bullets:
+          - Enhanced backend APIs using Java and Spring Boot for enterprise document workflows at scale.
+          - Implemented audit logging and compliance features for tracking document access and changes.
+          - Optimized slow SQL queries, improving response time and system stability.
+          - Refactored legacy backend code, reducing technical debt and improving long-term maintainability.
+          - Managed feature branches, PR reviews, and deployments using Git/GitLab workflows.
+
+projects:
+  - id: url-shortener
+    name: URL Shortener Service
+    tech: [Java, Spring Boot, PostgreSQL]
+    bullets:
+      - Designed and built a scalable URL shortening service with REST APIs, persistent PostgreSQL storage, and efficient unique ID generation with redirection handling.
+  - id: chat-app
+    name: Real-Time Chat Application
+    tech: [Java, WebSockets]
+    bullets:
+      - Developed a real-time bidirectional chat system using WebSockets with message broadcasting and concurrent user handling.
+
+skills:
+  Languages: [Java, Python, SQL, JavaScript, TypeScript]
+  Backend: [Spring Boot, Spring Framework, Spring Security, REST APIs, Microservices, Hibernate/JPA, WebSockets]
+  Databases: [PostgreSQL, "Supabase (RLS, RPC)", MySQL, MongoDB, Snowflake]
+  Security: [JWT, OAuth2, Role-Based Authorization, Data Encryption, API Key Management]
+  Cloud & DevOps: ["Azure (Functions, Blob Storage, VM)", Docker, Kubernetes, CI/CD Pipelines, GitLab, GitHub Actions]
+  Tools: [Git, Postman, DBeaver, Linux]
+  Concepts:
+    - Microservices Architecture
+    - Multi-tenant SaaS
+    - Event-Driven Design
+    - Data Structures
+    - OOP
+    - System Design
+    - API Design
+    - Database Optimization
+
+# Other terms your resume already evidences (in bullets or summary), allowed on tailored resumes.
+extra_vocabulary:
+  - AWS
+  - React Native
+  - AES Encryption
+  - Row-Level Security
+  - Data Pipelines
+  - Serverless
+  - Agile
+  - Zoho
+  - DigiLocker
+  - Containerization
+  - Distributed Systems
+  - Audit Logging
+
+education:
+  - institution: SISTec Gandhinagar
+    degree: Bachelor of Technology, Computer Science and Engineering
+    location: Bhopal
+    start: "2020"
+    end: "2024"
+    score: "CGPA: 9.03"
+
+achievements:
+  - Solved 200+ DSA problems on LeetCode and GeeksforGeeks.
+  - Built and maintained backend-focused projects on GitHub demonstrating API design, microservices, and system design principles.
+
+certifications: []

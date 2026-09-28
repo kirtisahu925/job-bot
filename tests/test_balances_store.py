@@ -97,7 +97,7 @@ def test_supabase_upsert_splits_known_and_new():
         apply_url="u",
         links=[JobLink(source="indeed", url="https://in.indeed.com/viewjob?jk=9", url_key="indeed:9")],
     )
-    store = SupabaseStore(base, "service-key", httpx.Client())
+    store = SupabaseStore(base, "eyJservice-key", httpx.Client())
     new, known_count = store.upsert_jobs("run-1", [known, fresh])
     assert known_count == 1 and [j.id for j in new] == ["new-1"]
     body = json.loads(inserted.calls[0].request.content)
@@ -107,4 +107,9 @@ def test_supabase_upsert_splits_known_and_new():
         ("existing-1", "naukri:123456"),
         ("new-1", "indeed:9"),
     }
-    assert inserted.calls[0].request.headers["authorization"] == "Bearer service-key"
+    assert inserted.calls[0].request.headers["authorization"] == "Bearer eyJservice-key"
+
+
+def test_supabase_new_secret_key_goes_in_apikey_only():
+    store = SupabaseStore("https://x.supabase.co", "sb_secret_abc")
+    assert store.headers == {"apikey": "sb_secret_abc"}

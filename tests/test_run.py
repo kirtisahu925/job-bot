@@ -23,7 +23,7 @@ def _run(settings, store, provider, **opts):
 
 def test_end_to_end_offline(settings, tmp_path):
     store = LocalStore(tmp_path / "db.sqlite", out_dir=tmp_path)
-    summary = _run(settings, store, FakeProvider())
+    summary = _run(settings, store, FakeProvider(), max_tailor=4)
     assert summary["fetched"] == 10 and summary["unique"] == 9
     assert summary["kept"] == 4 and summary["new_jobs"] == 4
     assert summary["dropped"] == {"title": 2, "location": 2, "experience": 1}

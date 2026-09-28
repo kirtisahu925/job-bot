@@ -156,6 +156,24 @@ def scan(
         )
 
 
+def print_ats(ats) -> None:
+    """Human-readable ATS breakdown for the terminal."""
+    if ats is None:
+        typer.echo("ATS: not scored (no JD keywords)")
+        return
+    verdict = "on target" if ats.score >= ats.target else "below target"
+    typer.echo(
+        f"ATS score {ats.score}/100 ({verdict}; target {ats.target}, best honest score {ats.max_achievable})"
+    )
+    for name, part in ats.breakdown.items():
+        typer.echo(f"  {name:<11} {part['points']:>5} / {part['max']:<3} {part['note']}")
+    typer.echo(f"  matched: {', '.join(ats.matched_required + ats.matched_preferred) or '-'}")
+    if ats.missing_fixable:
+        typer.echo(f"  missing but in your profile: {', '.join(ats.missing_fixable)}")
+    if ats.missing_gaps:
+        typer.echo(f"  gaps (skills to learn): {', '.join(ats.missing_gaps)}")
+
+
 @app.command()
 def tailor(
     jd_file: Path = typer.Argument(..., help="text file with the job description"),
@@ -165,9 +183,11 @@ def tailor(
     out: Path = typer.Option(ROOT / "out" / "manual"),
     allow_example_profile: bool = typer.Option(False),
 ):
-    """Tailor a resume for one pasted job description, without touching any job database."""
+    """Tailor a resume for one pasted job description and print its ATS score. Nothing is saved to a database."""
+    from jobbot.ats.keywords import extract_keywords
     from jobbot.llm.ledger import Ledger
     from jobbot.models import Job
+    from jobbot.pipeline.filters import min_years_required
     from jobbot.report import _money
     from jobbot.store.local_store import LocalStore
     from jobbot.tailor.compile import find_engine
@@ -180,21 +200,31 @@ def tailor(
         raise typer.BadParameter("profile is still the example; fill it in or pass --allow-example-profile")
     store = LocalStore()
     ledger = Ledger(provider, settings.pricing, store)
+    description = jd_file.read_text(encoding="utf-8")
     job = Job(
         id="manual",
         fingerprint="manual",
         title=title,
         company=company,
         apply_url="",
-        description=jd_file.read_text(encoding="utf-8"),
+        description=description,
+        min_years=min_years_required(description),
     )
-    models = (
-        [settings.pricing.llm.anthropic_tailor_model]
-        if provider.name == "anthropic"
-        else settings.pricing.llm.tailor_models
-    )
+    llm_cfg = settings.pricing.llm
+    anthropic = provider.name == "anthropic"
+    score_models = [llm_cfg.anthropic_score_model] if anthropic else llm_cfg.score_models
+    tailor_models = [llm_cfg.anthropic_tailor_model] if anthropic else llm_cfg.tailor_models
+    jd = extract_keywords(job, ledger, score_models)
+    ats_cfg = settings.search.ats
     outcome = tailor_job(
-        job, settings.profile, ledger, models, find_engine(), settings.search.limits.max_revisions
+        job,
+        settings.profile,
+        ledger,
+        tailor_models,
+        find_engine(),
+        ats_cfg.max_rounds,
+        jd=jd,
+        target=ats_cfg.target,
     )
     out.mkdir(parents=True, exist_ok=True)
     (out / "resume.tex").write_text(outcome.tex, encoding="utf-8")
@@ -202,8 +232,10 @@ def tailor(
         (out / "resume.pdf").write_bytes(outcome.pdf)
     (out / "tailoring.json").write_text(json.dumps(outcome.record(), indent=2, default=str))
     d = outcome.resume.diagnostics
-    typer.echo(f"Match score {d.match_score}/100. Missing keywords: {', '.join(d.missing_keywords) or '-'}")
-    typer.echo(f"Red flags: {'; '.join(d.red_flags) or '-'}")
+    typer.echo(f"Base-profile match {d.match_score}/100. Red flags: {'; '.join(d.red_flags) or '-'}")
+    print_ats(outcome.ats)
+    if outcome.ats_rounds:
+        typer.echo(f"ATS by round: {' -> '.join(str(x) for x in outcome.ats_rounds)}")
     typer.echo(
         f"Status {outcome.status}, pages {outcome.pages}, fill {outcome.fill_ratio}, revisions {outcome.revisions}"
     )
@@ -214,6 +246,39 @@ def tailor(
         f"Tokens: {t['input_tokens']:,} in / {t['output_tokens']:,} out / {t['thinking_tokens']:,} thinking, "
         f"cost {_money(t['cost_usd'])}. Files in {out}"
     )
+
+
+@app.command("tailor-queued")
+def tailor_queued_cmd(
+    job_id: list[str] = typer.Option(None, "--job-id", help="job id(s); omit to tailor every queued job"),
+    store: str = typer.Option("supabase", help="supabase | local"),
+    llm: str = typer.Option("", help="gemini | anthropic | fake"),
+    limit: int = typer.Option(3, help="max queued jobs when no --job-id is given"),
+    out: Path = typer.Option(ROOT / "out"),
+    verbose: bool = typer.Option(False, "-v"),
+):
+    """Tailor now: used by the dashboard/extension button through the tailor.yml workflow."""
+    from jobbot.run import tailor_queued
+
+    _setup_logging(verbose)
+    settings = load_settings()
+    out.mkdir(parents=True, exist_ok=True)
+    st = _store(store, out, settings)
+    with make_client() as client:
+        summary = tailor_queued(settings, st, _provider(llm, settings), client, job_id or None, limit)
+    text = markdown(summary, settings.pricing.fx_usd_inr)
+    typer.echo(text)
+    for item in summary.get("ats", []):
+        typer.echo(
+            f"ATS {item['score']} (best honest {item['max_achievable']}): {item['title']} at {item['company']}"
+        )
+    (out / "last_run.json").write_text(json.dumps(summary, indent=2, default=str))
+    step_summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if step_summary:
+        with open(step_summary, "a", encoding="utf-8") as fh:
+            fh.write(text)
+    if summary.get("errors") and not summary.get("tailored"):
+        raise typer.Exit(code=1)
 
 
 @app.command()

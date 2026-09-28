@@ -15,8 +15,7 @@ data/
 *.db
 *.sqlite
 
-# Real personal data never goes in git
-profile/master_profile.yaml
+# Secrets never go in git (the profile lives in this private repo on purpose)
 .env
 .env.*
 !.env.example

@@ -113,10 +113,15 @@ locations:
 limits:
   score_top_k: 30        # new jobs sent to the LLM for scoring per run
   score_batch_size: 8    # jobs per scoring request
-  tailor_per_run: 4      # tailored resumes per run (queued jobs first)
-  min_score: 70          # auto-tailor only jobs scoring at least this
-  max_revisions: 1       # LLM fix-up calls per resume after lint/compile checks
+  tailor_per_run: 1      # automatic tailored resumes per scheduled run; "Tailor now" is separate
+  min_score: 75          # auto-tailor only jobs scoring at least this
   board_max_age_days: 30 # company career boards: ignore postings older than this
+
+# ATS match score (0-100) of each tailored resume against its job description.
+ats:
+  target: 90       # revise until the score reaches this...
+  minimum: 80      # ...below this the dashboard flags it
+  max_rounds: 2    # ...using at most this many revision calls per resume (Gemini free tier: ~18 calls/day)
 
 # Each job site can be switched off, or moved to another method, without code changes.
 # method: jobspy (LinkedIn/Indeed/Naukri), native (own client), apify (paid-per-result actor)

@@ -8,6 +8,7 @@ from dataclasses import asdict, dataclass
 import jinja2
 
 from jobbot.config import TEMPLATES_DIR
+from jobbot.profile import experience_units
 from jobbot.tailor.schema import TailoredResume
 
 # An entry header longer than this (role, company, location + dates) is split over two lines.
@@ -99,26 +100,45 @@ def _dates(entry: dict) -> str:
     return str(start or end or "")
 
 
-def header(profile: dict) -> dict[str, str]:
+def header(profile: dict, headline: str = "") -> dict[str, str]:
     """Contact header from the local profile only. Commas, never pipes (Phase 3 ATS rule)."""
     c = profile.get("contact") or {}
-    line1 = ", ".join(escape(x) for x in (c.get("phone"), c.get("email"), c.get("location")) if x)
+    line1 = ", ".join(escape(x) for x in (c.get("location"), c.get("email"), c.get("phone")) if x)
     links = [escape(v) for v in (c.get("links") or {}).values() if v]
-    return {"name": escape(c.get("name", "")), "line1": line1, "line2": ", ".join(links)}
+    return {
+        "name": escape(c.get("name", "")),
+        "headline": escape(headline or profile.get("headline") or ""),
+        "line1": line1,
+        "line2": ", ".join(links),
+    }
+
+
+def achievements_of(resume: TailoredResume, profile: dict) -> list[str]:
+    """The tailored wording when the model supplied one, else the profile's own lines."""
+    return [a for a in resume.achievements if a.strip()] or list(profile.get("achievements") or [])
+
+
+def _ranked(bullets) -> list[str]:
+    return [escape(b.text) for b in sorted(bullets, key=lambda b: b.impact_rank)]
 
 
 def assemble(profile: dict, resume: TailoredResume) -> dict:
-    """Merge rewritten bullets with profile facts. Experience keeps profile (chronological) order;
-    projects keep the model's relevance order."""
+    """Merge rewritten bullets with profile facts. Roles and their sub-projects keep profile (chronological)
+    order; projects keep the model's relevance order."""
     proj_by_id = {p["id"]: p for p in profile.get("projects") or []}
     rewrites = {r.id: r for r in resume.experience}
 
     experience = []
     for entry in profile.get("experience") or []:
-        rw = rewrites.get(entry["id"])
-        if rw is None or not rw.bullets:
+        units = []
+        for unit in experience_units({"experience": [entry]}):
+            rw = rewrites.get(unit.id)
+            if rw and rw.bullets:
+                units.append(
+                    {"title": escape(unit.title) if unit.title else "", "bullets": _ranked(rw.bullets)}
+                )
+        if not units:
             continue
-        bullets = [escape(b.text) for b in sorted(rw.bullets, key=lambda b: b.impact_rank)]
         one_line = ", ".join(str(entry.get(k) or "") for k in ("role", "company", "location")) + _dates(entry)
         experience.append(
             {
@@ -126,7 +146,7 @@ def assemble(profile: dict, resume: TailoredResume) -> dict:
                 "company": escape(entry.get("company")),
                 "location": escape(entry.get("location")),
                 "dates": escape(_dates(entry)),
-                "bullets": bullets,
+                "units": units,
                 "two_line": len(one_line) > HEADER_LINE_CHARS,
             }
         )
@@ -143,7 +163,7 @@ def assemble(profile: dict, resume: TailoredResume) -> dict:
                 "name": escape(p.get("name")),
                 "tech": ", ".join(escape(t) for t in p.get("tech") or []),
                 "link": escape(p.get("link")),
-                "bullets": [escape(b.text) for b in sorted(rw.bullets, key=lambda b: b.impact_rank)],
+                "bullets": _ranked(rw.bullets),
             }
         )
 
@@ -163,12 +183,13 @@ def assemble(profile: dict, resume: TailoredResume) -> dict:
         for e in profile.get("education") or []
     ]
     return {
-        "header": header(profile),
+        "header": header(profile, resume.headline),
         "summary": escape(resume.summary),
         "experience": experience,
         "projects": projects,
         "skills": skills,
         "education": education,
+        "achievements": [escape(a) for a in achievements_of(resume, profile)],
         "certifications": [escape(c) for c in profile.get("certifications") or []],
     }
 

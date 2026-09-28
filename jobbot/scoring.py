@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from jobbot.config import SearchConfig, read_prompt
 from jobbot.llm.base import LLMError
@@ -26,6 +26,20 @@ class JobScore(BaseModel):
     track: str
     reason: str
     missing_keywords: list[str]
+    required_skills: list[str] = Field(default_factory=list)
+    preferred_skills: list[str] = Field(default_factory=list)
+    degree_required: bool = False
+
+    def jd_keywords(self) -> dict:
+        from jobbot.ats.score import JDKeywords
+
+        jd = JDKeywords(
+            required=self.required_skills,
+            preferred=self.preferred_skills,
+            degree_required=self.degree_required,
+            source="score",
+        )
+        return jd.canonicalized().model_dump()
 
 
 class ScoreBatch(BaseModel):

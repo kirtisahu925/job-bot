@@ -16,7 +16,15 @@ import pdfplumber
 
 from jobbot.tailor.latex import Layout
 
-HEADINGS = {"Summary", "Experience", "Projects", "Technical Skills", "Education", "Certifications"}
+HEADINGS = {
+    "Summary",
+    "Experience",
+    "Projects",
+    "Technical Skills",
+    "Education",
+    "Achievements",
+    "Certifications",
+}
 STUB_MIN_FILL = 0.70
 BULLET_MARKS = ("\u2022", "\u2013", "(cid:")  # bullet glyph, en-dash fallback label, unmapped glyph
 TARGET_FILL = 0.95
