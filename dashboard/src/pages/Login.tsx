@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Mark } from "../App";
 import { api } from "../lib/api";
 
 export default function Login({ onSignedIn }: { onSignedIn: () => void }) {
@@ -8,37 +9,54 @@ export default function Login({ onSignedIn }: { onSignedIn: () => void }) {
   const [busy, setBusy] = useState(false);
 
   return (
-    <div className="login card">
-      <h1>Job Tracker</h1>
-      <p className="muted">Sign in with the Supabase user you created for yourself.</p>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          setBusy(true);
-          setError(null);
-          try {
-            await api.signIn(email, password);
-            onSignedIn();
-          } catch (err) {
-            setError((err as Error).message);
-          } finally {
-            setBusy(false);
-          }
-        }}
-      >
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button className="btn primary" disabled={busy}>
-          {busy ? "Signing in…" : "Sign in"}
-        </button>
-        {error && <div className="error">{error}</div>}
-      </form>
+    <div className="login">
+      <div className="login-sheet">
+        <div className="head">
+          <Mark size={26} />
+          <div>
+            <h1 style={{ fontSize: "var(--fs-h2)" }}>Fairsheet</h1>
+            <p className="muted small">Your job tracker. Sign in with the login you created in Supabase.</p>
+          </div>
+        </div>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setBusy(true);
+            setError(null);
+            try {
+              await api.signIn(email, password);
+              onSignedIn();
+            } catch (err) {
+              setError(`${(err as Error).message}. Check the email and password, then try again.`);
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <label className="field">
+            <span>Email</span>
+            <input type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </label>
+          <label className="field">
+            <span>Password</span>
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
+          <button className="btn primary" disabled={busy} aria-busy={busy}>
+            {busy ? "Signing in…" : "Sign in"}
+          </button>
+          {error && (
+            <p className="error-text" role="alert">
+              {error}
+            </p>
+          )}
+        </form>
+      </div>
     </div>
   );
 }

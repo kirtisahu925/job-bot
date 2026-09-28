@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { PdfLink, ScoreBadge } from "../components/bits";
+import { AtsScore, MatchScore, Notice, StatusMark } from "../components/bits";
 import { STATUS_LABEL, type Job, type JobStatus } from "../lib/types";
 import { useJobs } from "../lib/useJobs";
+import { useTitle } from "../lib/useTitle";
 
-const COLUMNS: JobStatus[] = ["new", "shortlisted", "tailor_queued", "tailored", "applied", "interviewing", "offer", "rejected"];
+const BANDS: { title: string; columns: JobStatus[] }[] = [
+  { title: "Before you apply", columns: ["new", "shortlisted", "tailor_queued", "tailored"] },
+  { title: "After you apply", columns: ["applied", "interviewing", "offer", "rejected"] },
+];
 
 function Card({ job }: { job: Job }) {
   return (
@@ -14,22 +18,22 @@ function Card({ job }: { job: Job }) {
       onDragStart={(e) => e.dataTransfer.setData("text/plain", job.id)}
       aria-label={`${job.title} at ${job.company}`}
     >
-      <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
-        <Link className="title" to={`/jobs/${job.id}`}>
-          {job.title}
-        </Link>
-        <ScoreBadge score={job.llm_score} />
-      </div>
-      <div className="secondary">{job.company}</div>
-      <div className="row muted" style={{ fontSize: 12, marginTop: 4 }}>
-        {job.remote ? "Remote" : job.city ?? job.location}
-        {job.tailorings[0]?.pdf_path && <PdfLink path={job.tailorings[0].pdf_path} label="Resume" />}
+      <Link className="role-title" to={`/jobs/${job.id}`}>
+        {job.title}
+      </Link>
+      <div className="role-sub">{job.company}</div>
+      <div className="meta">
+        <span>{job.remote ? "Remote" : job.city ?? job.location}</span>
+        <span>
+          Match <MatchScore score={job.llm_score} /> · ATS <AtsScore score={job.ats_score ?? job.tailorings[0]?.ats_score} />
+        </span>
       </div>
     </div>
   );
 }
 
 export default function Board() {
+  useTitle("Board");
   const { jobs, error, setStatus } = useJobs();
   const [over, setOver] = useState<JobStatus | null>(null);
 
@@ -38,12 +42,15 @@ export default function Board() {
       <div className="page-head">
         <div>
           <h1>Board</h1>
-          <div className="muted">Drag a card to change its status. Queued jobs get a tailored resume on the next run.</div>
+          <p className="lede">Drag a card to another column to change its status, or change it on the job's page.</p>
         </div>
       </div>
-      {error && <div className="banner error">{error}</div>}
+      {error && <Notice kind="error">{error}</Notice>}
+      {BANDS.map((band) => (
+        <section key={band.title} className="section" aria-label={band.title}>
+          <h2 style={{ marginBottom: 10 }}>{band.title}</h2>
       <div className="board">
-        {COLUMNS.map((col) => {
+        {band.columns.map((col) => {
           const items = (jobs ?? [])
             .filter((j) => j.status === col)
             .sort((a, b) => (b.llm_score ?? 0) - (a.llm_score ?? 0));
@@ -65,16 +72,19 @@ export default function Board() {
               aria-label={STATUS_LABEL[col]}
             >
               <div className="column-head">
-                <span>{STATUS_LABEL[col]}</span>
-                <span className="muted num">{items.length}</span>
+                <StatusMark status={col} />
+                <span className="num">{jobs ? items.length : "…"}</span>
               </div>
               {items.map((j) => (
                 <Card key={j.id} job={j} />
               ))}
+              {jobs && items.length === 0 && <p className="muted small">Nothing here.</p>}
             </section>
           );
         })}
       </div>
+        </section>
+      ))}
     </>
   );
 }

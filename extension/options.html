@@ -2,25 +2,29 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Job Tracker settings</title>
+    <title>Fairsheet settings</title>
     <link rel="stylesheet" href="ui.css" />
     <style>
-      body { max-width: 760px; margin: 24px auto; padding: 0 16px; }
-      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
-      label { display: flex; flex-direction: column; gap: 3px; color: var(--muted); }
-      label input, label select { color: var(--fg); }
+      body { max-width: 780px; margin: 28px auto; padding: 0 16px 40px; font-size: 14px; }
+      h1 { font-size: 24px; }
+      h2 { font-size: 18px; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+      label { display: flex; flex-direction: column; gap: 4px; color: var(--ink-2); font-size: 13px; font-weight: 600; }
+      label input, label select { font-weight: 400; }
+      section { padding: 18px 0; border-bottom: 1px solid var(--rule); }
+      section p { margin-bottom: 10px; max-width: 70ch; }
     </style>
   </head>
   <body>
-    <h1>Job Tracker: profile & settings</h1>
-    <p class="muted">Stored only in this browser (chrome.storage.local). Nothing here is sent anywhere except your own
+    <header class="head"><h1>Fairsheet: profile and settings</h1></header>
+    <p class="soft" style="margin-top: 12px">Stored only in this browser (chrome.storage.local). Nothing here is sent anywhere except your own
       Supabase project when you sign in, look up a job or save one.</p>
 
-    <div class="card">
-      <h2 style="margin-top: 0">1. Connect your tracker</h2>
+    <section>
+      <h2>1. Connect your tracker</h2>
       <div class="grid">
         <label>Supabase project URL <input id="supabaseUrl" placeholder="https://xxxx.supabase.co" /></label>
-        <label>Supabase anon key <input id="anonKey" placeholder="eyJ…" /></label>
+        <label>Supabase anon or publishable key <input id="anonKey" placeholder="eyJ… or sb_publishable_…" /></label>
         <label>Email <input id="email" type="email" /></label>
         <label>Password <input id="password" type="password" /></label>
       </div>
@@ -29,34 +33,34 @@
         <button id="logout">Sign out</button>
         <span id="auth-status" class="muted"></span>
       </div>
-    </div>
+    </section>
 
-    <div class="card">
-      <h2 style="margin-top: 0">2. Your application profile</h2>
+    <section>
+      <h2>2. Your application profile</h2>
       <div class="grid" id="profile-fields"></div>
-    </div>
+    </section>
 
-    <div class="card">
-      <h2 style="margin-top: 0">3. Answers to recurring questions</h2>
-      <p class="muted">One per line: <code>keywords =&gt; answer</code>. A field whose question contains all the keywords
+    <section>
+      <h2>3. Answers to recurring questions</h2>
+      <p class="soft">One per line: <code>keywords =&gt; answer</code>. A field whose question contains all the keywords
         gets the answer. Used for yes/no radios too.</p>
       <textarea id="customAnswers" placeholder="hear about => LinkedIn
 authorized to work in India => Yes
 require sponsorship => No
 willing to work from office => Yes
 why do you want to join => I build backend services in Python and Java and your payments platform matches that work."></textarea>
-    </div>
+    </section>
 
-    <div class="card">
-      <h2 style="margin-top: 0">4. Default resume</h2>
-      <p class="muted">Attached when a job has no tailored resume yet.</p>
+    <section>
+      <h2>4. Default resume</h2>
+      <p class="soft">Attached when a job has no tailored resume yet.</p>
       <div class="row">
         <input id="resume-file" type="file" accept="application/pdf" />
         <span id="resume-name" class="muted"></span>
       </div>
-    </div>
+    </section>
 
-    <div class="row">
+    <div class="row" style="padding-top: 16px">
       <button id="save" class="primary">Save profile</button>
       <span id="save-status" class="muted"></span>
     </div>

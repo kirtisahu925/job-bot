@@ -27,7 +27,8 @@ export function amount(n: number | null | undefined, unit: string): string {
 export function ago(isoDate: string | null | undefined): string {
   if (!isoDate) return "-";
   const mins = Math.round((Date.now() - new Date(isoDate).getTime()) / 60000);
-  if (mins < 60) return `${Math.max(mins, 0)}m ago`;
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
   const hrs = Math.round(mins / 60);
   if (hrs < 48) return `${hrs}h ago`;
   return `${Math.round(hrs / 24)}d ago`;
@@ -55,9 +56,31 @@ export function providerLabel(p: string): string {
 const SOURCE_NAMES: Record<string, string> = {
   linkedin: "LinkedIn", indeed: "Indeed", naukri: "Naukri", foundit: "Foundit", wellfound: "Wellfound",
   adzuna: "Adzuna", jsearch: "JSearch", jooble: "Jooble", remotive: "Remotive", greenhouse: "Greenhouse",
-  lever: "Lever", ashby: "Ashby", extension: "Saved from browser",
+  lever: "Lever", ashby: "Ashby", extension: "Saved from browser", manual: "Added by hand",
 };
 
 export function sourceLabel(s: string): string {
   return SOURCE_NAMES[s] ?? s;
 }
+
+/** Next scheduled scan: 10:00 or 22:00 IST (04:30 / 16:30 UTC). */
+export function nextScan(now: Date = new Date()): Date {
+  const candidates = [-1, 0, 1].flatMap((d) =>
+    [4, 16].map((h) => {
+      const x = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + d, h, 30));
+      return x;
+    }),
+  );
+  return candidates.filter((c) => c > now).sort((a, b) => a.getTime() - b.getTime())[0];
+}
+
+export function istTime(d: Date | string): string {
+  return new Date(d).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+export function istDateTime(d: Date | string): string {
+  return new Date(d).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+/** How long a Tailor-now run is treated as in progress before the dashboard stops waiting. */
+export const TAILOR_WINDOW_MS = 15 * 60 * 1000;

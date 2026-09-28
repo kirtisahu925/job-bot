@@ -2,37 +2,49 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <title>Fairsheet</title>
     <link rel="stylesheet" href="ui.css" />
     <style>
-      body { width: 340px; padding: 12px; }
+      body { width: 360px; padding: 14px 16px 12px; }
     </style>
   </head>
   <body>
-    <h1>Job Tracker</h1>
-    <div id="account" class="muted">Checking sign-in…</div>
-
-    <div class="card">
-      <div class="row">
-        <button id="autofill" class="primary">Autofill this page</button>
-        <label class="row muted"><input id="with-resume" type="checkbox" checked /> attach resume</label>
+    <header class="head">
+      <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect x="2.5" y="2.5" width="27" height="27" stroke="currentColor" stroke-width="1.5" />
+        <rect x="5.5" y="5.5" width="21" height="21" stroke="currentColor" stroke-width="1" />
+        <path d="M15 20.5h11.5M15 20.5v6M20.5 20.5v6" stroke="currentColor" stroke-width="1" />
+        <path d="M8.5 11.5l2.5 2.5 5-5.5" stroke="var(--accent)" stroke-width="2" stroke-linecap="square" />
+      </svg>
+      <div>
+        <h1>Fairsheet</h1>
+        <p id="account" class="muted small">Checking sign-in…</p>
       </div>
-      <div id="fill-result" class="muted" style="margin-top: 6px"></div>
-    </div>
+    </header>
 
-    <div class="card">
-      <h2 style="margin-top: 0">This job in your tracker</h2>
+    <section class="block" aria-labelledby="job-h">
+      <h2 id="job-h">This job</h2>
       <div id="job" class="muted">Looking up this page…</div>
-      <div class="row" style="margin-top: 6px">
-        <input id="company" placeholder="or search by company" style="flex: 1" />
+      <div class="row">
+        <input id="company" placeholder="Search your tracker by company" aria-label="Company" style="flex: 1" />
         <button id="search">Find</button>
       </div>
-    </div>
+    </section>
 
-    <div class="row">
+    <section class="block" aria-labelledby="fill-h">
+      <h2 id="fill-h">Fill the application</h2>
+      <div class="row">
+        <button id="autofill" class="primary">Autofill this page</button>
+        <label class="check"><input id="with-resume" type="checkbox" checked /> Attach resume</label>
+      </div>
+      <p id="fill-result" class="soft" role="status" style="margin-top: 8px"></p>
+    </section>
+
+    <div class="row" style="padding-top: 10px">
       <button id="save">Save this job</button>
-      <button id="options">Profile & settings</button>
+      <button id="options" class="quiet">Profile and settings</button>
     </div>
-    <p class="muted">The extension fills fields and attaches your resume. You review and submit yourself.</p>
+    <p class="muted small" style="margin-top: 8px">Fairsheet fills fields and attaches your resume. You review and submit.</p>
     <script src="lib/urlkey.js"></script>
     <script src="lib/fieldmap.js"></script>
     <script src="popup.js"></script>

@@ -1,6 +1,20 @@
 // Sample data so the dashboard can be previewed (and screenshotted in CI) without a Supabase project.
 import type { Api } from "./api";
-import type { ApiUsageDay, Balance, CreditBalance, Job, JobStatus, Run, Topup, UsageDay } from "./types";
+import type {
+  ApiUsageDay,
+  AtsDetail,
+  Balance,
+  CreditBalance,
+  Job,
+  JobStatus,
+  ProfileSnapshot,
+  Run,
+  SkillDemand,
+  SkillStatus,
+  Tailoring,
+  Topup,
+  UsageDay,
+} from "./types";
 
 let seed = 7;
 function rand(): number {
@@ -9,12 +23,12 @@ function rand(): number {
 }
 const pick = <T,>(xs: readonly T[]): T => xs[Math.floor(rand() * xs.length)];
 
-const today = new Date();
+// Scans run at 10:00 and 22:00 IST (04:30 and 16:30 UTC); demo times follow that and never lie in the future.
+const now = Date.now();
 const iso = (daysAgo: number, hour = 10) => {
-  const d = new Date(today);
-  d.setDate(d.getDate() - daysAgo);
-  d.setHours(hour, 0, 0, 0);
-  return d.toISOString();
+  const d = new Date(now);
+  const t = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - daysAgo, hour === 22 ? 16 : 4, 30);
+  return new Date(t > now ? t - 86400000 : t).toISOString();
 };
 const day = (daysAgo: number) => iso(daysAgo).slice(0, 10);
 
@@ -42,15 +56,110 @@ We are hiring a backend engineer to build payment and order services.
 - Run services on Docker with CI in GitHub Actions
 Requirements: 2-4 years of experience in backend development.`;
 
+// A sample profile: what "your skills" look like on the Skills page (synthetic, not a real person).
+const PROFILE: ProfileSnapshot = {
+  headline: "Backend Software Engineer",
+  years_experience: 2.4,
+  skills: ["Java", "Spring Boot", "Hibernate", "JPA", "REST APIs", "Microservices", "PostgreSQL", "MySQL", "Docker",
+    "Kubernetes", "Azure", "Azure Functions", "Python", "JavaScript", "Node.js", "React", "Git", "CI/CD", "Linux",
+    "SQL", "JUnit", "AWS"],
+  categories: {
+    Languages: ["Java", "Python", "JavaScript", "SQL"],
+    Backend: ["Spring Boot", "Hibernate", "JPA", "REST APIs", "Microservices", "Node.js"],
+    Data: ["PostgreSQL", "MySQL"],
+    Cloud: ["Azure", "Azure Functions", "AWS", "Docker", "Kubernetes"],
+    Tools: ["Git", "CI/CD", "Linux", "JUnit", "React"],
+  },
+  updated_at: iso(0),
+};
+const HAVE = new Set(PROFILE.skills.map((x) => x.toLowerCase()));
+
+const KEYWORDS: Record<string, { required: string[]; preferred: string[] }[]> = {
+  java: [
+    { required: ["Java", "Spring Boot", "Microservices", "REST APIs", "PostgreSQL", "Kafka"], preferred: ["Redis", "AWS", "Docker"] },
+    { required: ["Java", "Spring Boot", "Hibernate", "MySQL", "REST APIs"], preferred: ["Kafka", "System Design"] },
+    { required: ["Java", "Microservices", "Kubernetes", "Kafka", "System Design"], preferred: ["gRPC", "Redis", "Terraform"] },
+  ],
+  python: [
+    { required: ["Python", "FastAPI", "PostgreSQL", "REST APIs", "Docker"], preferred: ["Celery", "Redis", "AWS"] },
+    { required: ["Python", "Django", "SQL", "REST APIs"], preferred: ["Kafka", "Kubernetes"] },
+  ],
+  fullstack: [
+    { required: ["Node.js", "React", "TypeScript", "MongoDB", "REST APIs"], preferred: ["GraphQL", "AWS", "Docker"] },
+    { required: ["Node.js", "TypeScript", "PostgreSQL", "React"], preferred: ["Next.js", "Redis"] },
+  ],
+};
+
+/** Mirrors jobbot/ats/score.py closely enough for previews. */
+function demoAts(kw: { required: string[]; preferred: string[] }, minYears: number, seedN: number, needsReview: boolean): AtsDetail {
+  const has = (x: string) => HAVE.has(x.toLowerCase());
+  const fixable = kw.required.filter(has).slice(seedN % 3 === 0 ? -1 : kw.required.length);
+  const matchedReq = kw.required.filter((x) => has(x) && !fixable.includes(x));
+  const matchedPref = kw.preferred.filter(has);
+  const gaps = [...kw.required, ...kw.preferred].filter((x) => !has(x));
+  const fixPref: string[] = [];
+  const pt = (w: number, r: number) => Math.round(w * Math.min(1, Math.max(0, r)) * 10) / 10;
+  const expRatio = Math.min(1, 2.4 / minYears);
+  const titleRatio = seedN % 2 ? 1 : 0.67;
+  const breakdown = {
+    required: { points: pt(45, matchedReq.length / kw.required.length), max: 45, note: `${matchedReq.length} of ${kw.required.length} required skills` },
+    preferred: { points: pt(15, kw.preferred.length ? matchedPref.length / kw.preferred.length : 1), max: 15, note: `${matchedPref.length} of ${kw.preferred.length} preferred skills` },
+    title: { points: pt(10, titleRatio), max: 10, note: "headline vs the job title" },
+    experience: { points: pt(10, expRatio), max: 10, note: `2.4 yrs vs ${minYears}+ asked` },
+    education: { points: 5, max: 5, note: "degree required" },
+    placement: { points: pt(5, 0.8), max: 5, note: "1 required skill only in the skills list" },
+    format: { points: needsReview ? 8.8 : 10, max: 10, note: needsReview ? "last line of a bullet too short" : "all checks pass" },
+  };
+  const reach = {
+    required: pt(45, (matchedReq.length + fixable.length) / kw.required.length),
+    preferred: pt(15, kw.preferred.length ? (matchedPref.length + fixPref.length) / kw.preferred.length : 1),
+    title: 10,
+    experience: breakdown.experience.points,
+    education: 5,
+    placement: 5,
+    format: 10,
+  };
+  const score = Math.round(Object.values(breakdown).reduce((a, p) => a + p.points, 0));
+  const best = Math.max(score, Math.round(Object.values(reach).reduce((a, p) => a + p, 0)));
+  const r0 = Math.max(40, score - 9 - (seedN % 4));
+  return {
+    score, max_achievable: best, target: 90, breakdown, reach,
+    matched_required: matchedReq, matched_preferred: matchedPref, missing_fixable: [...fixable, ...fixPref],
+    missing_gaps: gaps, skills_only: matchedReq.slice(0, 1), best_title: "Software Development Engineer",
+    rounds: seedN % 3 === 2 ? [r0, score] : [r0, score - 3, score],
+  };
+}
+
+function demoTailoring(job: Job, i: number, created: string): Tailoring {
+  const needsReview = i % 4 === 0;
+  const ats = demoAts(job.jd_keywords ?? { required: [], preferred: [] }, job.min_years ?? 2, i, needsReview);
+  return {
+    id: `t-${i}-${created}`, job_id: job.id, created_at: created, provider: "gemini", model: "gemini-flash-latest",
+    status: needsReview ? "needs_review" : "ok",
+    diagnostics: { match_score: job.llm_score ?? 70, missing_keywords: ats.missing_gaps,
+      red_flags: (job.llm_score ?? 70) < 75 ? ["Asks for 3+ years of Java in production"] : [],
+      strong_sections: ["current role: Azure Functions and REST APIs map to the platform work"],
+      weak_sections: ["previous role: front-end work is off-target"] },
+    verification: { ats_parser: `${ats.matched_required.join(", ")} extracted cleanly${ats.missing_gaps.length ? `; ${ats.missing_gaps[0]} still absent` : ""}.`,
+      hiring_manager: "Summary reads naturally; the order-service project leads the projects section." },
+    lint_issues: needsReview ? [{ code: "stub", where: "project#2", message: "The second project bullet ends in a short last line (48% full)", llm_fixable: true }] : [],
+    fixes: ats.missing_gaps.length ? [`skills: left out ${ats.missing_gaps[0]}, which your profile does not list`] : [],
+    revisions: (ats.rounds?.length ?? 1) - 1, pages: 1, fill_ratio: 0.97, tex_path: "demo/resume.tex", pdf_path: "demo/resume.pdf",
+    ats_score: ats.score, ats,
+  };
+}
+
 const jobs: Job[] = Array.from({ length: 26 }, (_, i) => {
   const [title, track] = titles[i % titles.length];
   const status = statuses[i % statuses.length];
   const score = Math.round(52 + rand() * 44);
   const company = companies[i % companies.length];
   const srcs = Array.from(new Set([pick(sources), pick(sources)]));
-  const created = iso(Math.floor(i / 3), i % 2 ? 22 : 10);
+  // a scan stores its jobs a few minutes after it starts
+  const created = new Date(Math.min(now, new Date(iso(Math.floor(i / 3), i % 2 ? 22 : 10)).getTime() + (4 + (i % 5)) * 60000)).toISOString();
   const tailored = ["tailored", "applied", "interviewing", "rejected"].includes(status);
-  return {
+  const pool = KEYWORDS[track];
+  const job: Job = {
     id: `demo-${i + 1}`,
     title,
     company,
@@ -64,7 +173,7 @@ const jobs: Job[] = Array.from({ length: 26 }, (_, i) => {
     min_years: 2 + (i % 3),
     llm_score: score,
     score_reason: score > 80 ? "Strong Java and REST overlap; experience range fits" : "Stack overlap is partial",
-    missing_keywords: score > 80 ? ["Kafka", "AWS"] : ["Kubernetes", "Kafka", "gRPC"],
+    missing_keywords: score > 80 ? ["Kafka", "Redis"] : ["Kafka", "gRPC", "System Design"],
     status,
     captured_by: i === 5 ? "extension" : "bot",
     notes: status === "interviewing" ? "Round 1 on Friday, system design." : null,
@@ -72,23 +181,54 @@ const jobs: Job[] = Array.from({ length: 26 }, (_, i) => {
     created_at: created,
     updated_at: created,
     job_links: srcs.map((s, k) => ({ source: s, url: `https://example.com/${s}/${i}`, url_key: `${s}:${i}${k}` })),
-    tailorings: tailored
-      ? [{
-          id: `t-${i}`, job_id: `demo-${i + 1}`, created_at: created, provider: "gemini", model: "gemini-flash-latest",
-          status: i % 4 === 0 ? "needs_review" : "ok",
-          diagnostics: { match_score: score, missing_keywords: ["Kafka", "AWS", "gRPC", "Kubernetes", "Terraform"],
-            red_flags: score < 75 ? ["Asks for 3+ years of Java in production"] : [],
-            strong_sections: ["current: Azure Functions and REST APIs map to the platform work"],
-            weak_sections: ["previous: front-end work is off-target"] },
-          verification: { ats_parser: "Java, Spring Boot, REST, PostgreSQL extracted cleanly; Kafka still absent.",
-            hiring_manager: "Summary reads naturally; order-service project leads the projects section." },
-          lint_issues: i % 4 === 0 ? [{ code: "stub", where: "project:jobbot#2", message: "project:jobbot#2 ends in a short last line (48% full)", llm_fixable: true }] : [],
-          fixes: ["skills: removed items not in your profile vocabulary ['Kafka']"],
-          revisions: 1, pages: 1, fill_ratio: 0.97, tex_path: "demo/resume.tex", pdf_path: "demo/resume.pdf",
-        }]
-      : [],
+    jd_keywords: pool[i % pool.length],
+    ats_score: null,
+    tailor_requested_at: null,
+    tailorings: [],
   };
+  if (tailored) {
+    job.tailorings = [demoTailoring(job, i, created)];
+    job.ats_score = job.tailorings[0].ats_score;
+  }
+  return job;
 });
+
+let skillRows: SkillStatus[] = [
+  { skill: "Kafka", status: "learning", note: null, updated_at: iso(2) },
+  { skill: "Terraform", status: "ignore", note: null, updated_at: iso(5) },
+];
+
+function demand(): SkillDemand[] {
+  const m = new Map<string, SkillDemand & { scores: number[] }>();
+  for (const j of jobs) {
+    if (!j.jd_keywords || j.status === "archived") continue;
+    for (const [kind, list] of [["required", j.jd_keywords.required], ["preferred", j.jd_keywords.preferred]] as const) {
+      for (const skill of list) {
+        const key = skill.toLowerCase();
+        const e = m.get(key) ?? { skill_key: key, skill, required_by: 0, preferred_by: 0, jobs: 0, avg_job_score: null,
+          tracks: [], example_job_ids: [], scores: [] };
+        if (kind === "required") e.required_by += 1;
+        else e.preferred_by += 1;
+        if (!e.example_job_ids.includes(j.id)) {
+          e.jobs += 1;
+          e.example_job_ids.push(j.id);
+          e.scores.push(j.llm_score ?? 0);
+        }
+        if (j.track && !e.tracks.includes(j.track)) e.tracks.push(j.track);
+        m.set(key, e);
+      }
+    }
+  }
+  return [...m.values()].map(({ scores, ...e }) => ({
+    ...e,
+    avg_job_score: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+    example_job_ids: e.example_job_ids
+      .map((id) => jobs.find((j) => j.id === id)!)
+      .sort((a, b) => (b.llm_score ?? 0) - (a.llm_score ?? 0))
+      .slice(0, 5)
+      .map((j) => j.id),
+  }));
+}
 
 function usage(): UsageDay[] {
   const rows: UsageDay[] = [];
@@ -138,7 +278,7 @@ let topupRows: Topup[] = [
   { id: "tp-1", provider: "anthropic", amount_usd: 10, purchased_at: iso(12), note: "first top-up (demo)" },
 ];
 
-const runsData: Run[] = Array.from({ length: 14 }, (_, i) => {
+const runsData: Run[] = Array.from({ length: 14 }, (_, i): Run => {
   const blocked = i % 5 === 0;
   const srcs = ["linkedin", "indeed", "naukri", "foundit", "wellfound", "adzuna", "jsearch", "remotive"].map((s) => ({
     source: s,
@@ -162,7 +302,7 @@ const runsData: Run[] = Array.from({ length: 14 }, (_, i) => {
     summary: { sources: srcs, errors: [], kept: Math.round(fetched * 0.3),
       llm: { requests: 12, input_tokens: 70100, output_tokens: 19800, thinking_tokens: 7300, cost_usd: 0 } },
   };
-});
+}).sort((a, b) => b.started_at.localeCompare(a.started_at));
 
 const wait = () => new Promise((r) => setTimeout(r, 60));
 
@@ -179,7 +319,8 @@ export const demoApi: Api = {
   },
   async getJob(id) {
     await wait();
-    return jobs.find((j) => j.id === id) ?? null;
+    const j = jobs.find((x) => x.id === id);
+    return j ? { ...j } : null;
   },
   async updateJob(id, patch) {
     const j = jobs.find((x) => x.id === id);
@@ -212,5 +353,55 @@ export const demoApi: Api = {
   },
   async runs(limit) {
     return runsData.slice(0, limit);
+  },
+  async tailorNow(jobId) {
+    const j = jobs.find((x) => x.id === jobId);
+    if (!j) throw new Error("Job not found");
+    if (j.tailor_requested_at && Date.now() - new Date(j.tailor_requested_at).getTime() < 120000)
+      return "Already tailoring this job; it will be ready in a few minutes.";
+    j.status = "tailor_queued";
+    j.tailor_requested_at = new Date().toISOString();
+    const i = Number(jobId.replace(/\D/g, "")) || 1;
+    // the demo "workflow" finishes in about 8 seconds instead of 3 minutes
+    setTimeout(() => {
+      const t = demoTailoring(j, i + 1, new Date().toISOString());
+      j.tailorings = [t, ...j.tailorings];
+      j.ats_score = t.ats_score;
+      j.status = "tailored";
+    }, 8000);
+    return `Tailoring "${j.title}". Demo mode: the resume appears in a few seconds.`;
+  },
+  async addManualJob(m) {
+    const id = `demo-${jobs.length + 1}`;
+    const text = `${m.title} ${m.description}`.toLowerCase();
+    const vocab = [...new Set(Object.values(KEYWORDS).flatMap((l) => l.flatMap((k) => [...k.required, ...k.preferred])))];
+    const found = vocab.filter((v) => text.includes(v.toLowerCase()));
+    const now = new Date().toISOString();
+    const job: Job = {
+      id, title: m.title, company: m.company, location: m.location || null, city: null, remote: /remote/i.test(m.location),
+      apply_url: m.url || null, description: m.description, posted_at: now, track: null, min_years: null, llm_score: null,
+      score_reason: null, missing_keywords: [], status: m.tailor ? "tailor_queued" : "new", captured_by: "manual",
+      notes: null, applied_at: null, created_at: now, updated_at: now,
+      jd_keywords: { required: found.slice(0, 6), preferred: found.slice(6, 9) }, ats_score: null, tailor_requested_at: null,
+      job_links: [{ source: "manual", url: m.url || "", url_key: `manual:${id}` }], tailorings: [],
+    };
+    jobs.unshift(job);
+    return id;
+  },
+  async skillDemand() {
+    return demand().sort((a, b) => b.required_by - a.required_by || b.jobs - a.jobs);
+  },
+  async jobsWithKeywords() {
+    return jobs.filter((j) => j.jd_keywords && j.status !== "archived").length;
+  },
+  async profileSnapshot() {
+    return PROFILE;
+  },
+  async skillStatuses() {
+    return skillRows;
+  },
+  async setSkillStatus(skill, status) {
+    skillRows = skillRows.filter((r) => r.skill !== skill);
+    if (status) skillRows.push({ skill, status, note: null, updated_at: new Date().toISOString() });
   },
 };

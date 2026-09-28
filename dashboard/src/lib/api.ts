@@ -1,6 +1,21 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { demoApi } from "./demo";
-import type { ApiUsageDay, Balance, CreditBalance, Job, JobStatus, Run, Tailoring, Topup, UsageDay } from "./types";
+import type {
+  ApiUsageDay,
+  Balance,
+  CreditBalance,
+  Job,
+  JobStatus,
+  ManualJob,
+  ProfileSnapshot,
+  Run,
+  SkillChoice,
+  SkillDemand,
+  SkillStatus,
+  Tailoring,
+  Topup,
+  UsageDay,
+} from "./types";
 
 export interface Api {
   demo: boolean;
@@ -19,12 +34,21 @@ export interface Api {
   addTopup(t: Omit<Topup, "id">): Promise<void>;
   deleteTopup(id: string): Promise<void>;
   runs(limit: number): Promise<Run[]>;
+  /** Start the GitHub Action that tailors this job now (about 3 minutes). Resolves to a message to show. */
+  tailorNow(jobId: string): Promise<string>;
+  /** Save a job pasted by hand; returns its id. */
+  addManualJob(job: ManualJob): Promise<string>;
+  skillDemand(): Promise<SkillDemand[]>;
+  jobsWithKeywords(): Promise<number>;
+  profileSnapshot(): Promise<ProfileSnapshot | null>;
+  skillStatuses(): Promise<SkillStatus[]>;
+  setSkillStatus(skill: string, status: SkillChoice | null): Promise<void>;
 }
 
 const JOB_LIST_COLUMNS =
   "id,title,company,location,city,remote,apply_url,posted_at,track,min_years,llm_score,score_reason," +
-  "missing_keywords,status,captured_by,notes,applied_at,created_at,updated_at," +
-  "job_links(source,url,url_key),tailorings(id,job_id,created_at,status,pdf_path,tex_path,diagnostics)";
+  "missing_keywords,status,captured_by,notes,applied_at,created_at,updated_at,ats_score,tailor_requested_at," +
+  "job_links(source,url,url_key),tailorings(id,job_id,created_at,status,pdf_path,tex_path,ats_score)";
 
 function must<T>(res: { data: T | null; error: { message: string } | null }): T {
   if (res.error) throw new Error(res.error.message);
@@ -93,6 +117,56 @@ function supabaseApi(client: SupabaseClient): Api {
     },
     async runs(limit) {
       return must(await client.from("runs").select("*").order("started_at", { ascending: false }).limit(limit)) as Run[];
+    },
+    async tailorNow(jobId) {
+      const { data, error } = await client.functions.invoke("tailor-now", { body: { job_id: jobId } });
+      if (error) {
+        // FunctionsHttpError carries the function's JSON body; show its message, not "non-2xx status code"
+        const body = await (error as { context?: Response }).context?.json?.().catch(() => null);
+        throw new Error(body?.error ?? error.message);
+      }
+      return (data as { message?: string })?.message ?? "Tailoring started.";
+    },
+    async addManualJob(job) {
+      const id = must(
+        await client.rpc("capture_job", {
+          p_title: job.title,
+          p_company: job.company,
+          p_location: job.location || null,
+          p_description: job.description,
+          p_url: job.url || null,
+          p_url_key: `manual:${crypto.randomUUID()}`,
+          p_source: "manual",
+          p_queue: job.tailor,
+        }),
+      ) as string;
+      return id;
+    },
+    async skillDemand() {
+      return must(
+        await client.from("skill_demand").select("*").order("required_by", { ascending: false }).limit(500),
+      ) as SkillDemand[];
+    },
+    async jobsWithKeywords() {
+      const row = must(await client.from("skill_demand_total").select("jobs_with_keywords").maybeSingle()) as {
+        jobs_with_keywords: number;
+      } | null;
+      return row?.jobs_with_keywords ?? 0;
+    },
+    async profileSnapshot() {
+      return must(await client.from("profile_snapshot").select("*").maybeSingle()) as ProfileSnapshot | null;
+    },
+    async skillStatuses() {
+      return must(await client.from("skill_status").select("*")) as SkillStatus[];
+    },
+    async setSkillStatus(skill, status) {
+      if (status === null) must(await client.from("skill_status").delete().eq("skill", skill));
+      else
+        must(
+          await client
+            .from("skill_status")
+            .upsert({ skill, status, updated_at: new Date().toISOString() }, { onConflict: "skill" }),
+        );
     },
   };
 }

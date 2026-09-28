@@ -50,7 +50,8 @@ async function rest(path, { method = "GET", body, prefer } = {}) {
   return data;
 }
 
-const JOB_FIELDS = "id,title,company,status,llm_score,apply_url,tailorings(id,status,pdf_path,created_at)";
+const JOB_FIELDS =
+  "id,title,company,status,llm_score,ats_score,tailor_requested_at,apply_url,tailorings(id,status,pdf_path,created_at,ats_score)";
 
 async function findJob(url, company) {
   const key = self.JobbotUrlKey.urlKey(url);
@@ -125,6 +126,18 @@ const handlers = {
   },
   async resume({ jobId }) {
     return { resume: await resumeFor(jobId) };
+  },
+  // Starts the GitHub Action that tailors this job (through the tailor-now Edge Function; about 3 minutes).
+  async tailorNow({ jobId }) {
+    const { base, anonKey } = await config();
+    const res = await fetch(`${base}/functions/v1/tailor-now`, {
+      method: "POST",
+      headers: { apikey: anonKey, Authorization: `Bearer ${await token()}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ job_id: jobId }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Tailor now failed (${res.status})`);
+    return { message: data.message || "Tailoring started." };
   },
 };
 

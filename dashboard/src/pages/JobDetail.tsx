@@ -1,16 +1,27 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { PdfLink, ScoreBadge, SourceBadges, StatusBadge } from "../components/bits";
+import { ExternalLink, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
+import AtsPanel from "../components/AtsPanel";
+import { ICON, MatchScore, Notice, PdfButton, ResumeAction, SourceTags } from "../components/bits";
 import { api } from "../lib/api";
 import { ago } from "../lib/format";
+import { tailorPhase, useTailorNow, type TailorMessage } from "../lib/tailor";
 import { STATUS_LABEL, STATUSES, type Job, type JobStatus } from "../lib/types";
+import { useTitle } from "../lib/useTitle";
 
 export default function JobDetail() {
   const { id } = useParams();
+  const location = useLocation();
+  const arrived = (location.state as { notice?: TailorMessage | null } | null)?.notice ?? null;
   const [job, setJob] = useState<Job | null | undefined>(undefined);
+  const [have, setHave] = useState<Set<string>>(new Set());
   const [notes, setNotes] = useState("");
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
+  useTitle(job?.title ?? "Job");
+
+  const onJob = useCallback((j: Job) => setJob((prev) => (prev && prev.id === j.id ? { ...prev, ...j } : prev)), []);
+  const tailor = useTailorNow(onJob);
 
   useEffect(() => {
     if (!id) return;
@@ -21,14 +32,47 @@ export default function JobDetail() {
       },
       (e: Error) => setError(e.message),
     );
+    Promise.all([api.profileSnapshot(), api.skillStatuses()]).then(
+      ([p, s]) =>
+        setHave(
+          new Set([
+            ...(p?.skills ?? []).map((x) => x.toLowerCase()),
+            ...s.filter((x) => x.status === "known").map((x) => x.skill.toLowerCase()),
+          ]),
+        ),
+      () => undefined,
+    );
   }, [id]);
 
-  if (error) return <div className="banner error">{error}</div>;
-  if (job === undefined) return <div className="muted">Loading…</div>;
-  if (job === null) return <div className="banner">Job not found. <Link to="/jobs">Back to jobs</Link></div>;
+  const { watch } = tailor;
+  const phase = job ? tailorPhase(job) : "none";
+  useEffect(() => {
+    if (job && phase === "tailoring") watch(job.id);
+  }, [job, phase, watch]);
 
-  const t = job.tailorings[0];
-  const d = t?.diagnostics;
+  const t = job?.tailorings[0];
+  const checks = useMemo(() => {
+    if (!t) return null;
+    return t.status === "ok" ? "Passed layout checks" : "Needs a look: see open issues";
+  }, [t]);
+
+  if (error) return <Notice kind="error">{error}</Notice>;
+  if (job === undefined) return <p className="muted">Loading job…</p>;
+  if (job === null)
+    return (
+      <Notice>
+        This job is not in your tracker. <Link to="/jobs">Back to jobs</Link>
+      </Notice>
+    );
+
+  // One source for "not in your profile", so the Match and ATS panels never disagree: the tailored resume's
+  // ATS gaps when there is one, else the job's extracted keywords, else the scan's list; always minus what you now list.
+  const kw = job.jd_keywords;
+  const missing = (
+    t?.ats?.missing_gaps ?? (kw ? [...kw.required, ...kw.preferred] : job.missing_keywords)
+  ).filter((k) => !have.has(k.toLowerCase()));
+  // a notice carried over from "Add a job" only matters while that run is still in flight
+  const notice = tailor.message ?? (arrived && (arrived.kind === "error" || phase === "tailoring") ? arrived : null);
   const update = async (patch: Partial<Pick<Job, "status" | "notes">>) => {
     setJob({ ...job, ...patch });
     await api.updateJob(job.id, patch);
@@ -37,20 +81,17 @@ export default function JobDetail() {
   return (
     <>
       <div className="page-head">
-        <div>
-          <div className="muted">
+        <div style={{ minWidth: 0, flex: "1 1 420px" }}>
+          <div className="crumbs">
             <Link to="/jobs">Jobs</Link> / {job.company}
           </div>
           <h1>{job.title}</h1>
-          <div className="row secondary">
-            <span>{job.company}</span>·<span>{job.remote ? "Remote" : job.location}</span>·
-            <span>found {ago(job.created_at)}</span>
-            {job.min_years != null && <span>· asks {job.min_years}+ yrs</span>}
-            {job.captured_by === "extension" && <span className="chip">saved from browser</span>}
-          </div>
+          <p className="lede">
+            {job.company} · {job.remote ? "Remote" : job.location ?? "location not given"} · found {ago(job.created_at)}
+            {job.min_years != null && ` · asks ${job.min_years}+ years`}
+          </p>
         </div>
-        <div className="row">
-          <ScoreBadge score={job.llm_score} />
+        <div className="row" style={{ justifyContent: "flex-end" }}>
           <select value={job.status} onChange={(e) => update({ status: e.target.value as JobStatus })} aria-label="Status">
             {STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -58,148 +99,171 @@ export default function JobDetail() {
               </option>
             ))}
           </select>
-          {job.apply_url && (
-            <a className="btn primary" href={job.apply_url} target="_blank" rel="noreferrer">
-              Apply ↗
-            </a>
+          {phase === "ready" ? (
+            <>
+              <button className="btn" onClick={() => tailor.start(job)} disabled={tailor.busy === job.id}>
+                <RefreshCw {...ICON} />
+                {tailor.busy === job.id ? "Starting…" : "Tailor again"}
+              </button>
+              {job.apply_url && (
+                <a className="btn primary" href={job.apply_url} target="_blank" rel="noreferrer">
+                  Apply
+                  <ExternalLink {...ICON} />
+                </a>
+              )}
+            </>
+          ) : (
+            <ResumeAction job={job} onTailor={tailor.start} busy={tailor.busy === job.id} compact={false} />
           )}
         </div>
       </div>
 
-      <div className="grid cols-2">
+      {notice && (
+        <Notice kind={notice.kind} onClose={tailor.message ? tailor.clearMessage : undefined}>
+          {notice.text}
+        </Notice>
+      )}
+
+      <div className="split">
         <div className="stack">
-          <div className="card">
-            <h2>Tailored resume</h2>
-            {!t && (
-              <div className="row">
-                <span className="muted">No resume yet.</span>
-                {job.status !== "tailor_queued" ? (
-                  <button className="btn small" onClick={() => update({ status: "tailor_queued" })}>
-                    Queue for next run
-                  </button>
-                ) : (
-                  <StatusBadge status="tailor_queued" />
-                )}
-              </div>
-            )}
-            {t && (
-              <>
-                <div className="row" style={{ marginBottom: 10 }}>
-                  <PdfLink path={t.pdf_path} label="Download PDF" />
-                  <PdfLink path={t.tex_path} label="LaTeX source" />
-                  <span className="chip">{t.status === "ok" ? "✓ passed checks" : "! needs review"}</span>
-                  <span className="muted">
-                    {t.pages ?? "?"} page · {t.fill_ratio != null ? `${Math.round(t.fill_ratio * 100)}% filled` : ""} ·{" "}
-                    {t.model} · {ago(t.created_at)}
-                  </span>
-                  <button className="btn small" onClick={() => update({ status: "tailor_queued" })}>
-                    Re-tailor
-                  </button>
-                </div>
-                {d && (
-                  <table>
-                    <tbody>
-                      <tr>
-                        <th>Match score</th>
-                        <td className="num">{d.match_score}/100</td>
-                      </tr>
-                      <tr>
-                        <th>Missing ATS keywords</th>
-                        <td>
-                          <div className="row" style={{ gap: 4 }}>
-                            {d.missing_keywords.map((k) => (
-                              <span className="chip" key={k}>
-                                {k}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <th>Red flags</th>
-                        <td>{d.red_flags.length ? d.red_flags.join("; ") : <span className="muted">none</span>}</td>
-                      </tr>
-                      <tr>
-                        <th>Strong sections</th>
-                        <td>{d.strong_sections.join("; ") || "-"}</td>
-                      </tr>
-                      <tr>
-                        <th>Weak sections</th>
-                        <td>{d.weak_sections.join("; ") || "-"}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                )}
-                {t.verification && (
-                  <>
-                    <h3 style={{ marginTop: 12 }}>Dual-persona check</h3>
-                    <p style={{ margin: "4px 0" }}>
-                      <strong>ATS parser:</strong> {t.verification.ats_parser}
-                    </p>
-                    <p style={{ margin: "4px 0" }}>
-                      <strong>Hiring manager:</strong> {t.verification.hiring_manager}
-                    </p>
-                  </>
-                )}
-                {!!t.lint_issues?.length && (
-                  <>
-                    <h3 style={{ marginTop: 12 }}>Open issues</h3>
-                    <ul style={{ margin: 0, paddingLeft: 18 }}>
-                      {t.lint_issues.map((i, n) => (
-                        <li key={n}>
-                          <span className="muted">[{i.code}]</span> {i.message}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-              </>
-            )}
-          </div>
-          <div className="card">
-            <h2>Notes</h2>
+          <AtsPanel job={job} have={have} onTailor={tailor.start} busy={tailor.busy === job.id} />
+
+          <section className="panel panel-pad" aria-labelledby="notes-h">
+            <h2 id="notes-h" style={{ marginBottom: 10 }}>
+              Notes
+            </h2>
+            <label className="visually-hidden" htmlFor="notes">
+              Notes
+            </label>
             <textarea
+              id="notes"
               value={notes}
               onChange={(e) => {
                 setNotes(e.target.value);
-                setSaved(false);
+                setSaved("idle");
               }}
-              placeholder="Referrals, recruiter name, interview dates…"
+              placeholder="Referral, recruiter name, interview dates"
             />
             <div className="row" style={{ marginTop: 8 }}>
               <button
                 className="btn small"
+                disabled={saved === "saving" || notes === (job.notes ?? "")}
                 onClick={async () => {
+                  setSaved("saving");
                   await update({ notes });
-                  setSaved(true);
+                  setSaved("saved");
                 }}
               >
-                Save notes
+                {saved === "saving" ? "Saving…" : "Save notes"}
               </button>
-              {saved && <span className="muted">Saved</span>}
+              {saved === "saved" && <span className="muted small">Saved</span>}
             </div>
-          </div>
+          </section>
         </div>
+
         <div className="stack">
-          <div className="card">
-            <h2>Posted on</h2>
-            <SourceBadges links={job.job_links} />
-            {job.score_reason && <p className="secondary">{job.score_reason}</p>}
-            {!!job.missing_keywords.length && (
-              <div className="row" style={{ gap: 4 }}>
-                <span className="muted">Scoring gaps:</span>
-                {job.missing_keywords.map((k) => (
-                  <span className="chip" key={k}>
-                    {k}
-                  </span>
-                ))}
+          <section className="panel panel-pad" aria-labelledby="match-h">
+            <div className="section-head">
+              <h2 id="match-h">Match</h2>
+              <span>
+                <MatchScore score={job.llm_score} /> <span className="muted">/ 100</span>
+              </span>
+            </div>
+            {job.score_reason ? <p className="soft">{job.score_reason}</p> : <p className="muted">Not scored yet.</p>}
+            {missing.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <h3 className="small soft" style={{ marginBottom: 6 }}>
+                  Asked for, not in your profile
+                </h3>
+                <div className="tags">
+                  {missing.map((k) => (
+                    <span className="tag hidden-line" key={k}>
+                      {k}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
-          </div>
-          <div className="card">
-            <h2>Job description</h2>
-            <div style={{ whiteSpace: "pre-wrap", maxHeight: 520, overflow: "auto" }}>{job.description}</div>
-          </div>
+            <div style={{ marginTop: 14 }}>
+              <h3 className="small soft" style={{ marginBottom: 6 }}>
+                Posted on
+              </h3>
+              <SourceTags links={job.job_links} />
+            </div>
+          </section>
+
+          {t && (
+            <section className="panel panel-pad" aria-labelledby="resume-h">
+              <div className="section-head">
+                <h2 id="resume-h">Tailored resume</h2>
+                <span className="muted small">
+                  {t.model ?? "model"} · {ago(t.created_at)}
+                </span>
+              </div>
+              <div className="row" style={{ marginBottom: 14 }}>
+                <PdfButton path={t.pdf_path} label="Open PDF" small={false} />
+                <PdfButton path={t.tex_path} label="LaTeX source" small={false} />
+              </div>
+              <dl className="ledger">
+                <div>
+                  <dt>Checks</dt>
+                  <dd className={t.status === "ok" ? "good" : "warn"}>{checks}</dd>
+                </div>
+                <div>
+                  <dt>Length</dt>
+                  <dd>
+                    {t.pages ?? "?"} page{t.pages === 1 ? "" : "s"}
+                    {t.fill_ratio != null && <span className="small">{Math.round(t.fill_ratio * 100)}% of the page filled</span>}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Revisions</dt>
+                  <dd>{t.revisions ?? 0}</dd>
+                </div>
+              </dl>
+              {t.verification && (
+                <div style={{ marginTop: 16 }} className="stack">
+                  <div>
+                    <h3 className="small soft">Read as an ATS parser</h3>
+                    <p style={{ marginTop: 4 }}>{t.verification.ats_parser}</p>
+                  </div>
+                  <div>
+                    <h3 className="small soft">Read as a hiring manager</h3>
+                    <p style={{ marginTop: 4 }}>{t.verification.hiring_manager}</p>
+                  </div>
+                </div>
+              )}
+              {!!t.lint_issues?.length && (
+                <div style={{ marginTop: 16 }}>
+                  <h3 className="small soft">Open issues</h3>
+                  <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+                    {t.lint_issues.map((i, n) => (
+                      <li key={n}>{i.message}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {!!t.fixes?.length && (
+                <div style={{ marginTop: 16 }}>
+                  <h3 className="small soft">Corrections the bot made</h3>
+                  <ul style={{ margin: "6px 0 0", paddingLeft: 18 }} className="soft">
+                    {t.fixes.map((f, n) => (
+                      <li key={n}>{f}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </section>
+          )}
+
+          <section className="panel panel-pad" aria-labelledby="jd-h">
+            <h2 id="jd-h" style={{ marginBottom: 10 }}>
+              Job description
+            </h2>
+            <div style={{ whiteSpace: "pre-wrap", maxHeight: 640, overflow: "auto", maxWidth: "72ch" }} className="soft">
+              {job.description || "No description saved for this job."}
+            </div>
+          </section>
         </div>
       </div>
     </>

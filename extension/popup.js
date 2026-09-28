@@ -13,37 +13,96 @@ function el(tag, props = {}, ...children) {
   return node;
 }
 
+const TAILOR_WINDOW_MS = 15 * 60 * 1000;
+const STATUS_LABEL = {
+  new: "New", shortlisted: "Shortlisted", tailor_queued: "Queued for resume", tailored: "Resume ready",
+  applied: "Applied", interviewing: "Interviewing", offer: "Offer", rejected: "Rejected", skipped: "Skipped",
+  archived: "Archived",
+};
+
+function latestTailoring(job) {
+  return [...(job.tailorings || [])].sort((a, b) => b.created_at.localeCompare(a.created_at))[0] || null;
+}
+
+function isTailoring(job) {
+  const requested = job.tailor_requested_at ? Date.parse(job.tailor_requested_at) : 0;
+  const latest = latestTailoring(job);
+  return requested > (latest ? Date.parse(latest.created_at) : 0) && Date.now() - requested < TAILOR_WINDOW_MS;
+}
+
+function minutesAgo(iso) {
+  const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
+  return m < 1 ? "just now" : `${m}m ago`;
+}
+
+function atsText(score) {
+  if (score == null) return el("span", { className: "muted", textContent: "–" });
+  const cls = score >= 90 ? "ok" : score >= 80 ? "" : "bad";
+  return el("strong", { className: `num ${cls}`, textContent: String(score), title: score >= 80 ? "ATS 80 or more" : "ATS below the 80 minimum" });
+}
+
 function renderJobs(result) {
   const box = $("job");
   box.replaceChildren();
   selectedJob = null;
   if (!result?.ok) {
-    box.append(el("span", { className: "bad", textContent: result?.error || "Lookup failed" }));
+    box.append(el("p", { className: "bad", textContent: result?.error || "Lookup failed" }));
     return;
   }
   if (!result.jobs.length) {
-    box.append("Not in your tracker yet. Use “Save this job” or search by company.");
+    box.append(el("p", { className: "soft", style: "margin-bottom:8px", textContent: "Not in your tracker yet. Save it below, or search by company." }));
     return;
   }
   for (const job of result.jobs) {
-    const hasPdf = (job.tailorings || []).some((t) => t.pdf_path);
+    const latest = latestTailoring(job);
+    const hasPdf = !!latest?.pdf_path;
     const radio = el("input", { type: "radio", name: "job", value: job.id, checked: result.jobs.length === 1 });
     radio.addEventListener("change", () => (selectedJob = job));
     if (radio.checked) selectedJob = job;
-    const applied = el("button", { textContent: job.status === "applied" ? "Applied ✓" : "Mark applied", disabled: job.status === "applied" });
+
+    const applied = el("button", { textContent: job.status === "applied" ? "Applied" : "Mark applied", disabled: job.status === "applied" });
     applied.addEventListener("click", async () => {
       const r = await send({ type: "markApplied", jobId: job.id });
-      applied.textContent = r.ok ? "Applied ✓" : r.error;
+      applied.textContent = r.ok ? "Applied" : r.error;
       applied.disabled = r.ok;
     });
+
+    const resumeLine = el("span");
+    const tailor = el("button", { className: "act", textContent: hasPdf ? "Tailor again" : "Tailor now" });
+    const showTailoring = (since) => {
+      resumeLine.replaceChildren(el("span", { className: "working", textContent: `Tailoring, started ${minutesAgo(since)}` }),
+        " · about 3 minutes; reopen this popup to attach it.");
+      tailor.disabled = true;
+    };
+    if (isTailoring(job)) showTailoring(job.tailor_requested_at);
+    else resumeLine.append(hasPdf ? el("span", { className: "ok", textContent: "Tailored resume ready" }) : el("span", { className: "soft", textContent: "No tailored resume yet; your default resume is attached instead." }));
+    tailor.addEventListener("click", async () => {
+      tailor.disabled = true;
+      tailor.textContent = "Starting…";
+      const r = await send({ type: "tailorNow", jobId: job.id });
+      if (r.ok) {
+        showTailoring(new Date().toISOString());
+        tailor.textContent = hasPdf ? "Tailor again" : "Tailor now";
+      } else {
+        resumeLine.replaceChildren(el("span", { className: "bad", textContent: r.error }));
+        tailor.disabled = false;
+        tailor.textContent = hasPdf ? "Tailor again" : "Tailor now";
+      }
+    });
+
     box.append(
       el(
         "div",
-        { className: "stack", style: "margin-bottom:8px" },
-        el("label", { className: "row" }, radio, el("strong", { textContent: job.title })),
-        el("span", { className: "muted", textContent: `${job.company} · score ${job.llm_score ?? "–"} · ${job.status.replace("_", " ")}` }),
-        el("span", { className: hasPdf ? "ok" : "muted", textContent: hasPdf ? "Tailored resume ready" : "No tailored resume yet (your default resume will be used)" }),
-        el("div", { className: "row" }, applied),
+        { className: "job stack" },
+        el("label", { className: "row", style: "gap:8px;align-items:flex-start" }, radio, el("strong", { textContent: job.title })),
+        el("span", { className: "soft", textContent: job.company }),
+        el("span", { className: "row", style: "gap:10px" },
+          el("span", { className: "row", style: "gap:6px" }, el("span", { className: `mark ${job.status}`, ariaHidden: "true" }), STATUS_LABEL[job.status] || job.status),
+          el("span", {}, "Match ", el("strong", { className: "num", textContent: String(job.llm_score ?? "–") })),
+          el("span", {}, "ATS ", atsText(job.ats_score ?? latest?.ats_score ?? null)),
+        ),
+        resumeLine,
+        el("div", { className: "row", style: "margin-top:4px" }, tailor, applied),
       ),
     );
   }
@@ -51,8 +110,8 @@ function renderJobs(result) {
 
 async function init() {
   const status = await send({ type: "status" });
-  if (!status?.configured) $("account").textContent = "Not connected to Supabase yet. Open Profile & settings.";
-  else if (!status.email) $("account").textContent = "Not signed in. Open Profile & settings.";
+  if (!status?.configured) $("account").textContent = "Not connected to Supabase yet. Open Profile and settings.";
+  else if (!status.email) $("account").textContent = "Not signed in. Open Profile and settings.";
   else $("account").textContent = `Signed in as ${status.email}`;
 
   const tab = await activeTab();
@@ -81,7 +140,7 @@ $("save").addEventListener("click", async () => {
     return;
   }
   const r = await send({ type: "captureJob", job: { ...job, url: tab.url, url_key: urlKey(tab.url), source: sourceOf(tab.url) } });
-  $("fill-result").textContent = r.ok ? `Saved “${job.title}”. Resume will be tailored at the next run.` : r.error;
+  $("fill-result").textContent = r.ok ? `Saved “${job.title}”. Press Tailor now for a resume in about 3 minutes.` : r.error;
   if (r.ok) renderJobs(await send({ type: "findJob", url: tab.url }));
 });
 

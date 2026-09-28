@@ -83,6 +83,7 @@ class AtsResult(BaseModel):
     max_achievable: int
     target: int = 90
     breakdown: dict[str, dict] = Field(default_factory=dict)  # part -> {points, max, note}
+    reach: dict[str, float] = Field(default_factory=dict)  # part -> points the best honest resume gets
     matched_required: list[str] = Field(default_factory=list)
     matched_preferred: list[str] = Field(default_factory=list)
     missing_fixable: list[str] = Field(default_factory=list)  # your profile has it; the resume doesn't say it
@@ -219,6 +220,7 @@ def compute(
         max_achievable=max_achievable,
         target=target,
         breakdown=breakdown,
+        reach={k: max(v["points"], breakdown[k]["points"]) for k, v in ideal.items()},
         matched_required=matched_req,
         matched_preferred=matched_pref,
         missing_fixable=fixable,

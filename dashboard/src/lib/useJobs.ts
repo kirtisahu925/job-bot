@@ -22,5 +22,9 @@ export function useJobs() {
     }
   }, [reload]);
 
-  return { jobs, error, reload, setStatus };
+  const replace = useCallback((job: Job) => {
+    setJobs((prev) => prev?.map((j) => (j.id === job.id ? { ...j, ...job } : j)) ?? prev);
+  }, []);
+
+  return { jobs, error, reload, setStatus, replace };
 }

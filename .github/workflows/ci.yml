@@ -41,6 +41,23 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
+      - name: Design scan (impeccable detector on every page in demo mode, desktop and phone)
+        run: |
+          npx vite preview --port 4173 --strictPort > /tmp/preview.log 2>&1 &
+          for i in $(seq 30); do curl -sf http://localhost:4173/ > /dev/null && break; sleep 1; done
+          # Ubuntu 24.04 runners restrict Chrome's sandbox; the scan only loads our own pages
+          printf '#!/bin/sh\nexec "%s" --no-sandbox "$@"\n' "$(command -v google-chrome || command -v chromium)" > /tmp/chrome
+          chmod +x /tmp/chrome
+          export IMPECCABLE_BROWSER=/tmp/chrome
+          detect=../.claude/skills/impeccable/scripts/impeccable
+          fail=0
+          for route in jobs jobs/demo-8 jobs/demo-1 skills add board consumption runs; do
+            for viewport in 1440x900 390x844; do
+              "$detect" detect --no-advisory --viewport "$viewport" "http://localhost:4173/$route" || fail=1
+            done
+          done
+          "$detect" detect --no-advisory ../extension/popup.html ../extension/options.html ../extension/ui.css || fail=1
+          exit $fail
 
   extension:
     runs-on: ubuntu-latest
@@ -61,3 +78,10 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           npm run test:browser
+      - name: Package the extension (unzip it, then chrome://extensions > Load unpacked)
+        working-directory: extension
+        run: zip -qr ../fairsheet-extension.zip . -x "*.DS_Store"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fairsheet-extension
+          path: fairsheet-extension.zip

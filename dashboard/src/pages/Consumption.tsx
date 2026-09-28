@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipProps } from "recharts";
-import { LowFlag, Meter, StatTile } from "../components/bits";
+import { AlertTriangle, Check, Clock, Minus, X } from "lucide-react";
+import { ICON, LowFlag, Meter, Notice } from "../components/bits";
 import { api } from "../lib/api";
 import { amount, ago, compact, daysAgoIst, inr, istDay, providerLabel, sourceLabel, usd } from "../lib/format";
 import type { ApiUsageDay, Balance, CreditBalance, Run, Topup, UsageDay } from "../lib/types";
+import { useTitle } from "../lib/useTitle";
 
 const RANGES = [
   { label: "Today", days: 0 },
@@ -12,20 +14,21 @@ const RANGES = [
   { label: "Month to date", days: -1 },
 ];
 
-const SERIES = [
-  { key: "input_tokens", label: "Input", color: "var(--series-1)" },
-  { key: "output_tokens", label: "Output", color: "var(--series-2)" },
-  { key: "thinking_tokens", label: "Thinking", color: "var(--series-3)" },
+// The table view keeps the split; the chart draws one ink (total tokens), the split is in its tooltip.
+const PARTS = [
+  { key: "input_tokens", label: "Input" },
+  { key: "output_tokens", label: "Output" },
+  { key: "thinking_tokens", label: "Thinking" },
 ] as const;
 
-const HEALTH: Record<string, { color: string; symbol: string; label: string }> = {
-  ok: { color: "var(--good)", symbol: "✓", label: "OK" },
-  empty: { color: "var(--warning)", symbol: "0", label: "No results" },
-  blocked: { color: "var(--serious)", symbol: "!", label: "Blocked / rate-limited" },
-  broken: { color: "var(--critical)", symbol: "×", label: "Broken (site changed)" },
-  error: { color: "var(--critical)", symbol: "×", label: "Error" },
-  timeout: { color: "var(--critical)", symbol: "⏱", label: "Timed out" },
-  skipped: { color: "var(--axis)", symbol: "–", label: "Skipped (no key)" },
+const HEALTH: Record<string, { cls: string; icon: JSX.Element; label: string }> = {
+  ok: { cls: "ok", icon: <Check {...ICON} size={14} />, label: "Worked" },
+  empty: { cls: "warn", icon: <span className="small">0</span>, label: "No results" },
+  blocked: { cls: "warn", icon: <AlertTriangle {...ICON} size={13} />, label: "Blocked or rate-limited" },
+  broken: { cls: "bad", icon: <X {...ICON} size={14} />, label: "Broken (site changed)" },
+  error: { cls: "bad", icon: <X {...ICON} size={14} />, label: "Error" },
+  timeout: { cls: "bad", icon: <Clock {...ICON} size={13} />, label: "Timed out" },
+  skipped: { cls: "off", icon: <Minus {...ICON} size={14} />, label: "Skipped (no key)" },
 };
 
 interface Row {
@@ -50,17 +53,16 @@ function sumBy<T>(rows: T[], f: (r: T) => number): number {
 
 function TokensTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload?.length) return null;
-  const total = sumBy(payload, (p) => Number(p.value));
+  const d = payload[0].payload as Record<string, number>;
   return (
     <div className="tooltip">
       <div className="muted">{label}</div>
       <div>
-        <span className="v">{total.toLocaleString("en-IN")}</span> tokens
+        <span className="v">{Number(d.total).toLocaleString("en-IN")}</span> tokens
       </div>
-      {[...payload].reverse().map((p) => (
-        <div key={String(p.dataKey)}>
-          <span className="linekey" style={{ background: p.color }} />
-          <span className="v">{Number(p.value).toLocaleString("en-IN")}</span> <span className="muted">{p.name}</span>
+      {PARTS.map((p) => (
+        <div key={p.key}>
+          <span className="v">{Number(d[p.key]).toLocaleString("en-IN")}</span> <span className="muted">{p.label.toLowerCase()}</span>
         </div>
       ))}
     </div>
@@ -68,6 +70,7 @@ function TokensTooltip({ active, payload, label }: TooltipProps<number, string>)
 }
 
 export default function Consumption() {
+  useTitle("Consumption");
   const [rangeDays, setRangeDays] = useState(29);
   const [usage, setUsage] = useState<UsageDay[]>([]);
   const [apiUsage, setApiUsage] = useState<ApiUsageDay[]>([]);
@@ -180,7 +183,9 @@ export default function Consumption() {
       e.thinking_tokens += r.thinking_tokens;
       byDay.set(r.day, e);
     }
-    return [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
+    return [...byDay.values()]
+      .sort((a, b) => a.day.localeCompare(b.day))
+      .map((d) => ({ ...d, total: d.input_tokens + d.output_tokens + d.thinking_tokens }));
   }, [inRange, since, today]);
 
   const group = (key: "purpose" | "model") => {
@@ -229,67 +234,45 @@ export default function Consumption() {
   const healthSources = [...new Set(healthRuns.flatMap((r) => (r.summary?.sources ?? []).map((s) => s.source)))];
 
   return (
-    <div style={{ opacity: loading ? 0.6 : 1, transition: "opacity .2s" }}>
+    <div aria-busy={loading}>
       <div className="page-head">
         <div>
           <h1>Consumption</h1>
-          <div className="muted">Tokens, money used and what is left on every service the bot uses.</div>
+          <p className="lede">Tokens, money spent and what is left on every service the bot uses.</p>
+        </div>
+        <div className="seg" role="group" aria-label="Time range">
+          {RANGES.map((r) => (
+            <button key={r.label} onClick={() => setRangeDays(r.days)} aria-pressed={rangeDays === r.days}>
+              {r.label}
+            </button>
+          ))}
         </div>
       </div>
-      {error && <div className="banner error">{error}</div>}
-      <div className="filters">
-        {RANGES.map((r) => (
-          <button
-            key={r.label}
-            className={`btn small${rangeDays === r.days ? " primary" : ""}`}
-            onClick={() => setRangeDays(r.days)}
-            aria-pressed={rangeDays === r.days}
-          >
-            {r.label}
-          </button>
-        ))}
-      </div>
+      {error && <Notice kind="error">{error}</Notice>}
 
-      <div className="tiles">
-        <StatTile
-          label="Tokens today"
-          value={compact(tokens(todayRows))}
-          sub={`${compact(sumBy(todayRows, (r) => r.input_tokens))} in · ${compact(sumBy(todayRows, (r) => r.output_tokens))} out · ${compact(sumBy(todayRows, (r) => r.thinking_tokens))} thinking`}
+      <dl className="ledger" aria-label="Summary">
+        <Cell term={"Tokens today"} value={compact(tokens(todayRows))} sub={`${compact(sumBy(todayRows, (r) => r.input_tokens))} in · ${compact(sumBy(todayRows, (r) => r.output_tokens))} out · ${compact(sumBy(todayRows, (r) => r.thinking_tokens))} thinking`}
         />
-        <StatTile
-          label={`Tokens, ${RANGES.find((r) => r.days === rangeDays)?.label.toLowerCase()}`}
-          value={compact(tokens(inRange))}
-          sub={`${sumBy(inRange, (r) => r.requests).toLocaleString("en-IN")} LLM requests`}
+        <Cell term={`Tokens, ${RANGES.find((r) => r.days === rangeDays)?.label.toLowerCase()}`} value={compact(tokens(inRange))} sub={`${sumBy(inRange, (r) => r.requests).toLocaleString("en-IN")} LLM requests`}
         />
-        <StatTile
-          label="Money used this month"
-          value={usd(llmMoneyMonth + apiMoneyMonth)}
-          sub={`${inr(llmMoneyMonth + apiMoneyMonth)} · LLM ${usd(llmMoneyMonth)} · scrapers ${usd(apiMoneyMonth)}`}
+        <Cell term={"Money used this month"} value={usd(llmMoneyMonth + apiMoneyMonth)} sub={`${inr(llmMoneyMonth + apiMoneyMonth)} · LLM ${usd(llmMoneyMonth)} · scrapers ${usd(apiMoneyMonth)}`}
         />
-        <StatTile
-          label="Current balance"
-          value={usd(moneyBalance)}
-          sub={`${inr(moneyBalance)} across ${rows.filter((r) => r.unit === "USD" && (r.provider === "apify" || r.provider.endsWith(":credit"))).length} paid services`}
+        <Cell term={"Current balance"} value={usd(moneyBalance)} sub={`${inr(moneyBalance)} across ${rows.filter((r) => r.unit === "USD" && (r.provider === "apify" || r.provider.endsWith(":credit"))).length} paid services`}
         />
-        <StatTile
-          label="Free LLM requests left today"
-          value={quotaToday.map((q) => amount(q.remaining, q.unit)).join(" / ") || "-"}
-          sub={
+        <Cell term={"Free LLM requests left today"} value={quotaToday.map((q) => amount(q.remaining, q.unit)).join(" / ") || "-"} sub={
             quotaToday.map((q) => providerLabel(q.provider).replace("Gemini · ", "")).join(" / ") +
             " · resets 12:30 IST"
           }
         />
-        <StatTile
-          label="Would cost on a paid model"
-          value={usd(shadowRange)}
-          sub="same usage priced at the shadow model in pricing.yaml"
+        <Cell term={"Would cost on a paid model"} value={usd(shadowRange)} sub="same usage priced at the shadow model in pricing.yaml"
         />
-      </div>
+      </dl>
 
-      <div className="card" style={{ marginBottom: 16 }}>
-        <h2>Balances</h2>
+      <section className="section" aria-labelledby="bal-h">
+        <h2 id="bal-h">Balances</h2>
+        <div className="panel">
         <div className="table-wrap">
-          <table>
+          <table className="entries">
             <thead>
               <tr>
                 <th>Service</th>
@@ -304,26 +287,29 @@ export default function Consumption() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.provider}>
-                  <td>
+                  <td className="cell-role">
                     <div style={{ fontWeight: 600 }}>{providerLabel(r.provider)}</div>
-                    {r.note && (
-                      <div className="muted" style={{ fontSize: 12 }}>
-                        {r.note}
+                    {r.note && <div className="muted small">{r.note}</div>}
+                    <div className="only-narrow soft small num">
+                      {amount(r.used, r.unit)} of {amount(r.limit, r.unit)} used · per {r.period}
+                    </div>
+                  </td>
+                  <td className="right num only-wide">{amount(r.used, r.unit)}</td>
+                  <td className="right num only-wide">{amount(r.limit, r.unit)}</td>
+                  <td className="right num cell-scores">
+                    <strong>{amount(r.remaining, r.unit)}</strong>
+                    {r.unit === "USD" && <div className="muted small">{inr(r.remaining)}</div>}
+                    {r.limit != null && r.remaining != null && r.remaining / r.limit < 0.2 && (
+                      <div>
+                        <LowFlag />
                       </div>
                     )}
                   </td>
-                  <td className="right num">{amount(r.used, r.unit)}</td>
-                  <td className="right num">{amount(r.limit, r.unit)}</td>
-                  <td className="right num">
-                    <strong>{amount(r.remaining, r.unit)}</strong>
-                    {r.unit === "USD" && <div className="muted">{inr(r.remaining)}</div>}
-                    {r.limit != null && r.remaining != null && r.remaining / r.limit < 0.2 && <LowFlag />}
+                  <td className="cell-status">
+                    <Meter used={r.used} limit={r.limit} label={providerLabel(r.provider)} />
                   </td>
-                  <td>
-                    <Meter used={r.used} limit={r.limit} />
-                  </td>
-                  <td>{r.period}</td>
-                  <td className="hide-sm muted">
+                  <td className="only-wide">{r.period}</td>
+                  <td className="hide-sm only-wide muted">
                     {r.source}
                     {r.checked && <div>{ago(r.checked)}</div>}
                   </td>
@@ -339,30 +325,27 @@ export default function Consumption() {
             </tbody>
           </table>
         </div>
-      </div>
+        </div>
+      </section>
 
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div className="row" style={{ justifyContent: "space-between" }}>
-          <h2 style={{ margin: 0 }}>Token consumption per day</h2>
+      <section className="section" aria-labelledby="tok-h">
+        <div className="section-head">
+          <h2 id="tok-h">Tokens per day</h2>
           <button className="btn small" onClick={() => setAsTable((v) => !v)} aria-pressed={asTable}>
             {asTable ? "Show chart" : "View as table"}
           </button>
         </div>
-        <div className="legend">
-          {SERIES.map((s) => (
-            <span key={s.key}>
-              <span className="key" style={{ background: s.color }} />
-              {s.label}
-            </span>
-          ))}
-        </div>
+        <div className="panel panel-pad">
+        <p className="muted small" style={{ marginBottom: 8 }}>
+          Input, output and thinking tokens together, per day (IST). Hover a bar for the split, or view as a table.
+        </p>
         {asTable ? (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Day (IST)</th>
-                  {SERIES.map((s) => (
+                  {PARTS.map((s) => (
                     <th key={s.key} className="right">
                       {s.label}
                     </th>
@@ -374,7 +357,7 @@ export default function Consumption() {
                 {daily.map((d) => (
                   <tr key={d.day}>
                     <td>{d.day}</td>
-                    {SERIES.map((s) => (
+                    {PARTS.map((s) => (
                       <td key={s.key} className="right num">
                         {d[s.key].toLocaleString("en-IN")}
                       </td>
@@ -391,48 +374,44 @@ export default function Consumption() {
           <div style={{ width: "100%", height: 260 }}>
             <ResponsiveContainer>
               <BarChart data={daily} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-                <CartesianGrid vertical={false} stroke="var(--grid)" />
+                <CartesianGrid vertical={false} stroke="var(--rule)" />
                 <XAxis
                   dataKey="day"
                   tickFormatter={(d: string) => d.slice(5)}
-                  tick={{ fill: "var(--text-muted)", fontSize: 11 }}
-                  axisLine={{ stroke: "var(--axis)" }}
+                  tick={{ fill: "var(--ink-3)", fontSize: 12 }}
+                  axisLine={{ stroke: "var(--rule-strong)" }}
                   tickLine={false}
                   minTickGap={16}
                 />
                 <YAxis
                   tickFormatter={(v: number) => compact(v)}
-                  tick={{ fill: "var(--text-muted)", fontSize: 11 }}
+                  tick={{ fill: "var(--ink-3)", fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
                   width={44}
                 />
                 <Tooltip content={<TokensTooltip />} cursor={{ fill: "var(--surface-2)" }} />
-                {SERIES.map((s, i) => (
-                  <Bar
-                    key={s.key}
-                    dataKey={s.key}
-                    name={s.label}
-                    stackId="t"
-                    fill={s.color}
-                    stroke="var(--surface-1)"
-                    strokeWidth={2}
-                    maxBarSize={24}
-                    radius={i === SERIES.length - 1 ? [4, 4, 0, 0] : 0}
-                    isAnimationActive={false}
-                  />
-                ))}
+                <Bar
+                  dataKey="total"
+                  name="Tokens"
+                  fill="var(--series-1)"
+                  maxBarSize={24}
+                  radius={[2, 2, 0, 0]}
+                  isAnimationActive={false}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
         )}
-      </div>
+        </div>
+      </section>
 
-      <div className="grid cols-2" style={{ marginBottom: 16 }}>
+      <div className="cols-2 section">
         {(["purpose", "model"] as const).map((key) => (
-          <div className="card table-wrap" key={key}>
-            <h2>{key === "purpose" ? "By purpose" : "By model"}</h2>
-            <table>
+          <section key={key} aria-label={key === "purpose" ? "By purpose" : "By model"}>
+            <h2 style={{ marginBottom: 10 }}>{key === "purpose" ? "By purpose" : "By model"}</h2>
+            <div className="panel table-wrap">
+            <table className="entries">
               <thead>
                 <tr>
                   <th>{key === "purpose" ? "Purpose" : "Model"}</th>
@@ -445,41 +424,44 @@ export default function Consumption() {
               <tbody>
                 {group(key).map((g) => (
                   <tr key={g.name}>
-                    <td>
+                    <td className="cell-role">
                       {g.name}
-                      {g.failed > 0 && (
-                        <div className="muted" style={{ fontSize: 12 }}>
-                          {g.failed} failed / rate-limited
-                        </div>
-                      )}
+                      {g.failed > 0 && <div className="warn small">{g.failed} failed or rate-limited</div>}
+                      <div className="only-narrow soft small num">
+                        {g.requests.toLocaleString("en-IN")} requests · {compact(g.inp)} in / {compact(g.out + g.think)} out
+                      </div>
                     </td>
-                    <td className="right num">{g.requests.toLocaleString("en-IN")}</td>
-                    <td className="right num">
+                    <td className="right num only-wide">{g.requests.toLocaleString("en-IN")}</td>
+                    <td className="right num only-wide">
                       {compact(g.inp)} / {compact(g.out + g.think)}
                     </td>
-                    <td className="right num">{g.requests ? compact((g.inp + g.out + g.think) / g.requests) : "-"}</td>
-                    <td className="right num">
+                    <td className="right num only-wide">{g.requests ? compact((g.inp + g.out + g.think) / g.requests) : "-"}</td>
+                    <td className="right num cell-scores">
                       {usd(g.cost)}
-                      <div className="muted">paid ≈ {usd(g.shadow)}</div>
+                      <div className="muted small">paid ≈ {usd(g.shadow)}</div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </section>
         ))}
       </div>
 
-      <div className="grid cols-2" style={{ marginBottom: 16 }}>
-        <div className="card table-wrap">
-          <h2>Job sources, last {healthRuns.length} runs</h2>
+      <div className="cols-2 section">
+        <section aria-labelledby="health-h">
+          <h2 id="health-h" style={{ marginBottom: 10 }}>Job sources, last {healthRuns.length} runs</h2>
+          <div className="panel panel-pad table-wrap">
           <div className="legend">
             {Object.entries(HEALTH)
               .filter(([k]) => k !== "error")
               .map(([k, h]) => (
-                <span key={k}>
-                  <span className="key" style={{ background: h.color }} />
-                  {h.symbol} {h.label}
+                <span key={k} className="row" style={{ gap: 6 }}>
+                  <span className={`cell ${h.cls}`} style={{ width: 18, height: 18 }} aria-hidden>
+                    {h.icon}
+                  </span>
+                  {h.label}
                 </span>
               ))}
           </div>
@@ -494,14 +476,8 @@ export default function Consumption() {
                     const label = `${sourceLabel(src)}, ${new Date(run.started_at).toLocaleString("en-IN")}: ${h.label}${s ? `, ${s.results} jobs` : ""}${s?.error ? ` (${s.error})` : ""}`;
                     return (
                       <td key={run.id}>
-                        <div
-                          className="cell"
-                          style={{ background: h.color }}
-                          title={label}
-                          aria-label={label}
-                          tabIndex={0}
-                        >
-                          {h.symbol}
+                        <div className={`cell ${h.cls}`} title={label} aria-label={label} tabIndex={0}>
+                          {h.icon}
                         </div>
                       </td>
                     );
@@ -510,13 +486,15 @@ export default function Consumption() {
               ))}
             </tbody>
           </table>
-          <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>
-            Oldest run on the left. Hover a cell for details.
+          <p className="muted small" style={{ marginTop: 8 }}>
+            Oldest run on the left. Hover or focus a cell for details.
+          </p>
           </div>
-        </div>
-        <div className="card table-wrap">
-          <h2>Job source usage</h2>
-          <table>
+        </section>
+        <section aria-labelledby="src-h">
+          <h2 id="src-h" style={{ marginBottom: 10 }}>Job source usage</h2>
+          <div className="panel table-wrap">
+          <table className="entries">
             <thead>
               <tr>
                 <th>Source</th>
@@ -529,16 +507,25 @@ export default function Consumption() {
             <tbody>
               {sourceTotals.map((s) => (
                 <tr key={s.source}>
-                  <td>{sourceLabel(s.source)}</td>
-                  <td className="right num">{s.calls.toLocaleString("en-IN")}</td>
-                  <td className="right num">{s.results.toLocaleString("en-IN")}</td>
-                  <td className="right num">{s.failures}</td>
-                  <td className="right num">{usd(s.cost)}</td>
+                  <td className="cell-role">
+                    {sourceLabel(s.source)}
+                    <div className="only-narrow soft small num">
+                      {s.calls.toLocaleString("en-IN")} calls · {s.failures} failed runs · {usd(s.cost)}
+                    </div>
+                  </td>
+                  <td className="right num only-wide">{s.calls.toLocaleString("en-IN")}</td>
+                  <td className="right num cell-scores">
+                    {s.results.toLocaleString("en-IN")}
+                    <span className="only-narrow muted small"> jobs</span>
+                  </td>
+                  <td className="right num only-wide">{s.failures}</td>
+                  <td className="right num only-wide">{usd(s.cost)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </section>
       </div>
 
       <TopUps topups={topups} onChange={load} />
@@ -554,9 +541,9 @@ function TopUps({ topups, onChange }: { topups: Topup[]; onChange: () => void })
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <div className="card">
-      <h2>Credit top-ups</h2>
-      <p className="muted" style={{ marginTop: 0 }}>
+    <section className="section" aria-labelledby="top-h">
+      <h2 id="top-h" style={{ marginBottom: 6 }}>Credit top-ups</h2>
+      <p className="soft" style={{ marginBottom: 10 }}>
         Claude (and paid Gemini) have no API that reports your remaining credit. Record each purchase here and the
         balance above becomes top-ups minus what the bot has spent since.
       </p>
@@ -601,9 +588,9 @@ function TopUps({ topups, onChange }: { topups: Topup[]; onChange: () => void })
         <input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label="Purchase date" />
         <input type="text" placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
         <button className="btn primary">Add top-up</button>
-        {error && <span className="error">{error}</span>}
+        {error && <span className="error-text">{error}</span>}
       </form>
-      <div className="table-wrap">
+      <div className="panel table-wrap">
         <table>
           <thead>
             <tr>
@@ -624,7 +611,7 @@ function TopUps({ topups, onChange }: { topups: Topup[]; onChange: () => void })
                 </td>
                 <td className="muted">{t.note}</td>
                 <td className="right">
-                  <button className="btn small" onClick={() => api.deleteTopup(t.id).then(onChange)}>
+                  <button className="btn quiet small" onClick={() => api.deleteTopup(t.id).then(onChange)}>
                     Remove
                   </button>
                 </td>
@@ -640,6 +627,18 @@ function TopUps({ topups, onChange }: { topups: Topup[]; onChange: () => void })
           </tbody>
         </table>
       </div>
+    </section>
+  );
+}
+
+function Cell({ term, value, sub }: { term: string; value: string; sub?: string }) {
+  return (
+    <div>
+      <dt>{term}</dt>
+      <dd>
+        {value}
+        {sub && <span className="small">{sub}</span>}
+      </dd>
     </div>
   );
 }

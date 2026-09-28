@@ -46,6 +46,46 @@ export interface LintIssue {
   llm_fixable: boolean;
 }
 
+export interface AtsPart {
+  points: number;
+  max: number;
+  note: string;
+}
+
+/** The deterministic ATS score of one tailored resume (jobbot/ats/score.py AtsResult + rounds). */
+export interface AtsDetail {
+  score: number;
+  max_achievable: number;
+  target: number;
+  breakdown: Record<string, AtsPart>;
+  reach?: Record<string, number>;
+  matched_required: string[];
+  matched_preferred: string[];
+  missing_fixable: string[];
+  missing_gaps: string[];
+  skills_only: string[];
+  best_title: string | null;
+  rounds?: number[];
+}
+
+export const ATS_MINIMUM = 80;
+
+export const ATS_PARTS: { key: string; label: string; short: string }[] = [
+  { key: "required", label: "Required skills", short: "Required" },
+  { key: "preferred", label: "Preferred skills", short: "Preferred" },
+  { key: "title", label: "Job title", short: "Title" },
+  { key: "experience", label: "Experience", short: "Exp." },
+  { key: "education", label: "Education", short: "Edu." },
+  { key: "placement", label: "Skills used in bullets", short: "Use" },
+  { key: "format", label: "Format", short: "Format" },
+];
+
+export interface JdKeywords {
+  required: string[];
+  preferred: string[];
+  degree_required?: boolean;
+}
+
 export interface Tailoring {
   id: string;
   job_id: string;
@@ -62,6 +102,8 @@ export interface Tailoring {
   fill_ratio: number | null;
   tex_path: string | null;
   pdf_path: string | null;
+  ats_score?: number | null;
+  ats?: AtsDetail | null;
 }
 
 export interface Job {
@@ -85,6 +127,9 @@ export interface Job {
   applied_at: string | null;
   created_at: string;
   updated_at: string;
+  jd_keywords?: JdKeywords | null;
+  ats_score?: number | null;
+  tailor_requested_at?: string | null;
   job_links: JobLink[];
   tailorings: Tailoring[];
 }
@@ -168,4 +213,48 @@ export interface Run {
     kept?: number;
     llm?: { requests: number; input_tokens: number; output_tokens: number; thinking_tokens: number; cost_usd: number };
   } | null;
+}
+
+export type SkillChoice = "to_learn" | "learning" | "known" | "ignore";
+
+export const SKILL_CHOICE_LABEL: Record<SkillChoice, string> = {
+  to_learn: "To learn",
+  learning: "Learning",
+  known: "I know this",
+  ignore: "Ignore",
+};
+
+export interface SkillDemand {
+  skill_key: string;
+  skill: string;
+  required_by: number;
+  preferred_by: number;
+  jobs: number;
+  avg_job_score: number | null;
+  tracks: string[];
+  example_job_ids: string[];
+}
+
+export interface SkillStatus {
+  skill: string;
+  status: SkillChoice;
+  note: string | null;
+  updated_at: string;
+}
+
+export interface ProfileSnapshot {
+  headline: string | null;
+  years_experience: number | null;
+  skills: string[];
+  categories: Record<string, string[]> | null;
+  updated_at: string;
+}
+
+export interface ManualJob {
+  title: string;
+  company: string;
+  location: string;
+  url: string;
+  description: string;
+  tailor: boolean;
 }

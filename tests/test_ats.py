@@ -93,6 +93,8 @@ def test_compute_breakdown_fixable_and_gaps():
     assert r.breakdown["education"]["points"] == 5
     assert r.best_title == "Software Development Engineer"
     assert r.score < r.max_achievable < 100  # Kafka and GraphQL cap the honest maximum
+    assert r.reach["required"] == r.breakdown["required"]["points"]  # Kafka is a gap, not fixable
+    assert r.reach["preferred"] > r.breakdown["preferred"]["points"]  # Docker is fixable
     asks = improvement_requests(r, "Software Development Engineer II", "Backend Software Engineer")
     assert (
         any("Docker" in a for a in asks)
