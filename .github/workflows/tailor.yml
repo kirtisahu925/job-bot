@@ -22,6 +22,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Check secrets
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          where="Settings > Secrets and variables > Actions > New repository secret"
+          missing=0
+          for name in GEMINI_API_KEY SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::error title=Missing secret ${name}::Add ${name} in ${where}, then run this workflow again."
+              missing=1
+            fi
+          done
+          exit $missing
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5

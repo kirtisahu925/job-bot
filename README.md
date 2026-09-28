@@ -161,6 +161,10 @@ Repository → Settings → Secrets and variables → Actions → New repository
 `GEMINI_API_KEY`, `RAPIDAPI_KEY`, `APIFY_TOKEN`, `ADZUNA_APP_ID`, `ADZUNA_APP_KEY`, `SUPABASE_URL`,
 `SUPABASE_SERVICE_ROLE_KEY`, and optionally `JOOBLE_API_KEY`, `ANTHROPIC_API_KEY`.
 
+The first step of every scan and Tailor now run checks them: a missing `GEMINI_API_KEY`, `SUPABASE_URL` or
+`SUPABASE_SERVICE_ROLE_KEY` stops the run with an error naming the secret; a missing source key (JSearch,
+Apify, Adzuna) only skips that source, with a warning on the run page.
+
 ### 5. Connect Tailor now to GitHub
 
 1. GitHub → Settings → Developer settings → Fine-grained personal access tokens → Generate: repository
@@ -179,10 +183,15 @@ GitHub is busy.
 
 ### 7. Deploy the dashboard
 
-Cloudflare → Workers & Pages → Create → **Pages** → Import an existing Git repository → this repository.
-Production branch `main`, root directory `dashboard`, build command `npm run build`, output directory
-`dist`. Environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (the anon or publishable key)
-and `NODE_VERSION` = `22`. Save and Deploy, then sign in with the user from step 2.4. (Try it first
+`dashboard/.env.production` holds the Supabase Project URL and anon key the site is built with (public
+values: the anon key ships in every browser bundle, and row-level security limits every row to your login).
+In your own copy, replace them with your project's. `dashboard/.nvmrc` pins Node 22.
+
+Cloudflare → Workers & Pages → Create → **Pages** → Import an existing Git repository → authorize GitHub →
+this repository. Project name `fairsheet` (the site becomes `https://fairsheet.pages.dev`, or with a short
+suffix if that name is taken), production branch `main`, framework preset **Vite** (build command
+`npm run build`, output directory `dist`), **root directory `dashboard`**. No environment variables are
+needed. Save and Deploy; every push to `main` redeploys. Sign in with the user from step 2.4. (Try it first
 without Supabase: `cd dashboard && npm install && VITE_DEMO=1 npm run dev` shows sample data.)
 
 ### 8. Install the Chrome extension

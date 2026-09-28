@@ -29,6 +29,33 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
+      - name: Check secrets
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+        run: |
+          where="Settings > Secrets and variables > Actions > New repository secret"
+          missing=0
+          for name in GEMINI_API_KEY SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::error title=Missing secret ${name}::Add ${name} in ${where}, then run this workflow again."
+              missing=1
+            fi
+          done
+          # sources that are on by default; each is skipped (not fatal) until its key is added
+          for pair in "RAPIDAPI_KEY:JSearch" "APIFY_TOKEN:Wellfound (Apify)" "ADZUNA_APP_ID:Adzuna" "ADZUNA_APP_KEY:Adzuna"; do
+            name=${pair%%:*}
+            if [ -z "${!name}" ]; then
+              echo "::warning title=${name} not set::${pair#*:} is skipped until you add ${name} (${where})."
+            fi
+          done
+          exit $missing
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
@@ -48,7 +75,6 @@ jobs:
       - name: Run scan
         env:
           JOBBOT_TEX_ENGINE: pdflatex
-          MASTER_PROFILE_YAML: ${{ secrets.MASTER_PROFILE_YAML }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}

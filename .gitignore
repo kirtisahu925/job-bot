@@ -19,6 +19,7 @@ data/
 .env
 .env.*
 !.env.example
+!dashboard/.env.production
 
 # LaTeX build junk
 *.aux

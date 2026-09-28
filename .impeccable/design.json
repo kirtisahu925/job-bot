@@ -1,0 +1,1095 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-28T14:58:38+00:00",
+  "title": "Design System: Fairsheet",
+  "extensions": {
+    "themes": [
+      {
+        "name": "drawing sheet",
+        "mode": "light",
+        "tokenPrefix": "",
+        "selector": ":root (default)"
+      },
+      {
+        "name": "blueprint",
+        "mode": "dark",
+        "tokenPrefix": "blueprint-",
+        "selector": "@media (prefers-color-scheme: dark) :root:not([data-theme=\"light\"]), and :root[data-theme=\"dark\"]",
+        "note": "Frontmatter blueprint-* keys are the dark values of the same CSS custom properties (e.g. blueprint-accent is --accent in dark)."
+      }
+    ],
+    "colorMeta": {
+      "page": {
+        "role": "neutral",
+        "displayName": "Sheet White",
+        "canonical": "#f8fafc",
+        "oklch": "oklch(98.4% 0.003 247.9)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.003 247.9)",
+          "oklch(26.4% 0.003 247.9)",
+          "oklch(37.9% 0.003 247.9)",
+          "oklch(49.3% 0.003 247.9)",
+          "oklch(60.7% 0.003 247.9)",
+          "oklch(72.1% 0.003 247.9)",
+          "oklch(83.6% 0.003 247.9)",
+          "oklch(95.0% 0.003 247.9)"
+        ]
+      },
+      "rail": {
+        "role": "neutral",
+        "displayName": "Rail Tint",
+        "canonical": "#ecf1f5",
+        "oklch": "oklch(95.6% 0.008 241.7)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.008 241.7)",
+          "oklch(26.4% 0.008 241.7)",
+          "oklch(37.9% 0.008 241.7)",
+          "oklch(49.3% 0.008 241.7)",
+          "oklch(60.7% 0.008 241.7)",
+          "oklch(72.1% 0.008 241.7)",
+          "oklch(83.6% 0.008 241.7)",
+          "oklch(95.0% 0.008 241.7)"
+        ]
+      },
+      "surface-1": {
+        "role": "neutral",
+        "displayName": "Sheet Surface",
+        "canonical": "#fcfeff",
+        "oklch": "oklch(99.6% 0.003 228.8)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.003 228.8)",
+          "oklch(26.4% 0.003 228.8)",
+          "oklch(37.9% 0.003 228.8)",
+          "oklch(49.3% 0.003 228.8)",
+          "oklch(60.7% 0.003 228.8)",
+          "oklch(72.1% 0.003 228.8)",
+          "oklch(83.6% 0.003 228.8)",
+          "oklch(95.0% 0.003 228.8)"
+        ]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Wash Surface",
+        "canonical": "#eef3f7",
+        "oklch": "oklch(96.2% 0.008 241.7)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.008 241.7)",
+          "oklch(26.4% 0.008 241.7)",
+          "oklch(37.9% 0.008 241.7)",
+          "oklch(49.3% 0.008 241.7)",
+          "oklch(60.7% 0.008 241.7)",
+          "oklch(72.1% 0.008 241.7)",
+          "oklch(83.6% 0.008 241.7)",
+          "oklch(95.0% 0.008 241.7)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#ccd2d7",
+        "oklch": "oklch(86.1% 0.010 242.9)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.010 242.9)",
+          "oklch(26.4% 0.010 242.9)",
+          "oklch(37.9% 0.010 242.9)",
+          "oklch(49.3% 0.010 242.9)",
+          "oklch(60.7% 0.010 242.9)",
+          "oklch(72.1% 0.010 242.9)",
+          "oklch(83.6% 0.010 242.9)",
+          "oklch(95.0% 0.010 242.9)"
+        ]
+      },
+      "rule-strong": {
+        "role": "neutral",
+        "displayName": "Heavy Line",
+        "canonical": "#393e43",
+        "oklch": "oklch(36.1% 0.011 248.1)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.011 248.1)",
+          "oklch(26.4% 0.011 248.1)",
+          "oklch(37.9% 0.011 248.1)",
+          "oklch(49.3% 0.011 248.1)",
+          "oklch(60.7% 0.011 248.1)",
+          "oklch(72.1% 0.011 248.1)",
+          "oklch(83.6% 0.011 248.1)",
+          "oklch(95.0% 0.011 248.1)"
+        ]
+      },
+      "control": {
+        "role": "neutral",
+        "displayName": "Control Line",
+        "canonical": "#7b8187",
+        "oklch": "oklch(60.0% 0.012 248.0)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.012 248.0)",
+          "oklch(26.4% 0.012 248.0)",
+          "oklch(37.9% 0.012 248.0)",
+          "oklch(49.3% 0.012 248.0)",
+          "oklch(60.7% 0.012 248.0)",
+          "oklch(72.1% 0.012 248.0)",
+          "oklch(83.6% 0.012 248.0)",
+          "oklch(95.0% 0.012 248.0)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Graphite Ink",
+        "canonical": "#1b2025",
+        "oklch": "oklch(24.1% 0.012 248.3)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.012 248.3)",
+          "oklch(26.4% 0.012 248.3)",
+          "oklch(37.9% 0.012 248.3)",
+          "oklch(49.3% 0.012 248.3)",
+          "oklch(60.7% 0.012 248.3)",
+          "oklch(72.1% 0.012 248.3)",
+          "oklch(83.6% 0.012 248.3)",
+          "oklch(95.0% 0.012 248.3)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Graphite Ink, Secondary",
+        "canonical": "#43484e",
+        "oklch": "oklch(39.9% 0.012 252.9)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.012 252.9)",
+          "oklch(26.4% 0.012 252.9)",
+          "oklch(37.9% 0.012 252.9)",
+          "oklch(49.3% 0.012 252.9)",
+          "oklch(60.7% 0.012 252.9)",
+          "oklch(72.1% 0.012 252.9)",
+          "oklch(83.6% 0.012 252.9)",
+          "oklch(95.0% 0.012 252.9)"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Graphite Ink, Muted",
+        "canonical": "#5f646a",
+        "oklch": "oklch(50.1% 0.011 252.9)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.011 252.9)",
+          "oklch(26.4% 0.011 252.9)",
+          "oklch(37.9% 0.011 252.9)",
+          "oklch(49.3% 0.011 252.9)",
+          "oklch(60.7% 0.011 252.9)",
+          "oklch(72.1% 0.011 252.9)",
+          "oklch(83.6% 0.011 252.9)",
+          "oklch(95.0% 0.011 252.9)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Ballpoint Blue",
+        "canonical": "#204ec3",
+        "oklch": "oklch(47.0% 0.190 264.0)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.190 264.0)",
+          "oklch(26.4% 0.190 264.0)",
+          "oklch(37.9% 0.190 264.0)",
+          "oklch(49.3% 0.190 264.0)",
+          "oklch(60.7% 0.190 264.0)",
+          "oklch(72.1% 0.190 264.0)",
+          "oklch(83.6% 0.190 264.0)",
+          "oklch(95.0% 0.190 264.0)"
+        ]
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Pressed Ballpoint",
+        "canonical": "#103baf",
+        "oklch": "oklch(41.1% 0.190 264.0)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.190 264.0)",
+          "oklch(26.4% 0.190 264.0)",
+          "oklch(37.9% 0.190 264.0)",
+          "oklch(49.3% 0.190 264.0)",
+          "oklch(60.7% 0.190 264.0)",
+          "oklch(72.1% 0.190 264.0)",
+          "oklch(83.6% 0.190 264.0)",
+          "oklch(95.0% 0.190 264.0)"
+        ]
+      },
+      "accent-wash": {
+        "role": "primary",
+        "displayName": "Accent Wash",
+        "canonical": "#dfecff",
+        "oklch": "oklch(93.9% 0.029 257.8)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.029 257.8)",
+          "oklch(26.4% 0.029 257.8)",
+          "oklch(37.9% 0.029 257.8)",
+          "oklch(49.3% 0.029 257.8)",
+          "oklch(60.7% 0.029 257.8)",
+          "oklch(72.1% 0.029 257.8)",
+          "oklch(83.6% 0.029 257.8)",
+          "oklch(95.0% 0.029 257.8)"
+        ]
+      },
+      "on-accent": {
+        "role": "primary",
+        "displayName": "On Accent",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 89.9)",
+          "oklch(26.4% 0.000 89.9)",
+          "oklch(37.9% 0.000 89.9)",
+          "oklch(49.3% 0.000 89.9)",
+          "oklch(60.7% 0.000 89.9)",
+          "oklch(72.1% 0.000 89.9)",
+          "oklch(83.6% 0.000 89.9)",
+          "oklch(95.0% 0.000 89.9)"
+        ]
+      },
+      "selection": {
+        "role": "neutral",
+        "displayName": "Selection",
+        "canonical": "#c4d8ff",
+        "oklch": "oklch(88.0% 0.058 263.7)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.058 263.7)",
+          "oklch(26.4% 0.058 263.7)",
+          "oklch(37.9% 0.058 263.7)",
+          "oklch(49.3% 0.058 263.7)",
+          "oklch(60.7% 0.058 263.7)",
+          "oklch(72.1% 0.058 263.7)",
+          "oklch(83.6% 0.058 263.7)",
+          "oklch(95.0% 0.058 263.7)"
+        ]
+      },
+      "good": {
+        "role": "secondary",
+        "displayName": "Checked Green",
+        "canonical": "#197037",
+        "oklch": "oklch(48.1% 0.120 150.1)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.120 150.1)",
+          "oklch(26.4% 0.120 150.1)",
+          "oklch(37.9% 0.120 150.1)",
+          "oklch(49.3% 0.120 150.1)",
+          "oklch(60.7% 0.120 150.1)",
+          "oklch(72.1% 0.120 150.1)",
+          "oklch(83.6% 0.120 150.1)",
+          "oklch(95.0% 0.120 150.1)"
+        ]
+      },
+      "good-wash": {
+        "role": "secondary",
+        "displayName": "Checked Green Wash",
+        "canonical": "#dcf7e1",
+        "oklch": "oklch(95.1% 0.041 150.8)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.041 150.8)",
+          "oklch(26.4% 0.041 150.8)",
+          "oklch(37.9% 0.041 150.8)",
+          "oklch(49.3% 0.041 150.8)",
+          "oklch(60.7% 0.041 150.8)",
+          "oklch(72.1% 0.041 150.8)",
+          "oklch(83.6% 0.041 150.8)",
+          "oklch(95.0% 0.041 150.8)"
+        ]
+      },
+      "warn": {
+        "role": "secondary",
+        "displayName": "Amber Pencil",
+        "canonical": "#935a11",
+        "oklch": "oklch(52.0% 0.110 65.7)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.110 65.7)",
+          "oklch(26.4% 0.110 65.7)",
+          "oklch(37.9% 0.110 65.7)",
+          "oklch(49.3% 0.110 65.7)",
+          "oklch(60.7% 0.110 65.7)",
+          "oklch(72.1% 0.110 65.7)",
+          "oklch(83.6% 0.110 65.7)",
+          "oklch(95.0% 0.110 65.7)"
+        ]
+      },
+      "warn-mark": {
+        "role": "secondary",
+        "displayName": "Amber Pencil Fill",
+        "canonical": "#e8a127",
+        "oklch": "oklch(76.0% 0.150 74.8)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.150 74.8)",
+          "oklch(26.4% 0.150 74.8)",
+          "oklch(37.9% 0.150 74.8)",
+          "oklch(49.3% 0.150 74.8)",
+          "oklch(60.7% 0.150 74.8)",
+          "oklch(72.1% 0.150 74.8)",
+          "oklch(83.6% 0.150 74.8)",
+          "oklch(95.0% 0.150 74.8)"
+        ]
+      },
+      "warn-wash": {
+        "role": "secondary",
+        "displayName": "Amber Pencil Wash",
+        "canonical": "#feefcf",
+        "oklch": "oklch(95.6% 0.045 85.9)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.045 85.9)",
+          "oklch(26.4% 0.045 85.9)",
+          "oklch(37.9% 0.045 85.9)",
+          "oklch(49.3% 0.045 85.9)",
+          "oklch(60.7% 0.045 85.9)",
+          "oklch(72.1% 0.045 85.9)",
+          "oklch(83.6% 0.045 85.9)",
+          "oklch(95.0% 0.045 85.9)"
+        ]
+      },
+      "bad": {
+        "role": "secondary",
+        "displayName": "Correction Red",
+        "canonical": "#b72725",
+        "oklch": "oklch(51.0% 0.181 27.0)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.181 27.0)",
+          "oklch(26.4% 0.181 27.0)",
+          "oklch(37.9% 0.181 27.0)",
+          "oklch(49.3% 0.181 27.0)",
+          "oklch(60.7% 0.181 27.0)",
+          "oklch(72.1% 0.181 27.0)",
+          "oklch(83.6% 0.181 27.0)",
+          "oklch(95.0% 0.181 27.0)"
+        ]
+      },
+      "bad-wash": {
+        "role": "secondary",
+        "displayName": "Correction Red Wash",
+        "canonical": "#ffe7e4",
+        "oklch": "oklch(94.7% 0.027 26.2)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 26.2)",
+          "oklch(26.4% 0.027 26.2)",
+          "oklch(37.9% 0.027 26.2)",
+          "oklch(49.3% 0.027 26.2)",
+          "oklch(60.7% 0.027 26.2)",
+          "oklch(72.1% 0.027 26.2)",
+          "oklch(83.6% 0.027 26.2)",
+          "oklch(95.0% 0.027 26.2)"
+        ]
+      },
+      "series-1": {
+        "role": "tertiary",
+        "displayName": "Chart Ink",
+        "canonical": "#3463a6",
+        "oklch": "oklch(50.1% 0.119 257.5)",
+        "theme": "drawing sheet (light)",
+        "tonalRamp": [
+          "oklch(15.0% 0.119 257.5)",
+          "oklch(26.4% 0.119 257.5)",
+          "oklch(37.9% 0.119 257.5)",
+          "oklch(49.3% 0.119 257.5)",
+          "oklch(60.7% 0.119 257.5)",
+          "oklch(72.1% 0.119 257.5)",
+          "oklch(83.6% 0.119 257.5)",
+          "oklch(95.0% 0.119 257.5)"
+        ]
+      },
+      "blueprint-page": {
+        "role": "neutral",
+        "displayName": "Blueprint Prussian Ground",
+        "canonical": "#092c4f",
+        "oklch": "oklch(29.0% 0.075 252.2)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.075 252.2)",
+          "oklch(26.4% 0.075 252.2)",
+          "oklch(37.9% 0.075 252.2)",
+          "oklch(49.3% 0.075 252.2)",
+          "oklch(60.7% 0.075 252.2)",
+          "oklch(72.1% 0.075 252.2)",
+          "oklch(83.6% 0.075 252.2)",
+          "oklch(95.0% 0.075 252.2)"
+        ]
+      },
+      "blueprint-rail": {
+        "role": "neutral",
+        "displayName": "Blueprint Rail Tint",
+        "canonical": "#042343",
+        "oklch": "oklch(25.4% 0.070 252.6)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.070 252.6)",
+          "oklch(26.4% 0.070 252.6)",
+          "oklch(37.9% 0.070 252.6)",
+          "oklch(49.3% 0.070 252.6)",
+          "oklch(60.7% 0.070 252.6)",
+          "oklch(72.1% 0.070 252.6)",
+          "oklch(83.6% 0.070 252.6)",
+          "oklch(95.0% 0.070 252.6)"
+        ]
+      },
+      "blueprint-surface-1": {
+        "role": "neutral",
+        "displayName": "Blueprint Sheet Surface",
+        "canonical": "#103356",
+        "oklch": "oklch(31.6% 0.074 251.4)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.074 251.4)",
+          "oklch(26.4% 0.074 251.4)",
+          "oklch(37.9% 0.074 251.4)",
+          "oklch(49.3% 0.074 251.4)",
+          "oklch(60.7% 0.074 251.4)",
+          "oklch(72.1% 0.074 251.4)",
+          "oklch(83.6% 0.074 251.4)",
+          "oklch(95.0% 0.074 251.4)"
+        ]
+      },
+      "blueprint-surface-2": {
+        "role": "neutral",
+        "displayName": "Blueprint Wash Surface",
+        "canonical": "#1a3c60",
+        "oklch": "oklch(35.0% 0.075 251.9)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.075 251.9)",
+          "oklch(26.4% 0.075 251.9)",
+          "oklch(37.9% 0.075 251.9)",
+          "oklch(49.3% 0.075 251.9)",
+          "oklch(60.7% 0.075 251.9)",
+          "oklch(72.1% 0.075 251.9)",
+          "oklch(83.6% 0.075 251.9)",
+          "oklch(95.0% 0.075 251.9)"
+        ]
+      },
+      "blueprint-rule": {
+        "role": "neutral",
+        "displayName": "Blueprint Hairline",
+        "canonical": "#3a5f7d",
+        "oklch": "oklch(47.1% 0.065 244.2)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.065 244.2)",
+          "oklch(26.4% 0.065 244.2)",
+          "oklch(37.9% 0.065 244.2)",
+          "oklch(49.3% 0.065 244.2)",
+          "oklch(60.7% 0.065 244.2)",
+          "oklch(72.1% 0.065 244.2)",
+          "oklch(83.6% 0.065 244.2)",
+          "oklch(95.0% 0.065 244.2)"
+        ]
+      },
+      "blueprint-rule-strong": {
+        "role": "neutral",
+        "displayName": "Blueprint Heavy Line",
+        "canonical": "#c0d4e3",
+        "oklch": "oklch(86.0% 0.030 240.2)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.030 240.2)",
+          "oklch(26.4% 0.030 240.2)",
+          "oklch(37.9% 0.030 240.2)",
+          "oklch(49.3% 0.030 240.2)",
+          "oklch(60.7% 0.030 240.2)",
+          "oklch(72.1% 0.030 240.2)",
+          "oklch(83.6% 0.030 240.2)",
+          "oklch(95.0% 0.030 240.2)"
+        ]
+      },
+      "blueprint-control": {
+        "role": "neutral",
+        "displayName": "Blueprint Control Line",
+        "canonical": "#7198b4",
+        "oklch": "oklch(66.1% 0.060 240.0)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.060 240.0)",
+          "oklch(26.4% 0.060 240.0)",
+          "oklch(37.9% 0.060 240.0)",
+          "oklch(49.3% 0.060 240.0)",
+          "oklch(60.7% 0.060 240.0)",
+          "oklch(72.1% 0.060 240.0)",
+          "oklch(83.6% 0.060 240.0)",
+          "oklch(95.0% 0.060 240.0)"
+        ]
+      },
+      "blueprint-ink": {
+        "role": "neutral",
+        "displayName": "Blueprint White Linework",
+        "canonical": "#eff6fb",
+        "oklch": "oklch(96.9% 0.010 238.5)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.010 238.5)",
+          "oklch(26.4% 0.010 238.5)",
+          "oklch(37.9% 0.010 238.5)",
+          "oklch(49.3% 0.010 238.5)",
+          "oklch(60.7% 0.010 238.5)",
+          "oklch(72.1% 0.010 238.5)",
+          "oklch(83.6% 0.010 238.5)",
+          "oklch(95.0% 0.010 238.5)"
+        ]
+      },
+      "blueprint-ink-2": {
+        "role": "neutral",
+        "displayName": "Blueprint White Linework, Secondary",
+        "canonical": "#c7dbea",
+        "oklch": "oklch(88.1% 0.030 240.2)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.030 240.2)",
+          "oklch(26.4% 0.030 240.2)",
+          "oklch(37.9% 0.030 240.2)",
+          "oklch(49.3% 0.030 240.2)",
+          "oklch(60.7% 0.030 240.2)",
+          "oklch(72.1% 0.030 240.2)",
+          "oklch(83.6% 0.030 240.2)",
+          "oklch(95.0% 0.030 240.2)"
+        ]
+      },
+      "blueprint-ink-3": {
+        "role": "neutral",
+        "displayName": "Blueprint White Linework, Muted",
+        "canonical": "#a7c2d5",
+        "oklch": "oklch(80.0% 0.040 238.7)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.040 238.7)",
+          "oklch(26.4% 0.040 238.7)",
+          "oklch(37.9% 0.040 238.7)",
+          "oklch(49.3% 0.040 238.7)",
+          "oklch(60.7% 0.040 238.7)",
+          "oklch(72.1% 0.040 238.7)",
+          "oklch(83.6% 0.040 238.7)",
+          "oklch(95.0% 0.040 238.7)"
+        ]
+      },
+      "blueprint-accent": {
+        "role": "primary",
+        "displayName": "Blueprint Sodium Yellow",
+        "canonical": "#f4d660",
+        "oklch": "oklch(87.9% 0.140 95.1)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.140 95.1)",
+          "oklch(26.4% 0.140 95.1)",
+          "oklch(37.9% 0.140 95.1)",
+          "oklch(49.3% 0.140 95.1)",
+          "oklch(60.7% 0.140 95.1)",
+          "oklch(72.1% 0.140 95.1)",
+          "oklch(83.6% 0.140 95.1)",
+          "oklch(95.0% 0.140 95.1)"
+        ]
+      },
+      "blueprint-accent-hover": {
+        "role": "primary",
+        "displayName": "Blueprint Pressed Sodium Yellow",
+        "canonical": "#ffe77d",
+        "oklch": "oklch(92.6% 0.129 96.9)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.129 96.9)",
+          "oklch(26.4% 0.129 96.9)",
+          "oklch(37.9% 0.129 96.9)",
+          "oklch(49.3% 0.129 96.9)",
+          "oklch(60.7% 0.129 96.9)",
+          "oklch(72.1% 0.129 96.9)",
+          "oklch(83.6% 0.129 96.9)",
+          "oklch(95.0% 0.129 96.9)"
+        ]
+      },
+      "blueprint-accent-wash": {
+        "role": "primary",
+        "displayName": "Blueprint Accent Wash",
+        "canonical": "#2b5074",
+        "oklch": "oklch(42.1% 0.074 249.4)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.074 249.4)",
+          "oklch(26.4% 0.074 249.4)",
+          "oklch(37.9% 0.074 249.4)",
+          "oklch(49.3% 0.074 249.4)",
+          "oklch(60.7% 0.074 249.4)",
+          "oklch(72.1% 0.074 249.4)",
+          "oklch(83.6% 0.074 249.4)",
+          "oklch(95.0% 0.074 249.4)"
+        ]
+      },
+      "blueprint-on-accent": {
+        "role": "primary",
+        "displayName": "Blueprint On Sodium Yellow",
+        "canonical": "#032242",
+        "oklch": "oklch(25.0% 0.070 252.5)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.070 252.5)",
+          "oklch(26.4% 0.070 252.5)",
+          "oklch(37.9% 0.070 252.5)",
+          "oklch(49.3% 0.070 252.5)",
+          "oklch(60.7% 0.070 252.5)",
+          "oklch(72.1% 0.070 252.5)",
+          "oklch(83.6% 0.070 252.5)",
+          "oklch(95.0% 0.070 252.5)"
+        ]
+      },
+      "blueprint-selection": {
+        "role": "neutral",
+        "displayName": "Blueprint Selection",
+        "canonical": "#2a5885",
+        "oklch": "oklch(45.0% 0.090 250.0)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.090 250.0)",
+          "oklch(26.4% 0.090 250.0)",
+          "oklch(37.9% 0.090 250.0)",
+          "oklch(49.3% 0.090 250.0)",
+          "oklch(60.7% 0.090 250.0)",
+          "oklch(72.1% 0.090 250.0)",
+          "oklch(83.6% 0.090 250.0)",
+          "oklch(95.0% 0.090 250.0)"
+        ]
+      },
+      "blueprint-good": {
+        "role": "secondary",
+        "displayName": "Blueprint Checked Green",
+        "canonical": "#83e499",
+        "oklch": "oklch(84.0% 0.140 149.9)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.140 149.9)",
+          "oklch(26.4% 0.140 149.9)",
+          "oklch(37.9% 0.140 149.9)",
+          "oklch(49.3% 0.140 149.9)",
+          "oklch(60.7% 0.140 149.9)",
+          "oklch(72.1% 0.140 149.9)",
+          "oklch(83.6% 0.140 149.9)",
+          "oklch(95.0% 0.140 149.9)"
+        ]
+      },
+      "blueprint-good-wash": {
+        "role": "secondary",
+        "displayName": "Blueprint Checked Green Wash",
+        "canonical": "#174a3b",
+        "oklch": "oklch(37.0% 0.060 170.2)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.060 170.2)",
+          "oklch(26.4% 0.060 170.2)",
+          "oklch(37.9% 0.060 170.2)",
+          "oklch(49.3% 0.060 170.2)",
+          "oklch(60.7% 0.060 170.2)",
+          "oklch(72.1% 0.060 170.2)",
+          "oklch(83.6% 0.060 170.2)",
+          "oklch(95.0% 0.060 170.2)"
+        ]
+      },
+      "blueprint-warn": {
+        "role": "secondary",
+        "displayName": "Blueprint Amber Pencil",
+        "canonical": "#ffb777",
+        "oklch": "oklch(83.4% 0.116 61.8)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.116 61.8)",
+          "oklch(26.4% 0.116 61.8)",
+          "oklch(37.9% 0.116 61.8)",
+          "oklch(49.3% 0.116 61.8)",
+          "oklch(60.7% 0.116 61.8)",
+          "oklch(72.1% 0.116 61.8)",
+          "oklch(83.6% 0.116 61.8)",
+          "oklch(95.0% 0.116 61.8)"
+        ]
+      },
+      "blueprint-warn-mark": {
+        "role": "secondary",
+        "displayName": "Blueprint Amber Pencil Fill",
+        "canonical": "#ffb777",
+        "oklch": "oklch(83.4% 0.116 61.8)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.116 61.8)",
+          "oklch(26.4% 0.116 61.8)",
+          "oklch(37.9% 0.116 61.8)",
+          "oklch(49.3% 0.116 61.8)",
+          "oklch(60.7% 0.116 61.8)",
+          "oklch(72.1% 0.116 61.8)",
+          "oklch(83.6% 0.116 61.8)",
+          "oklch(95.0% 0.116 61.8)"
+        ]
+      },
+      "blueprint-warn-wash": {
+        "role": "secondary",
+        "displayName": "Blueprint Amber Pencil Wash",
+        "canonical": "#513b21",
+        "oklch": "oklch(37.0% 0.050 69.9)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.050 69.9)",
+          "oklch(26.4% 0.050 69.9)",
+          "oklch(37.9% 0.050 69.9)",
+          "oklch(49.3% 0.050 69.9)",
+          "oklch(60.7% 0.050 69.9)",
+          "oklch(72.1% 0.050 69.9)",
+          "oklch(83.6% 0.050 69.9)",
+          "oklch(95.0% 0.050 69.9)"
+        ]
+      },
+      "blueprint-bad": {
+        "role": "secondary",
+        "displayName": "Blueprint Correction Red",
+        "canonical": "#ff9e9b",
+        "oklch": "oklch(79.7% 0.116 21.9)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.116 21.9)",
+          "oklch(26.4% 0.116 21.9)",
+          "oklch(37.9% 0.116 21.9)",
+          "oklch(49.3% 0.116 21.9)",
+          "oklch(60.7% 0.116 21.9)",
+          "oklch(72.1% 0.116 21.9)",
+          "oklch(83.6% 0.116 21.9)",
+          "oklch(95.0% 0.116 21.9)"
+        ]
+      },
+      "blueprint-bad-wash": {
+        "role": "secondary",
+        "displayName": "Blueprint Correction Red Wash",
+        "canonical": "#5b3232",
+        "oklch": "oklch(36.9% 0.060 20.3)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.060 20.3)",
+          "oklch(26.4% 0.060 20.3)",
+          "oklch(37.9% 0.060 20.3)",
+          "oklch(49.3% 0.060 20.3)",
+          "oklch(60.7% 0.060 20.3)",
+          "oklch(72.1% 0.060 20.3)",
+          "oklch(83.6% 0.060 20.3)",
+          "oklch(95.0% 0.060 20.3)"
+        ]
+      },
+      "blueprint-series-1": {
+        "role": "tertiary",
+        "displayName": "Blueprint Chart Ink",
+        "canonical": "#379ecc",
+        "oklch": "oklch(66.0% 0.115 231.8)",
+        "theme": "blueprint (dark)",
+        "tonalRamp": [
+          "oklch(15.0% 0.115 231.8)",
+          "oklch(26.4% 0.115 231.8)",
+          "oklch(37.9% 0.115 231.8)",
+          "oklch(49.3% 0.115 231.8)",
+          "oklch(60.7% 0.115 231.8)",
+          "oklch(72.1% 0.115 231.8)",
+          "oklch(83.6% 0.115 231.8)",
+          "oklch(95.0% 0.115 231.8)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The ATS figure on the job page; tabular figures; one per page."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page h1, balanced wrapping."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section and panel h2."
+      },
+      "title-sm": {
+        "displayName": "Title Small",
+        "purpose": "h3 and empty-state titles."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "The Fairsheet name beside the sheet mark, rail and phone header only."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text; paragraphs cap at 72ch."
+      },
+      "body-sm": {
+        "displayName": "Body Small",
+        "purpose": "Metadata, hints, tags, small buttons, legends, in-panel group headings (ink-2)."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Buttons and nav links at 500."
+      },
+      "control-strong": {
+        "displayName": "Control Strong",
+        "purpose": "Primary and act buttons, active nav, pressed segment at 600."
+      },
+      "label": {
+        "displayName": "Drafting Lettering",
+        "purpose": "Uppercase, tracked 0.07em: table headers, title-block and ledger terms, board column statuses. Never an eyebrow above a heading."
+      },
+      "extension-body": {
+        "displayName": "Extension Body",
+        "purpose": "Chrome extension popup base size (12px small, 16.5px h2, 21px h1; options page 14/18/24)."
+      }
+    },
+    "shadows": [
+      {
+        "name": "floating-layer",
+        "value": "0 4px 16px rgb(0 0 0 / 0.14)",
+        "purpose": "Only for layers that float over content (the chart tooltip), paired with a 1px rule-strong border."
+      },
+      {
+        "name": "active-ring",
+        "value": "inset 0 0 0 1px var(--rule)",
+        "purpose": "A 1px line drawn with box-shadow on the active rail item; a border, not elevation."
+      }
+    ],
+    "motion": [
+      {
+        "name": "t",
+        "value": "180ms",
+        "purpose": "Duration of every state change (background, border, color)."
+      },
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Expo-out curve for state changes and the dimension-line draw."
+      },
+      {
+        "name": "draw",
+        "value": "520ms var(--ease), scaleX 0 to 1 from the left",
+        "purpose": "The ATS dimension line draws once, the first time a browser sees a resume's score."
+      },
+      {
+        "name": "turn",
+        "value": "2.4s linear infinite rotate",
+        "purpose": "The working mark (amber dashed square) while a tailoring run is in progress."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "animation: none; transition: none",
+        "purpose": "Everything stops under prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "max-width: 860px",
+        "purpose": "Rail becomes phone header plus bottom bar; frame drops; tables reflow into entries; 16px gutter."
+      },
+      {
+        "name": "desktop",
+        "value": "min-width: 861px",
+        "purpose": "216px rail, double-rule sheet frame, title block set in the frame corner."
+      }
+    ],
+    "layout": {
+      "railWidth": "216px",
+      "sheetMaxWidth": "1320px",
+      "framePadding": "24px 28px 36px",
+      "frameTrimOffset": "4px",
+      "phoneBottomClearance": "88px"
+    },
+    "icons": {
+      "library": "lucide-react",
+      "size": "16px (14px in tags and small links, 20px in the bottom bar)",
+      "strokeWidth": 1.75,
+      "ariaHidden": true
+    },
+    "fonts": {
+      "family": "Barlow",
+      "weights": [
+        400,
+        500,
+        600,
+        700
+      ],
+      "source": "@fontsource/barlow (dashboard); extension/fonts woff2 (400 and 600 only)",
+      "numeric": "tabular-nums on every comparable number"
+    }
+  },
+  "components": [
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Everyday action: Add a job, Resume, Filters. Surface ground, control-line border, 2px corner.",
+      "html": "<button class=\"ds-btn\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg>Add a job</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: \"Barlow\", \"Segoe UI\", system-ui, sans-serif; font-size: 15px; line-height: 1.2; min-height: 36px; padding: 7px 14px; border-radius: 2px; cursor: pointer; white-space: nowrap; transition: background 180ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms cubic-bezier(0.16, 1, 0.3, 1), color 180ms cubic-bezier(0.16, 1, 0.3, 1); font-weight: 500; background: var(--surface-1, #fcfeff); color: var(--ink, #1b2025); border: 1px solid var(--control, #7b8187); } .ds-btn:hover { background: var(--surface-2, #eef3f7); border-color: var(--ink-2, #43484e); } .ds-btn:active { background: var(--rule, #ccd2d7); } .ds-btn:focus-visible { outline: 2px solid var(--accent, #204ec3); outline-offset: 2px; } .ds-btn svg { flex: none; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The filled ballpoint action: Apply on the job page, Sign in, Save job, Add top-up.",
+      "html": "<button class=\"ds-btn-primary\">Save job</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: \"Barlow\", \"Segoe UI\", system-ui, sans-serif; font-size: 15px; line-height: 1.2; min-height: 36px; padding: 7px 14px; border-radius: 2px; cursor: pointer; white-space: nowrap; transition: background 180ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms cubic-bezier(0.16, 1, 0.3, 1), color 180ms cubic-bezier(0.16, 1, 0.3, 1); font-weight: 600; background: var(--accent, #204ec3); color: var(--on-accent, #ffffff); border: 1px solid var(--accent, #204ec3); } .ds-btn-primary:hover { background: var(--accent-hover, #103baf); border-color: var(--accent-hover, #103baf); } .ds-btn-primary:focus-visible { outline: 2px solid var(--accent, #204ec3); outline-offset: 2px; } .ds-btn-primary:disabled { cursor: not-allowed; color: var(--ink-3, #5f646a); background: var(--surface-2, #eef3f7); border-color: var(--rule, #ccd2d7); }"
+    },
+    {
+      "name": "Act Button (Tailor now)",
+      "kind": "button",
+      "refersTo": "button-act",
+      "description": "The per-row next action in outlined accent, set small inside table rows, right-aligned.",
+      "html": "<button class=\"ds-btn-act\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72\"/><path d=\"m14 7 3 3\"/><path d=\"M5 6v4\"/><path d=\"M19 14v4\"/><path d=\"M10 2v2\"/><path d=\"M7 8H3\"/><path d=\"M21 16h-4\"/><path d=\"M11 3H9\"/></svg>Tailor now</button>",
+      "css": ".ds-btn-act { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: \"Barlow\", \"Segoe UI\", system-ui, sans-serif; font-size: 15px; line-height: 1.2; min-height: 36px; padding: 7px 14px; border-radius: 2px; cursor: pointer; white-space: nowrap; transition: background 180ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms cubic-bezier(0.16, 1, 0.3, 1), color 180ms cubic-bezier(0.16, 1, 0.3, 1); min-height: 30px; padding: 4px 10px; font-size: 13px; font-weight: 600; background: var(--surface-1, #fcfeff); color: var(--accent, #204ec3); border: 1px solid var(--accent, #204ec3); } .ds-btn-act:hover { background: var(--accent-wash, #dfecff); } .ds-btn-act:focus-visible { outline: 2px solid var(--accent, #204ec3); outline-offset: 2px; } .ds-btn-act svg { flex: none; }"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Borderless secondary action: Dismiss, theme toggle, Sign out.",
+      "html": "<button class=\"ds-btn-quiet\">Dismiss</button>",
+      "css": ".ds-btn-quiet { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: \"Barlow\", \"Segoe UI\", system-ui, sans-serif; font-size: 15px; line-height: 1.2; min-height: 36px; padding: 7px 14px; border-radius: 2px; cursor: pointer; white-space: nowrap; transition: background 180ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms cubic-bezier(0.16, 1, 0.3, 1), color 180ms cubic-bezier(0.16, 1, 0.3, 1); min-height: 30px; padding: 4px 10px; font-size: 13px; font-weight: 500; background: transparent; color: var(--ink-2, #43484e); border: 1px solid transparent; } .ds-btn-quiet:hover { background: var(--surface-2, #eef3f7); color: var(--ink, #1b2025); } .ds-btn-quiet:focus-visible { outline: 2px solid var(--accent, #204ec3); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Label above in body-sm ink-2, control-line border, 2px corner, hint below in ink-3.",
+      "html": "<label class=\"ds-field\"><span>Company</span><input class=\"ds-input\" type=\"text\" placeholder=\"Acme Fintech\" /><small>As it appears on the posting.</small></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 5px; font-family: \"Barlow\", \"Segoe UI\", system-ui, sans-serif; max-width: 320px; } .ds-field > span { font-size: 13px; font-weight: 500; color: var(--ink-2, #43484e); } .ds-field small { font-size: 13px; color: var(--ink-3, #5f646a); } .ds-input { font: inherit; font-size: 15px; color: var(--ink, #1b2025); background: var(--surface-1, #fcfeff); border: 1px solid var(--control, #7b8187); border-radius: 2px; padding: 6px 10px; min-height: 36px; transition: border-color 180ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-input::placeholder { color: var(--ink-3, #5f646a); opacity: 1; } .ds-input:hover { border-color: var(--ink-2, #43484e); } .ds-input:focus-visible { outline: 2px solid var(--accent, #204ec3); outline-offset: 2px; }"
+    },
+    {
+      "name": "Rail Navigation",
+      "kind": "nav",
+      "refersTo": "nav-link-active",
+      "description": "The sheets list in the 216px rail; active item on sheet surface with an inset hairline ring and an accent icon.",
+      "html": "<nav class=\"ds-rail\" aria-label=\"Sheets\"><a href=\"#\" class=\"ds-nav active\" aria-current=\"page\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M3 9h18\"/><path d=\"M9 3v18\"/></svg>Jobs</a><a href=\"#\" class=\"ds-nav\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M9 3v18\"/><path d=\"M15 3v18\"/></svg>Board</a></nav>",
+      "css": ".ds-rail { display: flex; flex-direction: column; gap: 2px; width: 216px; padding: 14px; background: var(--rail, #ecf1f5); border-right: 1px solid var(--rule, #ccd2d7); font-family: \"Barlow\", \"Segoe UI\", system-ui, sans-serif; } .ds-nav { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 2px; text-decoration: none; color: var(--ink-2, #43484e); font-size: 15px; font-weight: 500; transition: background 180ms cubic-bezier(0.16, 1, 0.3, 1), color 180ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-nav:hover { background: var(--surface-2, #eef3f7); color: var(--ink, #1b2025); } .ds-nav:focus-visible { outline: 2px solid var(--accent, #204ec3); outline-offset: 2px; } .ds-nav.active { background: var(--surface-1, #fcfeff); color: var(--ink, #1b2025); font-weight: 600; box-shadow: inset 0 0 0 1px var(--rule, #ccd2d7); } .ds-nav.active svg { color: var(--accent, #204ec3); }"
+    },
+    {
+      "name": "Keyword Tags",
+      "kind": "chip",
+      "refersTo": "tag",
+      "description": "Matched (check icon), fixable (dashed accent: in the profile, not on the resume), hidden line (dashed: not in the profile).",
+      "html": "<div class=\"ds-tags\"><span class=\"ds-tag\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 6 9 17l-5-5\"/></svg>Spring Boot</span><span class=\"ds-tag ds-tag-fixable\">PostgreSQL</span><a href=\"#\" class=\"ds-tag ds-tag-hidden\">Kafka</a></div>",
+      "css": ".ds-tags { display: flex; flex-wrap: wrap; gap: 6px; font-family: \"Barlow\", \"Segoe UI\", system-ui, sans-serif; } .ds-tag { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid var(--control, #7b8187); border-radius: 2px; background: var(--surface-1, #fcfeff); color: var(--ink, #1b2025); font-size: 13px; line-height: 1.25; text-decoration: none; } .ds-tag svg { color: var(--good, #197037); } .ds-tag-fixable { border-color: var(--accent, #204ec3); border-style: dashed; } .ds-tag-hidden { border-style: dashed; background: transparent; color: var(--ink-2, #43484e); } a.ds-tag:hover { border-color: var(--ink, #1b2025); } a.ds-tag:focus-visible { outline: 2px solid var(--accent, #204ec3); outline-offset: 2px; }"
+    },
+    {
+      "name": "Status Marks",
+      "kind": "custom",
+      "refersTo": "status-mark",
+      "description": "10px squares that differ by shape as well as checking ink: hollow, dashed, filled, ringed, struck.",
+      "html": "<div class=\"ds-marks\"><span class=\"ds-status\"><i class=\"ds-mark\"></i>New</span><span class=\"ds-status\"><i class=\"ds-mark ds-m-shortlisted\"></i>Shortlisted</span><span class=\"ds-status\"><i class=\"ds-mark ds-m-queued\"></i>Tailor queued</span><span class=\"ds-status\"><i class=\"ds-mark ds-m-tailored\"></i>Tailored</span><span class=\"ds-status\"><i class=\"ds-mark ds-m-applied\"></i>Applied</span><span class=\"ds-status\"><i class=\"ds-mark ds-m-interviewing\"></i>Interviewing</span><span class=\"ds-status\"><i class=\"ds-mark ds-m-rejected\"></i>Rejected</span><span class=\"ds-status\"><i class=\"ds-mark ds-m-skipped\"></i>Skipped</span></div>",
+      "css": ".ds-marks { display: flex; flex-wrap: wrap; gap: 8px 18px; font-family: \"Barlow\", \"Segoe UI\", system-ui, sans-serif; } .ds-status { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-2, #43484e); white-space: nowrap; } .ds-mark { width: 10px; height: 10px; flex: none; display: inline-block; border: 1.5px solid var(--ink-2, #43484e); } .ds-m-shortlisted { border-color: var(--accent, #204ec3); } .ds-m-queued { border: 1.5px dashed var(--warn, #935a11); } .ds-m-tailored { background: var(--good, #197037); border-color: var(--good, #197037); } .ds-m-applied { background: var(--accent, #204ec3); border-color: var(--accent, #204ec3); } .ds-m-interviewing { background: var(--good, #197037); border-color: var(--good, #197037); outline: 1.5px solid var(--good, #197037); outline-offset: 1.5px; } .ds-m-rejected { border-color: var(--bad, #b72725); background: linear-gradient(135deg, transparent 43%, var(--bad, #b72725) 43% 57%, transparent 57%); } .ds-m-skipped { border-color: var(--rule, #ccd2d7); background: var(--rule, #ccd2d7); }"
+    },
+    {
+      "name": "Title Block",
+      "kind": "card",
+      "refersTo": "title-block-cell",
+      "description": "The one framed metadata box on a sheet: heavy frame, hairline-split cells, drafting-lettering terms over tabular values.",
+      "html": "<dl class=\"ds-titleblock\" aria-label=\"Scan status\"><div><dt>Last scan</dt><dd>28 Sep, 10:02</dd></div><div><dt>Next scan</dt><dd>22:00 IST</dd></div><div><dt>New since last visit</dt><dd>7</dd></div><div><dt>Resumes left today</dt><dd>18 / 20 <span>free Gemini</span></dd></div></dl>",
+      "css": ".ds-titleblock { display: inline-grid; grid-template-columns: repeat(4, minmax(0, auto)); margin: 0; border: 1px solid var(--rule-strong, #393e43); background: var(--surface-1, #fcfeff); color: var(--ink, #1b2025); font-variant-numeric: tabular-nums; font-family: \"Barlow\", \"Segoe UI\", system-ui, sans-serif; font-size: 15px; } .ds-titleblock > div { padding: 7px 14px 8px; border-left: 1px solid var(--rule, #ccd2d7); min-width: 110px; } .ds-titleblock > div:first-child { border-left: 0; } .ds-titleblock dt { color: var(--ink-3, #5f646a); text-transform: uppercase; letter-spacing: 0.07em; font-size: 11.5px; font-weight: 600; } .ds-titleblock dd { margin: 1px 0 0; font-weight: 600; white-space: nowrap; } .ds-titleblock dd span { font-size: 13px; font-weight: 400; color: var(--ink-3, #5f646a); }"
+    },
+    {
+      "name": "ATS Dimension Chain",
+      "kind": "custom",
+      "refersTo": "balloon",
+      "description": "Signature: the ATS score as a dimension line over seven parts, hatched where earned, dashed accent where reachable, dashed green at 80 and 90, with balloons.",
+      "html": "<div class=\"ds-chain\" role=\"img\" aria-label=\"ATS 83 of 100; best honest score 88\"><div class=\"ds-dim\"><span class=\"ds-val\" style=\"left:41.5%\">83</span><span class=\"ds-line\" style=\"width:83%\"></span><span class=\"ds-hidden\" style=\"left:83%;width:5%\"></span><span class=\"ds-hlabel\" style=\"left:88%\">best honest 88</span></div><div class=\"ds-bar\"><div class=\"ds-seg\" style=\"width:45%\"><span class=\"ds-earned\" style=\"width:83%\"></span></div><div class=\"ds-seg\" style=\"width:15%\"><span class=\"ds-earned\" style=\"width:67%\"></span></div><div class=\"ds-seg\" style=\"width:10%\"><span class=\"ds-earned\" style=\"width:67%\"></span><span class=\"ds-reach\" style=\"left:67%;width:33%\"></span></div><div class=\"ds-seg\" style=\"width:10%\"><span class=\"ds-earned\" style=\"width:100%\"></span></div><div class=\"ds-seg\" style=\"width:5%\"><span class=\"ds-earned\" style=\"width:100%\"></span></div><div class=\"ds-seg\" style=\"width:5%\"><span class=\"ds-earned\" style=\"width:80%\"></span></div><div class=\"ds-seg\" style=\"width:10%\"><span class=\"ds-earned\" style=\"width:100%\"></span></div><span class=\"ds-ref\" style=\"left:80%\"></span><span class=\"ds-ref\" style=\"left:90%\"></span></div><div class=\"ds-labels\"><div style=\"width:45%\"><b class=\"ds-balloon\">1</b>Required<em>37.5/45</em></div><div style=\"width:15%\"><b class=\"ds-balloon\">2</b>Preferred<em>10/15</em></div><div style=\"width:10%\"><b class=\"ds-balloon\">3</b>Title<em>6.7/10</em></div><div style=\"width:10%\"><b class=\"ds-balloon\">4</b>Exp.<em>10/10</em></div><div style=\"width:5%\"><b class=\"ds-balloon\">5</b></div><div style=\"width:5%\"><b class=\"ds-balloon\">6</b></div><div style=\"width:10%\"><b class=\"ds-balloon\">7</b>Format<em>10/10</em></div></div></div>",
+      "css": ".ds-chain { position: relative; padding: 26px 0 8px; font-family: \"Barlow\", \"Segoe UI\", system-ui, sans-serif; font-size: 13px; color: var(--ink-2, #43484e); background: var(--surface-1, #fcfeff); } .ds-dim { position: relative; height: 22px; margin-bottom: 6px; } .ds-line { position: absolute; top: 10px; left: 0; border-top: 1.5px solid var(--ink, #1b2025); transform-origin: left; animation: ds-draw 520ms cubic-bezier(0.16, 1, 0.3, 1) both; } .ds-line::before, .ds-line::after { content: ''; position: absolute; top: -5px; border: 4px solid transparent; } .ds-line::before { left: -1px; border-right: 7px solid var(--ink, #1b2025); border-left: 0; } .ds-line::after { right: -1px; border-left: 7px solid var(--ink, #1b2025); border-right: 0; } .ds-val { position: absolute; top: -16px; transform: translateX(-50%); font-weight: 600; color: var(--ink, #1b2025); background: var(--surface-1, #fcfeff); padding: 0 4px; } .ds-hidden { position: absolute; top: 10px; border-top: 1.5px dashed var(--ink-2, #43484e); } .ds-hlabel { position: absolute; top: -16px; transform: translateX(-100%); color: var(--ink-3, #5f646a); white-space: nowrap; } .ds-bar { position: relative; display: flex; height: 30px; border: 1.5px solid var(--ink, #1b2025); } .ds-seg { position: relative; height: 100%; border-left: 1px solid var(--ink-2, #43484e); overflow: hidden; } .ds-seg:first-child { border-left: 0; } .ds-earned { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(135deg, var(--ink-2, #43484e) 0 1.5px, transparent 1.5px 6px); } .ds-reach { position: absolute; top: 3px; bottom: 3px; border: 1.5px dashed var(--accent, #204ec3); border-left: 0; } .ds-ref { position: absolute; top: -7px; bottom: -7px; width: 0; border-left: 1.5px dashed var(--good, #197037); } .ds-labels { display: flex; } .ds-labels > div { display: flex; flex-direction: column; gap: 3px; padding: 8px 0 0 4px; border-left: 1px solid var(--ink-3, #5f646a); overflow: hidden; white-space: nowrap; } .ds-labels > div:last-child { border-right: 1px solid var(--ink-3, #5f646a); } .ds-labels em { font-style: normal; font-weight: 600; color: var(--ink, #1b2025); font-variant-numeric: tabular-nums; } .ds-balloon { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border: 1px solid var(--ink-2, #43484e); border-radius: 50%; font-size: 11px; font-weight: 600; color: var(--ink, #1b2025); font-variant-numeric: tabular-nums; } @keyframes ds-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } } @media (prefers-reduced-motion: reduce) { .ds-line { animation: none; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Fair Sheet",
+    "overview": "Every job is a drawing sheet checked against its specification. The light theme is a cool white drawing sheet ruled in graphite with one ballpoint-blue hand for what the owner does; the dark theme is a blueprint, a Prussian-blue ground with white linework and a pale sodium-yellow hand. Both are the same drawing: one engineered grotesk set like drafting lettering, 1px rules at three weights, square corners, hatching for what was earned and dashed hidden lines for what is absent or still reachable. The fair sheet is the clean copy made from rough work, and the system keeps that promise visually: values are measured, tolerances are drawn, nothing is decorated.\n\nDensity is that of an observation table, not a card deck. Pages are ruled tables, ruled strips and flat panels set inside a double-rule sheet frame, with a single framed title block for scan metadata. Depth comes from line weight and two tonal steps, never from shadow; the only lifted object is a floating tooltip. Motion is limited to 180ms state changes and one signature draw: the ATS dimension line extends to its measured length the first time a browser sees a resume's score.\n\nThe world refuses the category default of rounded kanban cards with a bright accent and emoji badges, and it equally refuses the neon hacker terminal. Status is told by checking-ink marks that differ in shape as well as hue, so meaning survives without color.",
+    "keyCharacteristics": [
+      "Two complete token sets (drawing sheet, blueprint) with identical roles; dark is its own steps, not an inversion.",
+      "One accent per theme, carried by the owner's hand: actions, selection, and what the owner did or can still do.",
+      "Three line weights (rule, control, rule-strong) do the work that elevation does elsewhere.",
+      "Square containers, 2px controls, and one circle: the drafting balloon.",
+      "Drafting lettering (small tracked capitals) for data labels only; tabular figures for every comparable number.",
+      "Dashed line means hidden, pending or still reachable, everywhere."
+    ],
+    "rules": [
+      {
+        "name": "The Ballpoint Rule",
+        "body": "The accent is the owner's hand: actions, selection, focus, and marks for what the owner did or can still do. It never colors a heading, a decorative fill or a checking meaning (good, pending, bad).",
+        "section": "colors"
+      },
+      {
+        "name": "The Checking Ink Rule",
+        "body": "Green checked, amber pending, red correction; each has a wash for grounds. A checking ink is always paired with a shape (filled, dashed, ringed, struck) or a word, never hue alone.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Sheets Rule",
+        "body": "Every color token exists in both sets. The dark set is declared twice: under `prefers-color-scheme: dark` guarded by `:root:not([data-theme=\"light\"])`, and under `:root[data-theme=\"dark\"]`. A token added to one sheet and not the other is a defect.",
+        "section": "colors"
+      },
+      {
+        "name": "The Drafting Lettering Rule",
+        "body": "Small tracked capitals label data: a column, a term, a column status. They never sit above a heading as an eyebrow, and headings themselves stay in sentence case.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Figures Rule",
+        "body": "Every number a reader compares (scores, counts, tokens, money, dates in the title block, revision rounds) is set with `font-variant-numeric: tabular-nums`. Tables inherit it.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Title Block Rule",
+        "body": "A sheet carries at most one framed metadata box, the title block. Every other summary is a ledger or a ruled strip.",
+        "section": "layout"
+      },
+      {
+        "name": "The Next Action Rule",
+        "body": "In any row of jobs, the one next action (Tailor now, Resume, Apply) sits at the right edge, right-aligned, on desktop and phone alike.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Sheet Rule",
+        "body": "Panels, cards, buttons, notices and the title block never cast shadows. Only a layer that floats over content (a tooltip, a popover) takes the floating-layer shadow.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Three Line Weights Rule",
+        "body": "`rule` separates, `control` bounds what can be operated, `rule-strong` frames and heads. Pick the weight by role, never for emphasis.",
+        "section": "elevation"
+      },
+      {
+        "name": "The 2px Ceiling Rule",
+        "body": "No corner exceeds 2px except the balloon's circle. No pills, no rounded cards.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** use `var(--token)` for every color and define any new token in both the drawing-sheet and blueprint sets.",
+      "**Do** bound operable controls with `control` (#7b8187 light) and separate content with `rule`; frame and head with `rule-strong`.",
+      "**Do** keep the accent for the owner's hand: primary and next actions, selection, focus, and what the owner did or can still add.",
+      "**Do** draw anything hidden, pending or still reachable with a dashed line, and anything earned with the 135deg hatch.",
+      "**Do** set every comparable number in tabular figures and every data label in drafting lettering (0.71875rem, 600, uppercase, 0.07em).",
+      "**Do** put each job's single next action at the right edge of its row, as an act button (Tailor now), a small Resume button or Apply.",
+      "**Do** keep state transitions at 180ms on `cubic-bezier(0.16, 1, 0.3, 1)` and switch every animation off under `prefers-reduced-motion`.",
+      "**Do** pair every checking ink with a shape, icon or word so status reads without color.",
+      "**Do** reflow tables into two-line ruled entries at 860px and below instead of scrolling the page sideways."
+    ],
+    "donts": [
+      "**Don't** round containers or give any control more than a 2px corner; the balloon is the only circle.",
+      "**Don't** add shadows to panels, cards, buttons or notices; the floating-layer shadow belongs only to layers that float over content.",
+      "**Don't** put a panel inside a panel, or frame a second metadata box on a sheet that already has a title block.",
+      "**Don't** use the accent to mean good, pending or bad, or to color headings and decorative fills.",
+      "**Don't** set `warn-mark` as text or let it carry meaning alone; it is a fill beside a value.",
+      "**Don't** place drafting lettering above a heading as an eyebrow or kicker.",
+      "**Don't** add page-load choreography; the dimension line's single draw and the working mark's turn are the only animations.",
+      "**Don't** introduce a second chart hue without validating it against the chart surface in both themes; `series-1` is the only series.",
+      "**Don't** add gradients beyond the two drafting fills (the earned hatch and the rejected mark's strike)."
+    ]
+  }
+}
