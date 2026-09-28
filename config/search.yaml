@@ -129,9 +129,15 @@ sources:
   linkedin:
     enabled: true
     method: jobspy
+    # The filters of a LinkedIn search URL. Build a search on linkedin.com/jobs, then copy its values here.
+    queries: ["back end developer", "java backend developer", "full stack developer node react"]   # keywords=
     location: India
+    geo_id: 102713980      # geoId= (India)
+    distance: 0            # distance=
+    hours_old: 24          # f_TPR=r86400: posted in the past 24 hours
+    params: {}             # any other filter as is, e.g. {f_E: "2,3"} entry/associate level, {f_WT: "1,3"} on-site/hybrid
+    # f_JIYN (jobs in your network) only works signed in to LinkedIn; the bot reads public listings, so it is left out.
     results_wanted: 30
-    hours_old: 13
     fetch_description: true
   indeed:
     enabled: true

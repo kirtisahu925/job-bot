@@ -144,6 +144,50 @@ def test_jobspy_source_all_blocked():
     assert result.status == "blocked" and result.results == 0
 
 
+def test_linkedin_search_carries_the_search_url_filters(monkeypatch):
+    """Runs the real python-jobspy LinkedIn scraper with the network stubbed, so an upgrade that stops
+    sending geoId (or the 24-hour window) fails here instead of silently widening the search."""
+    import requests
+
+    sent = []
+
+    class _Page:
+        status_code, text = 200, "<html><body></body></html>"
+
+    def fake_get(self, url, params=None, **kw):
+        sent.append((url, dict(params or {})))
+        return _Page()
+
+    monkeypatch.setattr(requests.Session, "get", fake_get)
+    conf = {
+        "location": "India",
+        "geo_id": 102713980,
+        "distance": 0,
+        "hours_old": 24,
+        "params": {"f_E": "2,3", "f_JIYN": True},
+        "results_wanted": 5,
+    }
+    result = JobSpySource("linkedin", ["back end developer"], conf, pause_s=0).run()
+    searches = [p for url, p in sent if "seeMoreJobPostings" in url]
+    assert searches, sent
+    first = searches[0]
+    assert first["keywords"] == "back end developer" and first["location"] == "India"
+    assert first["geoId"] == "102713980" and first["f_TPR"] == "r86400" and first["distance"] == 0
+    assert first["f_E"] == "2,3" and first["f_JIYN"] == "true"
+    assert result.status == "empty"
+
+
+def test_other_jobspy_sites_get_no_linkedin_filters():
+    seen = {}
+
+    def scraper(**kw):
+        seen.update(kw)
+        return _DF([])
+
+    JobSpySource("indeed", ["q"], {"geo_id": 1, "params": {"f_E": "2"}}, scraper=scraper, pause_s=0).run()
+    assert "geoId" not in seen and "distance" not in seen
+
+
 class _Boom(Source):
     name = "boom"
 

@@ -89,7 +89,7 @@ def build_sources(
             continue
         method = conf.get("method", "native")
         if method == "jobspy":
-            candidates.append(JobSpySource(site, queries, conf))
+            candidates.append(JobSpySource(site, conf.get("queries") or queries, conf))
         elif method == "apify":
             candidates.append(ApifySource(site, client, s.apify_token, conf, conf.get("queries") or queries))
         elif site == "foundit":
