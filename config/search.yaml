@@ -169,6 +169,7 @@ sources:
   jsearch:
     enabled: true
     monthly_cap: 190       # Basic plan is 200/month; keep a margin
+    url: https://jsearch.p.rapidapi.com/search   # the host is also sent as X-RapidAPI-Host
   jooble:
     enabled: false
     daily_cap: 100

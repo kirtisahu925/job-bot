@@ -89,6 +89,7 @@ class JSearchSource(Source):
     def __init__(self, client, api_key, queries, conf, calls_this_month: Callable[[str], int]):
         self.client, self.api_key, self.queries = client, api_key, queries
         self.monthly_cap = int(conf.get("monthly_cap", 190))
+        self.url = conf.get("url") or self.URL
         self.calls_this_month = calls_this_month
 
     @staticmethod
@@ -120,7 +121,7 @@ class JSearchSource(Source):
             return SourceResult(source=self.name, status="skipped", error="RAPIDAPI_KEY not set")
         result = SourceResult(source=self.name)
         used = self.calls_this_month(self.name)
-        headers = {"X-RapidAPI-Key": self.api_key, "X-RapidAPI-Host": "jsearch.p.rapidapi.com"}
+        headers = {"X-RapidAPI-Key": self.api_key, "X-RapidAPI-Host": httpx.URL(self.url).host}
         for query in self.queries:
             if used + result.calls >= self.monthly_cap:
                 result.error = f"monthly cap {self.monthly_cap} reached"
@@ -128,7 +129,7 @@ class JSearchSource(Source):
             result.calls += 1
             resp = get_json(
                 self.client,
-                self.URL,
+                self.url,
                 headers=headers,
                 params={
                     "query": f"{query} in India",

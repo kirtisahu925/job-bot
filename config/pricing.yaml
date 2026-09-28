@@ -4,7 +4,7 @@
 
 llm:
   provider: gemini            # gemini | anthropic | fake
-  score_models: [gemini-flash-lite-latest]
+  score_models: [gemini-flash-lite-latest, gemini-flash-latest]   # Flash only when Flash-Lite is down (uses its daily cap)
   tailor_models: [gemini-flash-latest, gemini-flash-lite-latest]   # first is preferred; rest are fallbacks on 429
 
   # Used when provider: anthropic. Pick any row from `models` below.

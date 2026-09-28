@@ -20,10 +20,11 @@ class GeminiProvider:
     def __init__(self, api_key: str):
         self.client = genai.Client(api_key=api_key)
 
+    # 503 "model is experiencing high demand" spikes usually pass within a minute or two
     @retry(
         retry=retry_if_exception_type(_Transient),
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(2, max=20),
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(4, max=60),
         reraise=True,
     )
     def _call(self, model: str, system: str, user: str, schema: type[T], max_output_tokens: int):

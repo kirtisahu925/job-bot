@@ -16,6 +16,15 @@ from jobbot.models import SourceResult
 log = logging.getLogger(__name__)
 
 
+def describe(exc: BaseException) -> str:
+    """Short failure text; for HTTP errors, the status, the path and what the server said."""
+    if isinstance(exc, httpx.HTTPStatusError):
+        resp = exc.response
+        body = " ".join(resp.text.split())[:240]
+        return f"HTTP {resp.status_code} from {resp.request.url.host}{resp.request.url.path}: {body or '(empty body)'}"
+    return str(exc)
+
+
 class Source(ABC):
     name: str
 
@@ -24,8 +33,9 @@ class Source(ABC):
         try:
             return self.fetch()
         except Exception as exc:  # noqa: BLE001 - isolation is the point
-            log.warning("source %s failed: %s", self.name, exc)
-            return SourceResult(source=self.name, status=status_of(exc), error=str(exc)[:500])
+            error = describe(exc)
+            log.warning("source %s failed: %s", self.name, error)
+            return SourceResult(source=self.name, status=status_of(exc), error=error[:500])
 
     @abstractmethod
     def fetch(self) -> SourceResult: ...

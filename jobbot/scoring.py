@@ -90,10 +90,12 @@ def build_prompt(jobs: list[Job], profile: dict, cfg: SearchConfig) -> str:
 def score_jobs(
     jobs: list[Job], profile: dict, cfg: SearchConfig, ledger: Ledger, models: list[str]
 ) -> dict[str, JobScore]:
-    """Returns scores keyed by job id. Stops early (keeping what it has) when the quota runs out."""
+    """Returns scores keyed by job id. A failed batch is skipped (its jobs are scored next run); scoring
+    stops early, keeping what it has, when every model is out of quota or two batches in a row fail."""
     system = read_prompt("score.md")
     size = max(1, cfg.limits.score_batch_size)
     scores: dict[str, JobScore] = {}
+    failures = 0
     for i in range(0, len(jobs), size):
         batch = jobs[i : i + size]
         try:
@@ -106,7 +108,11 @@ def score_jobs(
                 max_output_tokens=8192,
             )
         except LLMError:
-            break
+            failures += 1
+            if failures >= 2 or all(m in ledger.exhausted for m in models):
+                break
+            continue
+        failures = 0
         valid = {j.id for j in batch}
         for item in result.results:
             if item.job_id in valid:
