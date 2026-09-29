@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- A complete application every answer of which the profile covers, plus an unrelated newsletter box. -->
+<html>
+  <body>
+    <form id="newsletter" onsubmit="window.__newsletter = true; return false;">
+      <label for="nl">Email for job alerts</label>
+      <input id="nl" type="email" />
+      <button type="submit">Submit</button>
+    </form>
+    <p>Thank you for your interest in Acme. Apply below.</p>
+    <form id="application" onsubmit="window.__submitted = true; return false;">
+      <label for="first_name">First name *</label>
+      <input id="first_name" required />
+      <label for="last_name">Last name *</label>
+      <input id="last_name" required />
+      <label for="email">Email *</label>
+      <input id="email" type="email" required />
+      <label for="phone">Phone *</label>
+      <input id="phone" required />
+      <label for="notice">Notice period *</label>
+      <select id="notice" required>
+        <option value="">Select…</option>
+        <option>Immediate</option>
+        <option>30 days</option>
+      </select>
+      <fieldset>
+        <legend>Are you legally authorized to work in India?</legend>
+        <label><input type="radio" name="auth" value="yes" required /> Yes</label>
+        <label><input type="radio" name="auth" value="no" /> No</label>
+      </fieldset>
+      <label for="resume">Resume *</label>
+      <input id="resume" type="file" required />
+      <button type="submit" id="submit">Submit application</button>
+    </form>
+  </body>
+</html>

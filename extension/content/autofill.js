@@ -1,5 +1,6 @@
-// Injected on demand (popup "Autofill this page"). Fills what it can recognise, highlights it, attaches
-// the resume if given, and NEVER submits the form. Runs in every frame, so embedded ATS iframes work.
+// Injected on demand (popup "Autofill this page", or auto apply). Fills what it can recognise, highlights it and
+// attaches the resume if given. It never submits; content/apply.js decides that. Runs in every frame, so embedded
+// ATS iframes work. `root` limits it to one container, such as LinkedIn's Easy Apply dialog.
 (function () {
   const { classifyField, matchCustomAnswer, profileValue } = globalThis.JobbotFieldMap;
   const FILLED = "jobbot-filled";
@@ -73,18 +74,25 @@
     el.style.outlineOffset = "1px";
   }
 
-  function answerFor(el, profile, qa) {
+  // "How many years of experience do you have with Kafka?" asks about one skill, not your career
+  const SKILL_YEARS = /\bexperience\b.*\b(with|in|using|on|of)\s+(?!(the )?(industry|field|total|overall|years?)\b)\w/i;
+
+  function answerFor(el, profile, qa, strict) {
     const d = describe(el);
     const key = classifyField(d);
-    if (key) return { key, value: profileValue(profile, key) };
     const question = d.label || d.ariaLabel || d.placeholder;
     const custom = question ? matchCustomAnswer(question, qa) : null;
+    // strict (auto apply): a skill-specific years question is answered only from your saved answers
+    if (strict && (key === "totalExperience" || key === "relevantExperience") && SKILL_YEARS.test(question || "")) {
+      return custom ? { key: "custom", value: custom } : { key: null, value: null, question };
+    }
+    if (key) return { key, value: profileValue(profile, key), question };
     return custom ? { key: "custom", value: custom } : { key: null, value: null, question };
   }
 
-  function fillRadios(profile, qa, report) {
+  function fillRadios(root, profile, qa, report) {
     const groups = new Map();
-    for (const r of document.querySelectorAll("input[type=radio]")) {
+    for (const r of root.querySelectorAll("input[type=radio]")) {
       if (!r.name || !visible(r)) continue;
       if (!groups.has(r.name)) groups.set(r.name, []);
       groups.get(r.name).push(r);
@@ -109,9 +117,9 @@
     }
   }
 
-  function attachResume(resume, report) {
+  function attachResume(root, resume, report) {
     if (!resume) return;
-    const inputs = [...document.querySelectorAll("input[type=file]")];
+    const inputs = [...root.querySelectorAll("input[type=file]")];
     if (!inputs.length) return;
     const target =
       inputs.find((i) => /resume|cv|curriculum/i.test(labelFor(i) + i.name + i.id + (i.getAttribute("aria-label") || ""))) ||
@@ -128,9 +136,9 @@
     report.resume = resume.name;
   }
 
-  function run({ profile, customAnswers, resume }) {
+  function run({ profile, customAnswers, resume, root = document, strict = false }) {
     const report = { filled: 0, skipped: 0, unmatched: [], resume: null };
-    const fields = document.querySelectorAll(
+    const fields = root.querySelectorAll(
       "input:not([type=radio]):not([type=checkbox]):not([type=file]), textarea, select, [contenteditable=true]",
     );
     for (const el of fields) {
@@ -140,7 +148,7 @@
         report.skipped++;
         continue;
       }
-      const { value, question } = answerFor(el, profile, customAnswers);
+      const { value, question } = answerFor(el, profile, customAnswers, strict);
       if (!value) {
         if (question && (el.required || el.getAttribute("aria-required") === "true")) report.unmatched.push(question.slice(0, 80));
         continue;
@@ -154,10 +162,10 @@
       mark(el);
       report.filled++;
     }
-    fillRadios(profile, customAnswers, report);
-    attachResume(resume, report);
+    fillRadios(root, profile, customAnswers, report);
+    attachResume(root, resume, report);
     return report;
   }
 
-  globalThis.JobbotAutofill = { run, describe };
+  globalThis.JobbotAutofill = { run, describe, labelFor, visible };
 })();

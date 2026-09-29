@@ -2,7 +2,7 @@
 //   cd extension-tests && npm install && npx playwright install chromium && npm run test:browser
 // Set CHROMIUM_PATH to use an already installed Chromium instead.
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -105,6 +105,82 @@ await check("Naukri job page falls back to selectors", async () => {
   assert.equal(job.location, "Gurugram");
   assert.match(job.description, /FastAPI and Django/);
 });
+// ---- Apply queue page engine: fills up to Submit, never presses it ----
+async function injectApply(page) {
+  for (const f of ["lib/fieldmap.js", "content/autofill.js", "content/apply.js"]) {
+    await page.addScriptTag({ path: path.join(ext, f) });
+  }
+}
+const queuePayload = { profile, customAnswers, resume };
+const sentAnything = (page) => page.evaluate(() => !!(window.__submitted || window.__sent || window.__newsletter));
+
+await check("apply queue: a complete form is filled up to Submit and not sent", async () => {
+  await page.goto(fixture("apply_form.html"));
+  await injectApply(page);
+  const result = await page.evaluate((p) => globalThis.JobbotApply.run(p), queuePayload);
+  assert.equal(result.state, "ready", JSON.stringify(result));
+  assert.equal(result.resume, "Asha_Rao_Resume.pdf");
+  assert.equal(await page.inputValue("#first_name"), "Asha");
+  assert.equal(await page.$eval("#notice", (s) => s.options[s.selectedIndex].text), "30 days");
+  assert.equal(await page.isChecked("input[name=auth][value=yes]"), true);
+  assert.match(await page.$eval("#submit", (b) => b.style.outline), /solid/, "Submit is outlined for you");
+  assert.equal(await sentAnything(page), false);
+});
+
+await check("apply queue: an unanswerable required question stops it with the question named", async () => {
+  await page.goto(fixture("greenhouse_form.html"));
+  await injectApply(page);
+  const result = await page.evaluate((p) => globalThis.JobbotApply.run(p), queuePayload);
+  assert.equal(result.state, "needs_you");
+  assert.ok(result.missing.some((q) => q.startsWith("Why do you want to join us")), result.note);
+  assert.equal(await sentAnything(page), false);
+});
+
+await check("apply queue: steps through Save and continue to the resume page, then stops at Submit", async () => {
+  await page.goto(fixture("steps_form.html"));
+  await injectApply(page);
+  const result = await page.evaluate((p) => globalThis.JobbotApply.run(p), queuePayload);
+  assert.equal(result.state, "ready", JSON.stringify(result));
+  assert.equal(await page.evaluate(() => window.__steps), 1);
+  assert.equal(await page.$eval("#cv", (i) => i.files[0]?.name), "Asha_Rao_Resume.pdf");
+  assert.equal(await page.inputValue("#city"), "Gurugram");
+  assert.equal(await sentAnything(page), false);
+});
+
+const linkedinHtml = readFileSync(path.join(here, "fixtures", "linkedin_easy_apply.html"), "utf8");
+await page.route("https://www.linkedin.com/jobs/view/**", (route) =>
+  route.fulfill({ status: 200, contentType: "text/html", body: linkedinHtml }),
+);
+
+await check("apply queue: LinkedIn Easy Apply is walked to its last step and left there", async () => {
+  await page.goto("https://www.linkedin.com/jobs/view/4471500199/");
+  await injectApply(page);
+  const result = await page.evaluate((p) => globalThis.JobbotApply.run(p), queuePayload);
+  assert.equal(result.state, "ready", JSON.stringify(result));
+  assert.equal(await page.inputValue("#ph"), "+91 90000 00000");
+  assert.equal(await page.isChecked("input[name=auth][value=Yes]"), true);
+  assert.equal(await page.$eval("#upload", (i) => i.files[0]?.name), "Asha_Rao_Resume.pdf");
+  assert.equal(await page.isVisible("#send"), true);
+  assert.equal(await sentAnything(page), false);
+});
+
+await check("apply queue: a skill-specific years question is not answered with total experience", async () => {
+  await page.goto("https://www.linkedin.com/jobs/view/1/?variant=kafka");
+  await injectApply(page);
+  const withYears = { ...queuePayload, profile: { ...profile, totalExperience: "2.5" } };
+  const result = await page.evaluate((p) => globalThis.JobbotApply.run(p), withYears);
+  assert.equal(result.state, "needs_you");
+  assert.match(result.note, /Kafka/);
+  assert.equal(await page.inputValue("#yrs"), "");
+  assert.equal(await sentAnything(page), false);
+});
+
+await check("apply queue: a LinkedIn job that applies on the company site is left to you", async () => {
+  await page.goto("https://www.linkedin.com/jobs/view/2/?variant=external");
+  await injectApply(page);
+  const result = await page.evaluate((p) => globalThis.JobbotApply.run(p), queuePayload);
+  assert.equal(result.state, "external");
+});
 await browser.close();
 
 await check("unpacked extension loads: service worker, popup and options render", async () => {
@@ -123,13 +199,20 @@ await check("unpacked extension loads: service worker, popup and options render"
   await popup.goto(`chrome-extension://${id}/popup.html`);
   await popup.waitForTimeout(500);
   assert.match(await popup.textContent("#account"), /Not connected to Supabase yet/);
+  assert.match(await popup.textContent("#queue-summary"), /^Off\. Turn it on/, "the queue starts off");
+  assert.equal(await popup.isVisible("#queue-start"), false);
   const options = await context.newPage();
   options.on("pageerror", (e) => errors.push(e.message));
   await options.goto(`chrome-extension://${id}/options.html`);
   await options.fill("#p-firstName", "Asha");
   await options.click("#save");
-  const stored = await options.evaluate(() => chrome.storage.local.get("profile"));
+  await options.fill("#aa-minAts", "85");
+  await options.click("#save");
+  await options.waitForTimeout(200);
+  const stored = await options.evaluate(() => chrome.storage.local.get(["profile", "autoApply"]));
   assert.equal(stored.profile.firstName, "Asha");
+  assert.equal(stored.autoApply.minAts, 85);
+  assert.equal(stored.autoApply.enabled, false, "the queue stays off until you turn it on and grant access");
   assert.deepEqual(errors, []);
   await context.close();
 });

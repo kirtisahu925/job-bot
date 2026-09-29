@@ -60,10 +60,36 @@ why do you want to join => I build backend services in Python and Java and your 
       </div>
     </section>
 
+    <section>
+      <h2>5. Apply queue</h2>
+      <p class="soft">From the popup, the queue opens your ready jobs one at a time in background tabs: a tailored resume,
+        ATS and match at or above the minimums below. It fills each application, attaches that job's resume, steps
+        through Next pages, and stops at the Submit button, outlined in green. <strong>It never submits.</strong> You
+        review each tab, press Submit yourself, then Mark applied. It also stops early at any question your profile and
+        saved answers don't cover, such as free-text answers, consent boxes, sign-ups and skill-specific experience.</p>
+      <label class="check" style="flex-direction: row; margin-bottom: 12px">
+        <input id="aa-enabled" type="checkbox" /> Turn on the apply queue (Chrome asks once for access to job sites)
+      </label>
+      <div class="grid">
+        <label>Minimum ATS score <input id="aa-minAts" type="number" min="0" max="100" step="5" /></label>
+        <label>Minimum match score <input id="aa-minMatch" type="number" min="0" max="100" step="5" /></label>
+        <label>Applications opened per day <input id="aa-dailyCap" type="number" min="1" max="40" /></label>
+        <label>Pause between jobs (seconds) <input id="aa-pauseSeconds" type="number" min="5" max="300" /></label>
+      </div>
+      <label class="check" style="flex-direction: row; margin-top: 12px">
+        <input id="aa-linkedin" type="checkbox" /> Include LinkedIn Easy Apply jobs
+      </label>
+      <p class="muted small" style="margin-top: 6px">LinkedIn's User Agreement forbids automated use of its site, and
+        LinkedIn can restrict accounts it thinks are automated. Leave this off unless you accept that risk, and keep
+        the daily number low.</p>
+      <p id="aa-status" class="soft" role="status" style="margin-top: 8px"></p>
+    </section>
+
     <div class="row" style="padding-top: 16px">
       <button id="save" class="primary">Save profile</button>
       <span id="save-status" class="muted"></span>
     </div>
+    <script src="lib/autoapply.js"></script>
     <script src="options.js"></script>
   </body>
 </html>

@@ -61,3 +61,6 @@ playwright-report/
 **/.impeccable/live/*.png
 # impeccable-ignore-end
 fairsheet-extension.zip
+
+# local wrangler dev state
+dashboard/.wrangler/

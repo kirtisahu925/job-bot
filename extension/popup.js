@@ -192,4 +192,83 @@ $("autofill").addEventListener("click", async () => {
   }
 });
 
+// ---- Apply queue: fills ready jobs up to their Submit button; you submit each one ----
+const QUEUE_TONE = { ready: "ok", needs_you: "warn", error: "bad" };
+
+async function renderQueue() {
+  const r = await send({ type: "queuePreview" });
+  const summary = $("queue-summary");
+  const start = $("queue-start");
+  const stop = $("queue-stop");
+  if (!r?.ok) {
+    summary.textContent = r?.error || "Sign in to use the apply queue.";
+    start.hidden = stop.hidden = true;
+    return;
+  }
+  const { settings, state, ready, openedToday, error } = r;
+  if (error && !state.running) {
+    summary.textContent = error;
+    start.hidden = stop.hidden = true;
+  } else if (!settings.enabled) {
+    summary.textContent = "Off. Turn it on in Profile and settings; it fills applications up to Submit and never sends them.";
+    start.hidden = stop.hidden = true;
+  } else if (state.running) {
+    summary.replaceChildren(
+      el("span", { className: "working", textContent: state.current ? `Filling ${state.current.title}, ${state.current.company}` : "Starting…" }),
+      ` · ${openedToday} of ${settings.dailyCap} opened today`,
+    );
+    start.hidden = true;
+    stop.hidden = false;
+  } else {
+    const left = Math.max(settings.dailyCap - openedToday, 0);
+    const rules = `ATS ${settings.minAts}+, match ${settings.minMatch}+${settings.linkedin ? "" : ", LinkedIn off"}`;
+    summary.textContent =
+      `${ready.length} ready job${ready.length === 1 ? "" : "s"} (${rules}). ${left} of ${settings.dailyCap} left today.` +
+      (state.stopped ? ` ${state.stopped}` : "");
+    start.hidden = false;
+    start.disabled = !ready.length || !left;
+    stop.hidden = true;
+  }
+
+  const list = $("queue-results");
+  list.replaceChildren();
+  for (const item of [...state.results].reverse().slice(0, 6)) {
+    const actions = el("span", { className: "row", style: "gap:6px;margin-top:4px" });
+    if (item.tabId) {
+      const open = el("button", { textContent: "Open tab" });
+      open.addEventListener("click", () => send({ type: "queueFocus", tabId: item.tabId }).then((x) => !x.ok && (open.textContent = "Tab closed")));
+      actions.append(open);
+    }
+    if (item.state === "ready" || item.state === "needs_you") {
+      const applied = el("button", { textContent: "Mark applied" });
+      applied.addEventListener("click", async () => {
+        const x = await send({ type: "markApplied", jobId: item.jobId });
+        applied.textContent = x.ok ? "Applied" : x.error;
+        applied.disabled = x.ok;
+      });
+      actions.append(applied);
+    }
+    list.append(
+      el(
+        "li",
+        {},
+        el("strong", { textContent: item.title }),
+        el("span", { className: "soft", textContent: `, ${item.company}` }),
+        el("div", { className: QUEUE_TONE[item.state] || "soft", textContent: globalThis.JobbotAutoApply.LABEL[item.state] || item.state }),
+        item.note ? el("div", { className: "muted small", textContent: item.note }) : "",
+        actions.childNodes.length ? actions : "",
+      ),
+    );
+  }
+}
+
+$("queue-start").addEventListener("click", async () => {
+  $("queue-start").disabled = true;
+  const r = await send({ type: "queueStart" });
+  if (!r.ok) $("queue-summary").textContent = r.error;
+});
+$("queue-stop").addEventListener("click", () => send({ type: "queueStop" }));
+chrome.storage.onChanged.addListener((changes) => changes.autoApplyState && renderQueue());
+
 init();
+renderQueue();

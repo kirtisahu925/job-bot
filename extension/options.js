@@ -44,9 +44,38 @@ function renderFields(profile) {
   }
 }
 
+// Apply queue settings; defaults and meaning in lib/autoapply.js
+const QUEUE_NUMBERS = ["minAts", "minMatch", "dailyCap", "pauseSeconds"];
+const SITE_ACCESS = { origins: ["<all_urls>"] };
+
+function renderQueue(saved) {
+  const s = globalThis.JobbotAutoApply.settingsOf(saved);
+  $("aa-enabled").checked = s.enabled;
+  $("aa-linkedin").checked = s.linkedin;
+  for (const key of QUEUE_NUMBERS) $(`aa-${key}`).value = s[key];
+}
+
+function queueSettings() {
+  const numbers = Object.fromEntries(QUEUE_NUMBERS.map((key) => [key, Number($(`aa-${key}`).value)]));
+  return { ...numbers, enabled: $("aa-enabled").checked, linkedin: $("aa-linkedin").checked };
+}
+
+// Site access must be asked for during the click itself, so it is requested here rather than on Save.
+$("aa-enabled").addEventListener("change", async (e) => {
+  if (!e.target.checked) return;
+  const granted = await chrome.permissions.request(SITE_ACCESS).catch(() => false);
+  if (!granted) {
+    e.target.checked = false;
+    $("aa-status").textContent = "The queue needs access to job sites to open and fill applications; it stays off.";
+    return;
+  }
+  $("aa-status").textContent = "Access granted. Save to turn the queue on.";
+});
+
 async function load() {
-  const data = await chrome.storage.local.get(["profile", "customAnswers", "supabaseUrl", "anonKey", "defaultResume", "session"]);
+  const data = await chrome.storage.local.get(["profile", "customAnswers", "supabaseUrl", "anonKey", "defaultResume", "session", "autoApply"]);
   renderFields(data.profile || {});
+  renderQueue(data.autoApply);
   $("customAnswers").value = data.customAnswers || "";
   $("supabaseUrl").value = data.supabaseUrl || "";
   $("anonKey").value = data.anonKey || "";
@@ -56,7 +85,10 @@ async function load() {
 
 $("save").addEventListener("click", async () => {
   const profile = Object.fromEntries(FIELDS.map(([key]) => [key, $(`p-${key}`).value.trim()]));
-  await chrome.storage.local.set({ profile, customAnswers: $("customAnswers").value });
+  const autoApply = queueSettings();
+  if (autoApply.enabled && !(await chrome.permissions.contains(SITE_ACCESS))) autoApply.enabled = false;
+  await chrome.storage.local.set({ profile, customAnswers: $("customAnswers").value, autoApply });
+  renderQueue(autoApply);
   $("save-status").textContent = "Saved";
   setTimeout(() => ($("save-status").textContent = ""), 2000);
 });

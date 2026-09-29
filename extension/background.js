@@ -1,6 +1,6 @@
 // Service worker: talks to Supabase (auth, PostgREST, Storage) with your login, so content scripts and
 // the popup never hold credentials. Everything lives in chrome.storage.local on this machine only.
-importScripts("lib/urlkey.js");
+importScripts("lib/urlkey.js", "lib/fieldmap.js", "lib/autoapply.js");
 
 const store = {
   get: (keys) => chrome.storage.local.get(keys),
@@ -88,6 +88,105 @@ async function resumeFor(jobId) {
   return { name: `${name}_Resume.pdf`, base64: btoa(binary) };
 }
 
+// ---- Apply queue ------------------------------------------------------------------------------------------
+// Opens each qualifying job's application in a background tab, one at a time, fills it with content/apply.js
+// and leaves it at its Submit button. Nothing is sent: you review each tab and submit it yourself.
+const AA = self.JobbotAutoApply;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function queueState() {
+  const { autoApply, autoApplyState } = await store.get(["autoApply", "autoApplyState"]);
+  return {
+    settings: AA.settingsOf(autoApply),
+    state: { running: false, current: null, results: [], tried: {}, ...(autoApplyState || {}) },
+  };
+}
+
+async function saveQueue(patch) {
+  const { state } = await queueState();
+  const next = { ...state, ...patch };
+  next.results = next.results.slice(-60);
+  await store.set({ autoApplyState: next });
+  return next;
+}
+
+// A worker that the browser restarted mid-run is no longer running it.
+queueState().then(({ state }) => state.running && saveQueue({ running: false, current: null, stopped: "The browser stopped the queue; start it again." }));
+
+async function queueJobs(settings, tried) {
+  const jobs = await rest(
+    "/rest/v1/jobs?select=id,title,company,status,apply_url,llm_score,ats_score&status=eq.tailored&apply_url=not.is.null" +
+      "&order=llm_score.desc.nullslast&limit=100",
+  );
+  return AA.eligible(jobs, settings, tried);
+}
+
+function tabLoaded(tabId, timeoutMs = 45000) {
+  return new Promise((resolve) => {
+    const done = () => {
+      chrome.tabs.onUpdated.removeListener(onUpdated);
+      clearTimeout(timer);
+      resolve();
+    };
+    const onUpdated = (id, info) => id === tabId && info.status === "complete" && done();
+    const timer = setTimeout(done, timeoutMs);
+    chrome.tabs.onUpdated.addListener(onUpdated);
+    chrome.tabs.get(tabId).then((t) => t.status === "complete" && done(), done);
+  });
+}
+
+async function prepareOne(job) {
+  const { profile = {}, customAnswers = "", defaultResume = null } = await store.get(["profile", "customAnswers", "defaultResume"]);
+  const resume = (await resumeFor(job.id).catch(() => null)) || defaultResume;
+  const tab = await chrome.tabs.create({ url: job.apply_url, active: false });
+  try {
+    await tabLoaded(tab.id);
+    await sleep(2500); // client-rendered forms
+    const target = { tabId: tab.id, allFrames: true };
+    await chrome.scripting.executeScript({ target, files: ["lib/fieldmap.js", "content/autofill.js", "content/apply.js"] });
+    const payload = { profile, customAnswers: self.JobbotFieldMap.parseCustomAnswers(customAnswers), resume };
+    const frames = await chrome.scripting.executeScript({ target, args: [payload], func: (p) => globalThis.JobbotApply.run(p) });
+    const outcome = AA.pickOutcome(frames.map((f) => f.result));
+    const keep = AA.KEEP_TAB.has(outcome.state);
+    if (!keep) await chrome.tabs.remove(tab.id).catch(() => {});
+    return { ...outcome, note: resume ? outcome.note : `${outcome.note} No resume was available to attach.`, tabId: keep ? tab.id : null };
+  } catch (err) {
+    return { state: "error", note: err.message, tabId: tab.id };
+  }
+}
+
+async function runQueue() {
+  let { settings, state } = await queueState();
+  if (!settings.enabled) throw new Error("The apply queue is off. Turn it on in Profile and settings.");
+  if (state.running) return;
+  const queue = await queueJobs(settings, state.tried);
+  await saveQueue({ running: true, stopped: null, queued: queue.length, startedAt: new Date().toISOString() });
+  // any extension call resets the worker's idle timer; this keeps it alive through slow pages
+  const keepAlive = setInterval(() => chrome.runtime.getPlatformInfo(), 20000);
+  try {
+    for (const [i, job] of queue.entries()) {
+      ({ state } = await queueState());
+      if (!state.running) break;
+      if (AA.openedToday(state.results) >= settings.dailyCap) {
+        await saveQueue({ stopped: `Daily limit of ${settings.dailyCap} applications reached.` });
+        break;
+      }
+      await saveQueue({ current: { id: job.id, title: job.title, company: job.company } });
+      const result = await prepareOne(job);
+      const entry = { jobId: job.id, title: job.title, company: job.company, url: job.apply_url, at: new Date().toISOString(), ...result };
+      ({ state } = await queueState());
+      await saveQueue({ results: [...state.results, entry], tried: { ...state.tried, [job.id]: entry.at }, current: null });
+      if (i < queue.length - 1) {
+        const pause = settings.pauseSeconds * 1000 * (0.75 + Math.random() * 0.5);
+        for (let waited = 0; waited < pause && (await queueState()).state.running; waited += 5000) await sleep(Math.min(5000, pause - waited));
+      }
+    }
+  } finally {
+    clearInterval(keepAlive);
+    await saveQueue({ running: false, current: null, finishedAt: new Date().toISOString() });
+  }
+}
+
 const handlers = {
   async login({ email, password }) {
     const s = await authRequest("password", { email, password });
@@ -126,6 +225,37 @@ const handlers = {
   },
   async resume({ jobId }) {
     return { resume: await resumeFor(jobId) };
+  },
+  async queuePreview() {
+    const { settings, state } = await queueState();
+    let ready = [];
+    let error = null;
+    if (settings.enabled) {
+      try {
+        ready = await queueJobs(settings, state.tried);
+      } catch (err) {
+        error = err.message; // still show what the queue already prepared
+      }
+    }
+    return {
+      settings,
+      state,
+      error,
+      ready: ready.map(({ id, title, company, apply_url, llm_score, ats_score }) => ({ id, title, company, apply_url, llm_score, ats_score })),
+      openedToday: AA.openedToday(state.results),
+    };
+  },
+  async queueStart() {
+    runQueue().catch((err) => saveQueue({ running: false, current: null, stopped: err.message }));
+    return {};
+  },
+  async queueStop() {
+    await saveQueue({ running: false, stopped: "Stopped by you." });
+    return {};
+  },
+  async queueFocus({ tabId }) {
+    await chrome.tabs.update(tabId, { active: true });
+    return {};
   },
   // Starts the GitHub Action that tailors this job (through the tailor-now Edge Function; about 3 minutes).
   async tailorNow({ jobId }) {

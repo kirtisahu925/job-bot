@@ -95,3 +95,6 @@ textarea { width: 100%; min-height: 140px; resize: vertical; line-height: 1.5; }
 .mark.tailor_queued { border-style: dashed; border-color: var(--warn); }
 .mark.rejected { border-color: var(--bad); }
 .working { color: var(--warn); font-weight: 600; }
+.results { list-style: none; margin: 8px 0 0; padding: 0; }
+.results li { padding: 8px 0; border-top: 1px solid var(--rule); }
+.results li strong { font-weight: 600; }

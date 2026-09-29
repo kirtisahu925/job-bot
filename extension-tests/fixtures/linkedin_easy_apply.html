@@ -1,0 +1,65 @@
+<!doctype html>
+<!-- Hand-made stand-in for a LinkedIn job page and its Easy Apply dialog (served at a linkedin.com URL by the
+     test). ?variant=kafka adds a skill-specific experience question; ?variant=external has a plain Apply button. -->
+<html>
+  <body>
+    <main class="jobs-unified-top-card">
+      <h1>Backend Engineer</h1>
+      <button class="jobs-apply-button" id="apply" aria-label="Easy Apply to Backend Engineer at Acme">Easy Apply</button>
+    </main>
+    <div id="dialog" class="jobs-easy-apply-modal" role="dialog" aria-labelledby="jobs-apply-header" hidden>
+      <h2 id="jobs-apply-header">Apply to Acme</h2>
+      <form>
+        <section data-step="1">
+          <label for="em">Email address</label>
+          <input id="em" value="asha@example.com" required />
+          <label for="ph">Mobile phone number</label>
+          <input id="ph" required />
+          <button type="button" aria-label="Continue to next step" class="next">Next</button>
+        </section>
+        <section data-step="2" hidden>
+          <label for="upload">Upload resume</label>
+          <input id="upload" type="file" name="file" />
+          <fieldset>
+            <legend>Are you legally authorized to work in India?</legend>
+            <label><input type="radio" name="auth" value="Yes" required /> Yes</label>
+            <label><input type="radio" name="auth" value="No" /> No</label>
+          </fieldset>
+          <div id="kafka" hidden>
+            <label for="yrs">How many years of work experience do you have with Kafka?</label>
+            <input id="yrs" type="text" required />
+          </div>
+          <button type="button" aria-label="Review your application" class="next">Review</button>
+        </section>
+        <section data-step="3" hidden>
+          <p>Review your application</p>
+          <input type="checkbox" id="follow-company-checkbox" checked />
+          <label for="follow-company-checkbox">Follow Acme to stay up to date with their page.</label>
+          <button type="button" aria-label="Submit application" id="send">Submit application</button>
+        </section>
+      </form>
+    </div>
+    <script>
+      const variant = new URLSearchParams(location.search).get("variant");
+      const apply = document.getElementById("apply");
+      if (variant === "external") {
+        apply.textContent = "Apply";
+        apply.setAttribute("aria-label", "Apply to Backend Engineer on company website");
+      }
+      if (variant === "kafka") document.getElementById("kafka").hidden = false;
+      document.getElementById("kafka").querySelector("input").required = variant === "kafka";
+      apply.addEventListener("click", () => {
+        if (variant !== "external") document.getElementById("dialog").hidden = false;
+      });
+      const steps = [...document.querySelectorAll("[data-step]")];
+      for (const button of document.querySelectorAll(".next")) {
+        button.addEventListener("click", () => {
+          const i = steps.findIndex((s) => !s.hidden);
+          steps[i].hidden = true;
+          steps[i + 1].hidden = false;
+        });
+      }
+      document.getElementById("send").addEventListener("click", () => (window.__sent = true));
+    </script>
+  </body>
+</html>

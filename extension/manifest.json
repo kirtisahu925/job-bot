@@ -1,13 +1,26 @@
 {
   "manifest_version": 3,
   "name": "Fairsheet Autofill",
-  "version": "0.2.0",
-  "description": "Autofills job applications, attaches your tailored resume, and saves jobs to your tracker. Never submits.",
-  "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
-  "action": { "default_popup": "popup.html", "default_title": "Fairsheet" },
+  "version": "0.3.0",
+  "description": "Autofills job applications, attaches your tailored resume, queues your ready jobs, and saves jobs to your tracker. Never submits: you do.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Fairsheet"
+  },
   "options_page": "options.html",
-  "background": { "service_worker": "background.js" },
-  "permissions": ["storage", "activeTab", "scripting"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
   "host_permissions": [
     "https://*.supabase.co/*",
     "https://boards.greenhouse.io/*",
@@ -25,8 +38,15 @@
         "https://*.foundit.in/*",
         "https://wellfound.com/*"
       ],
-      "js": ["lib/urlkey.js", "lib/extract.js", "content/capture.js"],
+      "js": [
+        "lib/urlkey.js",
+        "lib/extract.js",
+        "content/capture.js"
+      ],
       "run_at": "document_idle"
     }
+  ],
+  "optional_host_permissions": [
+    "<all_urls>"
   ]
 }

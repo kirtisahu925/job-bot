@@ -40,6 +40,16 @@
       <p id="fill-result" class="soft" role="status" style="margin-top: 8px"></p>
     </section>
 
+    <section class="block" aria-labelledby="queue-h">
+      <h2 id="queue-h">Apply queue</h2>
+      <p id="queue-summary" class="soft" role="status">Checking…</p>
+      <div class="row" style="margin-top: 8px">
+        <button id="queue-start" class="primary" hidden>Open and fill ready jobs</button>
+        <button id="queue-stop" hidden>Stop</button>
+      </div>
+      <ol id="queue-results" class="results"></ol>
+    </section>
+
     <div class="row" style="padding-top: 10px">
       <button id="save">Save this job</button>
       <button id="options" class="quiet">Profile and settings</button>
@@ -47,6 +57,7 @@
     <p class="muted small" style="margin-top: 8px">Fairsheet fills fields and attaches your resume. You review and submit.</p>
     <script src="lib/urlkey.js"></script>
     <script src="lib/fieldmap.js"></script>
+    <script src="lib/autoapply.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

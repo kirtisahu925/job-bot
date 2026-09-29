@@ -1,0 +1,24 @@
+<!doctype html>
+<!-- A two-step application (Workday-like): contact details, Continue, then resume and Submit. -->
+<html>
+  <body>
+    <form id="app" onsubmit="window.__submitted = true; return false;">
+      <div id="step1">
+        <label for="fn">First name *</label>
+        <input id="fn" required />
+        <label for="ln">Last name *</label>
+        <input id="ln" required />
+        <label for="em">Email *</label>
+        <input id="em" type="email" required />
+        <button type="button" id="next" onclick="document.getElementById('step1').hidden = true; document.getElementById('step2').hidden = false; window.__steps = (window.__steps || 0) + 1;">Save and continue</button>
+      </div>
+      <div id="step2" hidden>
+        <label for="cv">Upload your resume *</label>
+        <input id="cv" type="file" />
+        <label for="city">City</label>
+        <input id="city" />
+        <button type="submit" id="submit">Submit</button>
+      </div>
+    </form>
+  </body>
+</html>

@@ -54,6 +54,15 @@ and Naukri in particular may block GitHub's datacenter IPs. Each source fails on
 stopping the run, its health is shown on the dashboard, and two fallbacks cover the gaps: JSearch (Google
 for Jobs, which carries LinkedIn/Indeed/Naukri listings) and the extension's **Save job** button.
 
+**LinkedIn search filters.** `sources.linkedin` in `config/search.yaml` holds the filters of a LinkedIn
+search URL, so the bot searches like
+`linkedin.com/jobs/search-results/?keywords=Back End Developer&geoId=102713980&distance=0&f_TPR=r86400`:
+`queries` (keywords), `location` and `geo_id` (India is 102713980), `distance`, `hours_old` (24 is
+`f_TPR=r86400`, the past 24 hours), and `params` for any other filter as is (`f_E: "2,3"` for entry and
+associate level, `f_WT: "1,3"` for on-site and hybrid). To copy a search, run it on linkedin.com and read
+the values from the address bar. `f_JIYN` (jobs in your network) only works when signed in to LinkedIn, and
+the bot reads public listings without logging in, so it is left out.
+
 | Source | How | Cost | Secret |
 |---|---|---|---|
 | LinkedIn, Indeed, Naukri | [python-jobspy](https://github.com/speedyapply/JobSpy) | Free | – |
@@ -213,6 +222,19 @@ the job's match and ATS score and a **Tailor now** button. On an application for
 job (or your default resume), lists required questions it couldn't answer, and leaves submitting to you.
 **Mark applied** updates the dashboard.
 
+**Apply queue** (off until you turn it on in the options). From the popup, **Open and fill ready jobs**
+opens each job with a tailored resume, ATS and match at or above your minimums, and an apply link, one
+at a time in a background tab. Each is filled from your profile and saved answers, with that job's
+tailored PDF attached. The queue steps through Next / Continue pages and stops at the Submit button,
+outlined in green. **It never submits**: you open each tab from the popup, check it, press Submit, then
+**Mark applied**. It stops early and says why ("Needs: …") at anything it cannot answer honestly:
+free-text questions, consent boxes, sign-ups and passwords, and skill-specific questions like "years of
+experience with Kafka", which it never answers with your total experience. Add such answers under
+recurring questions (`experience with kafka => 0`) and they are used. Settings: minimum ATS (80) and match
+(70), applications opened per day (10), and the pause between jobs (20 s). **LinkedIn Easy Apply** jobs
+are included only if you tick it. LinkedIn's User Agreement forbids automated use of the site, and it can
+restrict accounts it thinks are automated.
+
 ---
 
 ## Using it day to day
@@ -311,6 +333,10 @@ detector on every dashboard page (desktop and phone) and on the extension; a fin
 - The Wellfound actor's input format belongs to its author: check it once in Apify.
 - Gemini free-tier limits change without notice; if resumes stop appearing, lower the caps in
   `config/pricing.yaml` or add a paid provider.
-- Autofill was tested against local copies of Greenhouse- and Workday-style forms. Lever, Ashby, LinkedIn
-  Easy Apply and other sites use the same generic field matching but have not been tested on the live
-  sites. Free-text questions ("Why us?") are left to you unless you add a custom answer.
+- Autofill and the apply queue were tested against local copies of Greenhouse-, Workday-style and
+  multi-step forms and a stand-in for LinkedIn's Easy Apply dialog. The live sites (LinkedIn, Lever, Ashby,
+  Workday…) change their markup and have not been tested from here; when a page is not recognised the
+  queue stops with "needs you" and leaves the tab open. Free-text questions ("Why us?") are left to you
+  unless you add a custom answer.
+- The apply queue does not submit applications. Sending them automatically was not built: it stays a
+  step you take on each tab.
