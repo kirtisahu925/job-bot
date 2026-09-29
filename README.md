@@ -200,8 +200,10 @@ The site is a Cloudflare **Worker** that serves the built files (`dashboard/wran
 `dist`, with single-page-app routing so links like `/jobs/<id>` open directly).
 
 Cloudflare → Workers & Pages → Create → Import a repository → authorize GitHub → this repository. Project
-name `fairsheet`, then under Build: **root directory `dashboard`**, build command `npm run build`, deploy
-command `npx wrangler deploy`. No environment variables are needed. After it is created, Settings → Build →
+name `fairsheet`, then under Build: **root directory `dashboard`**, build command `npm run build` (or
+empty: wrangler builds it anyway), deploy command **exactly `npx wrangler deploy`**. Do not add
+`--assets=…` to it: that overrides `dist` and serves the unbuilt source, and the page then says "could not
+load …/src/main.tsx". No environment variables are needed. After it is created, Settings → Build →
 Branch control → **production branch `main`** (and optionally turn off builds for other branches). The site
 is `https://fairsheet.<your-account>.workers.dev`; every push to `main` redeploys it. Sign in with the user
 from step 2.4. (Try it first without Supabase: `cd dashboard && npm install && VITE_DEMO=1 npm run dev`

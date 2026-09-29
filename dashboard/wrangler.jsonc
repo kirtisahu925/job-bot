@@ -1,8 +1,13 @@
 // Cloudflare Worker that serves the built dashboard (Workers & Pages > fairsheet).
-// Build: `npm run build` (root directory: dashboard). Deploy: `npx wrangler deploy`.
+// Cloudflare settings: root directory `dashboard`, deploy command exactly `npx wrangler deploy`.
+// Wrangler runs the build itself (below), so the build command may be `npm run build` or empty.
+// Do not add `--assets=...` to the deploy command: it overrides ./dist and serves the unbuilt source.
 {
   "name": "fairsheet",
   "compatibility_date": "2026-09-01",
+  "build": {
+    "command": "npm run build"
+  },
   "assets": {
     "directory": "./dist",
     // client-side routes such as /jobs/<id> fall back to index.html

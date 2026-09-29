@@ -26,7 +26,10 @@
           "error",
           function (e) {
             var el = e.target;
-            if (el && (el.tagName === "SCRIPT" || el.tagName === "LINK")) show("could not load " + (el.src || el.href));
+            var src = el && (el.src || el.href);
+            if (src && /\/src\/main\.tsx$/.test(src))
+              show("this host is serving the unbuilt source folder, not the built site. In Cloudflare, set the root directory to dashboard and the deploy command to exactly npx wrangler deploy, then redeploy");
+            else if (el && (el.tagName === "SCRIPT" || el.tagName === "LINK")) show("could not load " + src);
             else show(e.message || "a script failed");
           },
           true,
