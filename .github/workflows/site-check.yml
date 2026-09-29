@@ -1,0 +1,43 @@
+name: Dashboard check
+
+# Fetches the deployed dashboard and checks that it serves the built app: the page, its JavaScript bundle
+# (served as JavaScript) and a deep link. Run it after changing the Cloudflare settings.
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Dashboard URL"
+        required: true
+        default: "https://fairsheet.ankitshilarkar2504.workers.dev"
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fetch the page, its bundle and a deep link
+        env:
+          URL: ${{ inputs.url }}
+        run: |
+          base="${URL%/}"
+          fail() { echo "::error::$1"; echo "- ❌ $1" >> "$GITHUB_STEP_SUMMARY"; exit 1; }
+          ok() { echo "$1"; echo "- ✅ $1" >> "$GITHUB_STEP_SUMMARY"; }
+          echo "## Dashboard check: $base" >> "$GITHUB_STEP_SUMMARY"
+
+          page=$(curl -fsSL "$base/") || fail "$base/ did not load"
+          if grep -q '/src/main.tsx' <<<"$page"; then
+            fail "The site serves the unbuilt source (the page loads /src/main.tsx). In Cloudflare set the root directory to dashboard and the deploy command to exactly: npx wrangler deploy"
+          fi
+          ok "Page loads: $(grep -o '<title>[^<]*' <<<"$page" | sed 's/<title>//')"
+
+          js=$(grep -o 'src="/assets/[^"]*\.js"' <<<"$page" | head -1 | cut -d'"' -f2)
+          [ -n "$js" ] || { echo "$page" | head -40; fail "The page references no built bundle (/assets/*.js)"; }
+          type=$(curl -fsS -o /dev/null -w '%{content_type}' "$base$js") || fail "$js did not load"
+          [[ "$type" == *javascript* ]] || fail "$js is served as '$type', not JavaScript"
+          ok "Bundle $js is served as $type"
+
+          deep=$(curl -sS -o /dev/null -w '%{http_code}' -H 'Sec-Fetch-Mode: navigate' -H 'Accept: text/html' "$base/jobs/check")
+          [ "$deep" = 200 ] || fail "The deep link /jobs/check answered $deep (single-page-app routing is off)"
+          ok "Deep links such as /jobs/<id> open the app"
