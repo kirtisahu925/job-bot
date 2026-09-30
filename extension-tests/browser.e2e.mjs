@@ -73,6 +73,23 @@ await check("greenhouse-style form is filled, resume attached, nothing submitted
   assert.equal(await page.evaluate(() => window.__submitted ?? false), false);
 });
 
+await check("the saved cover letter fills the cover-letter box; the resume never goes into a cover-letter upload", async () => {
+  await page.goto(fixture("cover_letter_form.html"));
+  await inject(page);
+  const letter = "Dear Hiring Team,\nI am applying for the Backend Engineer role.";
+  const report = await page.evaluate((p) => globalThis.JobbotAutofill.run(p), { profile: { ...profile, coverLetter: letter }, customAnswers, resume });
+  assert.equal(await page.inputValue("#letter"), letter);
+  assert.equal(await page.inputValue("#name"), "Asha Rao");
+  assert.equal(await page.$eval("#letter_file", (i) => i.files.length), 0, "no resume in the cover-letter upload");
+  assert.equal(report.resume, null);
+  // no saved letter: the box is left for you
+  await page.goto(fixture("cover_letter_form.html"));
+  await inject(page);
+  await page.evaluate((p) => globalThis.JobbotAutofill.run(p), { profile, customAnswers, resume: null });
+  assert.equal(await page.inputValue("#letter"), "");
+  assert.equal(await page.evaluate(() => window.__submitted ?? false), false);
+});
+
 await check("workday-style fields via automation ids, React input events, prefilled values kept", async () => {
   await page.goto(fixture("workday_form.html"));
   await inject(page);

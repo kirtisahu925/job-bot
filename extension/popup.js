@@ -163,10 +163,13 @@ $("autofill").addEventListener("click", async () => {
       }
       resume = resume || defaultResume;
     }
+    // the cover letter saved with this job's tailored resume fills a "Cover letter" box, when the form has one
+    const letter = selectedJob ? await send({ type: "coverLetter", jobId: selectedJob.id }) : null;
+    const withLetter = { ...profile, coverLetter: letter?.ok ? letter.coverLetter : null };
     await chrome.scripting.executeScript({ target: { tabId: tab.id, allFrames: true }, files: ["lib/fieldmap.js", "content/autofill.js"] });
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id, allFrames: true },
-      args: [{ profile, customAnswers: globalThis.JobbotFieldMap.parseCustomAnswers(customAnswers), resume }],
+      args: [{ profile: withLetter, customAnswers: globalThis.JobbotFieldMap.parseCustomAnswers(customAnswers), resume }],
       func: (payload) => globalThis.JobbotAutofill.run(payload),
     });
     const total = results.reduce(

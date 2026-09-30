@@ -104,6 +104,8 @@ export interface Tailoring {
   pdf_path: string | null;
   ats_score?: number | null;
   ats?: AtsDetail | null;
+  /** written from this resume's facts; sentences citing anything else were removed */
+  cover_letter?: string | null;
 }
 
 export type Verdict = "apply" | "maybe" | "skip";

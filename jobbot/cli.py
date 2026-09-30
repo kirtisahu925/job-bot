@@ -182,6 +182,9 @@ def tailor(
     llm: str = typer.Option("", help="gemini | anthropic | fake"),
     out: Path = typer.Option(ROOT / "out" / "manual"),
     allow_example_profile: bool = typer.Option(False),
+    template: bool = typer.Option(
+        False, "--template", help="use the built-in template even if profile/resume.tex exists"
+    ),
 ):
     """Tailor a resume for one pasted job description and print its ATS score. Nothing is saved to a database."""
     from jobbot.ats.keywords import extract_keywords
@@ -192,6 +195,7 @@ def tailor(
     from jobbot.store.local_store import LocalStore
     from jobbot.tailor.compile import find_engine
     from jobbot.tailor.generate import tailor_job
+    from jobbot.tailor.own_resume import load_own, tailor_own_resume
 
     _setup_logging(False)
     settings = load_settings()
@@ -216,16 +220,33 @@ def tailor(
     tailor_models = [llm_cfg.anthropic_tailor_model] if anthropic else llm_cfg.tailor_models
     jd = extract_keywords(job, ledger, score_models)
     ats_cfg = settings.search.ats
-    outcome = tailor_job(
-        job,
-        settings.profile,
-        ledger,
-        tailor_models,
-        find_engine(),
-        ats_cfg.max_rounds,
-        jd=jd,
-        target=ats_cfg.target,
-    )
+    engine = find_engine()
+    own = None if template else load_own(engine)
+    if own is not None:
+        typer.echo(
+            f"Tailoring inside profile/resume.tex ({len(own.slots)} editable lines, {own.pages or '?'} page(s))"
+        )
+        outcome = tailor_own_resume(
+            job,
+            settings.profile,
+            own,
+            ledger,
+            tailor_models,
+            ats_cfg.max_rounds,
+            jd=jd,
+            target=ats_cfg.target,
+        )
+    else:
+        outcome = tailor_job(
+            job,
+            settings.profile,
+            ledger,
+            tailor_models,
+            engine,
+            ats_cfg.max_rounds,
+            jd=jd,
+            target=ats_cfg.target,
+        )
     out.mkdir(parents=True, exist_ok=True)
     (out / "resume.tex").write_text(outcome.tex, encoding="utf-8")
     if outcome.pdf:

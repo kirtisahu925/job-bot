@@ -141,7 +141,7 @@ SOFT = ("length", "stub", "underfill", "passive")
 
 @dataclass
 class TailorOutcome:
-    resume: TailoredResume
+    resume: TailoredResume  # or own_resume.OwnResumePatches when tailoring inside your own LaTeX file
     tex: str
     pdf: bytes | None
     status: str  # ok | needs_review

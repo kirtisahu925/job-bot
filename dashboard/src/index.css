@@ -445,6 +445,7 @@ a.src:hover { color: var(--text); border-color: var(--control); }
 .prop > dd { margin: 0; min-width: 0; }
 .prop-list { margin: 0; display: flex; flex-direction: column; gap: 4px; }
 .panel h2 { font-size: var(--fs-h3); }
+.letter { white-space: pre-wrap; max-width: 72ch; color: var(--text-2); font-size: var(--fs-small); line-height: 1.65; }
 .jd { white-space: pre-wrap; max-height: 640px; overflow: auto; max-width: 72ch; color: var(--text-2); font-size: var(--fs-small); line-height: 1.65; }
 
 /* ATS: the seven-part score bar ------------------------------------------------------------- */

@@ -51,7 +51,7 @@ async function rest(path, { method = "GET", body, prefer } = {}) {
 }
 
 const JOB_FIELDS =
-  "id,title,company,status,llm_score,ats_score,tailor_requested_at,apply_url,tailorings(id,status,pdf_path,created_at,ats_score)";
+  "id,title,company,status,llm_score,ats_score,tailor_requested_at,apply_url,tailorings(id,status,pdf_path,created_at,ats_score,cover_letter)";
 
 async function findJob(url, company) {
   const key = self.JobbotUrlKey.urlKey(url);
@@ -70,6 +70,13 @@ async function findJob(url, company) {
 function latestPdf(job) {
   const t = [...(job.tailorings || [])].filter((x) => x.pdf_path).sort((a, b) => b.created_at.localeCompare(a.created_at));
   return t[0]?.pdf_path || null;
+}
+
+/** The newest cover letter saved for a job, or null. */
+async function coverLetterFor(jobId) {
+  const [job] = await rest(`/rest/v1/jobs?select=${JOB_FIELDS}&id=eq.${jobId}`);
+  const t = [...(job?.tailorings || [])].filter((x) => x.cover_letter).sort((a, b) => b.created_at.localeCompare(a.created_at));
+  return t[0]?.cover_letter || null;
 }
 
 async function resumeFor(jobId) {
@@ -138,13 +145,14 @@ function tabLoaded(tabId, timeoutMs = 45000) {
 async function prepareOne(job) {
   const { profile = {}, customAnswers = "", defaultResume = null } = await store.get(["profile", "customAnswers", "defaultResume"]);
   const resume = (await resumeFor(job.id).catch(() => null)) || defaultResume;
+  const coverLetter = await coverLetterFor(job.id).catch(() => null);
   const tab = await chrome.tabs.create({ url: job.apply_url, active: false });
   try {
     await tabLoaded(tab.id);
     await sleep(2500); // client-rendered forms
     const target = { tabId: tab.id, allFrames: true };
     await chrome.scripting.executeScript({ target, files: ["lib/fieldmap.js", "content/autofill.js", "content/apply.js"] });
-    const payload = { profile, customAnswers: self.JobbotFieldMap.parseCustomAnswers(customAnswers), resume };
+    const payload = { profile: { ...profile, coverLetter }, customAnswers: self.JobbotFieldMap.parseCustomAnswers(customAnswers), resume };
     const frames = await chrome.scripting.executeScript({ target, args: [payload], func: (p) => globalThis.JobbotApply.run(p) });
     const outcome = AA.pickOutcome(frames.map((f) => f.result));
     const keep = AA.KEEP_TAB.has(outcome.state);
@@ -225,6 +233,9 @@ const handlers = {
   },
   async resume({ jobId }) {
     return { resume: await resumeFor(jobId) };
+  },
+  async coverLetter({ jobId }) {
+    return { coverLetter: await coverLetterFor(jobId) };
   },
   async queuePreview() {
     const { settings, state } = await queueState();

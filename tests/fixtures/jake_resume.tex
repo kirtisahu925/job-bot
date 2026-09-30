@@ -1,0 +1,134 @@
+%-------------------------
+% Resume in Latex (test fixture)
+% Based off of: https://github.com/sb2nov/resume and https://github.com/jakegut/resume (MIT)
+%------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+\begin{document}
+
+\begin{center}
+    \textbf{\Huge \scshape Jake Ryan} \\ \vspace{1pt}
+    \small 123-456-7890 $|$ \href{mailto:jake@example.com}{\underline{jake@example.com}} $|$
+    \href{https://github.com/jake}{\underline{github.com/jake}}
+\end{center}
+
+\section{Summary}
+\small{Backend engineer with \textbf{2 years} of experience building Java and Spring Boot services on Azure.}
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Undergraduate Research Assistant}{June 2020 -- Present}
+      {Texas A\&M University}{College Station, TX}
+      \resumeItemListStart
+        \resumeItem{Developed a REST API using \textbf{FastAPI} and \textbf{PostgreSQL} to store data from learning management systems}
+        \resumeItem{Explored ways to visualize GitHub collaboration in a classroom setting, cutting review time by \textbf{40\%}}
+        % \resumeItem{An old bullet kept for reference}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Software Engineer}{Jan 2022 -- Present}
+      {Acme Corp}{Remote}
+      \resumeItemListStart
+        \resumeProjectHeading{\textbf{Payments Platform}}{}
+        \resumeItem{Built payment reconciliation jobs in \textbf{Java} and \textbf{Spring Boot}, processing $\sim$50K transactions a day}
+        \resumeProjectHeading{\textbf{Internal Tools}}{}
+        \resumeItem{Automated release notes with \href{https://example.com}{a Slack bot}}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{Projects}
+    \resumeSubHeadingListStart
+      \resumeProjectHeading
+          {\textbf{Gitlytics} $|$ \emph{Python, Flask, React, PostgreSQL, Docker}}{June 2020 -- Present}
+          \resumeItemListStart
+            \resumeItem{Developed a full-stack web application using with \textbf{Flask} serving a REST API with \textbf{React} as the frontend}
+            \resumeItem{Implemented GitHub OAuth to get data from user's repositories}
+          \resumeItemListEnd
+    \resumeSubHeadingListEnd
+
+%-----------PROGRAMMING SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Languages}{: Java, Python, SQL, JavaScript} \\
+     \textbf{Frameworks}{: Spring Boot, Flask, React, FastAPI} \\
+     \textbf{Developer Tools}{: Git, Docker, Azure}
+    }}
+ \end{itemize}
+
+\end{document}

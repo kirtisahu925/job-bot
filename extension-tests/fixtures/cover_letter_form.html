@@ -1,0 +1,19 @@
+<!doctype html>
+<!-- A form whose only upload is for a cover letter, plus a cover-letter text box. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Apply: cover letter form</title>
+  </head>
+  <body>
+    <form id="application" onsubmit="window.__submitted = true; return false">
+      <label for="name">Full name</label>
+      <input id="name" name="name" />
+      <label for="letter_file">Cover letter (PDF)</label>
+      <input id="letter_file" type="file" name="cover_letter_file" />
+      <label for="letter">Cover letter</label>
+      <textarea id="letter" name="cover_letter"></textarea>
+      <button type="submit">Submit application</button>
+    </form>
+  </body>
+</html>

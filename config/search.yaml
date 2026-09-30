@@ -123,6 +123,10 @@ ats:
   minimum: 80      # ...below this the dashboard flags it
   max_rounds: 2    # ...using at most this many revision calls per resume (Gemini free tier: ~18 calls/day)
 
+# A short cover letter with each tailored resume, from the resume's own facts (one Flash-Lite call).
+cover_letter:
+  enabled: true
+
 # Each job site can be switched off, or moved to another method, without code changes.
 # method: jobspy (LinkedIn/Indeed/Naukri), native (own client), apify (paid-per-result actor)
 sources:

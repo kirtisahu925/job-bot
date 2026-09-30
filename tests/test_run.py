@@ -1,3 +1,5 @@
+import json
+
 import httpx
 import pytest
 
@@ -33,6 +35,9 @@ def test_end_to_end_offline(settings, tmp_path):
     assert "gemini:gemini-flash-latest" in providers and "apify" in providers
     statuses = {r["status"] for r in store.db.execute("select status from jobs")}
     assert statuses == {"tailored"}
+    # each tailored resume comes with a cover letter written from it
+    records = [json.loads(r["record"]) for r in store.db.execute("select record from tailorings")]
+    assert len(records) == 4 and all(r["cover_letter"].startswith("Dear Hiring Team") for r in records)
     assert "Balances" in markdown(summary)
 
     # second run: everything is already known, nothing new to score or tailor

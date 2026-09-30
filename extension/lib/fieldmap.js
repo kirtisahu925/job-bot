@@ -19,7 +19,9 @@
 
   // [profile key, pattern]. Tested top to bottom; the first match wins.
   const RULES = [
-    ["skip", /\b(cover letter|captcha|password|search|referr(al|er) (code|name|email)|coupon)\b/],
+    // filled only with the cover letter saved for this job (never a generic one); left empty otherwise
+    ["coverLetter", /\b(cover(ing)? letter|motivation(al)? letter)\b/],
+    ["skip", /\b(captcha|password|search|referr(al|er) (code|name|email)|coupon)\b/],
     ["firstName", /\b(first|given|fore) ?name\b/],
     ["lastName", /\b(last|family|sur) ?name\b|\bsurname\b/],
     ["middleName", /\bmiddle name\b/],

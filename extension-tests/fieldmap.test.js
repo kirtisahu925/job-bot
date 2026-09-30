@@ -32,7 +32,7 @@ const cases = [
   [{ label: "Gender" }, "gender"],
   [{ label: "Year of passing" }, "graduationYear"],
   [{ label: "College/University" }, "college"],
-  [{ label: "Cover Letter" }, null],
+  [{ label: "Cover Letter" }, "coverLetter"],
   [{ label: "Password", type: "password" }, null],
   [{ label: "Why do you want to work here?" }, null],
 ];
@@ -55,5 +55,8 @@ test("derived profile values", () => {
   const p = { firstName: "Asha", lastName: "Rao", currentLocation: "Gurugram, Haryana" };
   assert.equal(profileValue(p, "fullName"), "Asha Rao");
   assert.equal(profileValue(p, "city"), "Gurugram");
+  // a cover-letter box is filled only with the letter saved for this job
+  assert.equal(profileValue(p, "coverLetter"), null);
+  assert.equal(profileValue({ ...p, coverLetter: "Dear Hiring Team," }, "coverLetter"), "Dear Hiring Team,");
   assert.equal(profileValue(p, "github"), null);
 });

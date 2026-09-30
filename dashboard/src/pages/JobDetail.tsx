@@ -2,6 +2,7 @@ import { ChevronRight, ExternalLink, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import AtsPanel from "../components/AtsPanel";
+import CoverLetter from "../components/CoverLetter";
 import {
   AtsScore,
   ICON,
@@ -135,6 +136,8 @@ export default function JobDetail() {
       <div className="split">
         <div className="stack">
           <AtsPanel job={job} have={have} onTailor={tailor.start} busy={tailor.busy === job.id} />
+
+          {t?.cover_letter && <CoverLetter text={t.cover_letter} />}
 
           <section className="panel panel-pad" aria-labelledby="jd-h">
             <h2 id="jd-h" style={{ marginBottom: 12 }}>

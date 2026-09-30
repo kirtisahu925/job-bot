@@ -146,6 +146,12 @@ function demoTailoring(job: Job, i: number, created: string): Tailoring {
     fixes: ats.missing_gaps.length ? [`skills: left out ${ats.missing_gaps[0]}, which your profile does not list`] : [],
     revisions: (ats.rounds?.length ?? 1) - 1, pages: 1, fill_ratio: 0.97, tex_path: "demo/resume.tex", pdf_path: "demo/resume.pdf",
     ats_score: ats.score, ats,
+    cover_letter:
+      `Dear Hiring Team,\nI am applying for the ${job.title} role at ${job.company}. The team's work on payment and ` +
+      "order services is close to what I build every day.\n\nAt my current company I built REST APIs on Azure Functions " +
+      "that onboard franchise partners end to end, and I moved a nightly batch job to event-driven functions. Before " +
+      "that I maintained Java services for a document platform used by insurance teams.\n\nI would welcome a " +
+      "conversation about the role.\n\nRegards,\nDemo Candidate",
   };
 }
 

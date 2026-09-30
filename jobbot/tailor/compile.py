@@ -42,8 +42,11 @@ def find_engine() -> str | None:
     return None
 
 
-def compile_tex(tex: str, engine: str) -> bytes:
+def compile_tex(tex: str, engine: str, assets: dict[str, bytes] | None = None) -> bytes:
+    """Compile to PDF bytes. `assets` are files the source needs beside it (a .cls, .sty or font), by name."""
     with tempfile.TemporaryDirectory(prefix="jobbot-tex-") as tmp:
+        for name, data in (assets or {}).items():
+            (Path(tmp) / Path(name).name).write_bytes(data)
         src = Path(tmp) / "resume.tex"
         src.write_text(tex, encoding="utf-8")
         if engine == "tectonic":

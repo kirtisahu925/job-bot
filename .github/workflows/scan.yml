@@ -65,9 +65,14 @@ jobs:
 
       - name: Install LaTeX (pdflatex + Latin Modern)
         run: |
+          pkgs="texlive-latex-base texlive-latex-recommended texlive-fonts-recommended lmodern"
+          # your own resume (profile/resume.tex, e.g. Jake's template) needs titlesec, enumitem, fullpage...
+          if [ -f profile/resume.tex ]; then
+            pkgs="$pkgs texlive-latex-extra"
+            if grep -q fontawesome profile/resume.tex; then pkgs="$pkgs texlive-fonts-extra"; fi
+          fi
           sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends \
-            texlive-latex-base texlive-latex-recommended texlive-fonts-recommended lmodern > /dev/null
+          sudo apt-get install -y -qq --no-install-recommends $pkgs > /dev/null
 
       - name: Install bot
         run: pip install -q -e .

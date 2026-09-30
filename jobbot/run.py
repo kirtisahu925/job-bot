@@ -21,7 +21,9 @@ from jobbot.pipeline.normalize import merge, normalize
 from jobbot.scoring import score_jobs
 from jobbot.sources.base import Source, run_sources
 from jobbot.tailor.compile import find_engine
-from jobbot.tailor.generate import tailor_job
+from jobbot.tailor.cover_letter import write_cover_letter
+from jobbot.tailor.generate import pdf_text, tailor_job
+from jobbot.tailor.own_resume import load_own, tailor_own_resume
 
 log = logging.getLogger(__name__)
 
@@ -64,6 +66,18 @@ def _save_profile_snapshot(store, profile: dict, summary: dict) -> None:
         summary["errors"].append(f"profile snapshot: {exc!r}"[:300])
 
 
+def _cover_letter(job: Job, profile: dict, outcome, ledger: Ledger, models: list[str], summary: dict) -> dict:
+    """{"cover_letter": text, "fixes": [...]} for the record, or {} when the call fails (never blocks a resume)."""
+    try:
+        resume_text = pdf_text(outcome.pdf) if outcome.pdf else outcome.tex
+        gaps = outcome.ats.missing_gaps if outcome.ats else []
+        letter, removed = write_cover_letter(job, profile, resume_text, ledger, models, gaps)
+    except (QuotaExhausted, BudgetExceeded, LLMError) as exc:
+        summary["errors"].append(f"cover letter {job.id}: {exc}"[:300])
+        return {}
+    return {"cover_letter": letter or None, "fixes": outcome.fixes + removed}
+
+
 def tailor_jobs(
     settings: Settings,
     store,
@@ -81,6 +95,7 @@ def tailor_jobs(
     if compile_pdf and engine is None:
         summary["errors"].append("no LaTeX engine found (install tectonic or pdflatex); saved .tex only")
     known = store.known_skills()
+    own = load_own(engine, summary["errors"])
     summary.setdefault("ats", [])
     for job in jobs:
         jd = JDKeywords.model_validate(job.jd_keywords) if job.jd_keywords else None
@@ -88,17 +103,30 @@ def tailor_jobs(
             if jd is None or not (jd.required or jd.preferred):
                 jd = extract_keywords(job, ledger, score_models)
                 store.update_job(job.id, {"jd_keywords": jd.model_dump()})
-            outcome = tailor_job(
-                job,
-                profile,
-                ledger,
-                tailor_models,
-                engine,
-                cfg.ats.max_rounds,
-                jd=jd,
-                target=cfg.ats.target,
-                known_skills=known,
-            )
+            if own is not None:
+                outcome = tailor_own_resume(
+                    job,
+                    profile,
+                    own,
+                    ledger,
+                    tailor_models,
+                    cfg.ats.max_rounds,
+                    jd=jd,
+                    target=cfg.ats.target,
+                    known_skills=known,
+                )
+            else:
+                outcome = tailor_job(
+                    job,
+                    profile,
+                    ledger,
+                    tailor_models,
+                    engine,
+                    cfg.ats.max_rounds,
+                    jd=jd,
+                    target=cfg.ats.target,
+                    known_skills=known,
+                )
         except (QuotaExhausted, BudgetExceeded) as exc:
             summary["tailor_stopped"] = str(exc)[:300]
             break
@@ -109,6 +137,8 @@ def tailor_jobs(
             (r.model for r in reversed(ledger.rows) if r.job_id == job.id and r.status == "ok"), None
         )
         record = outcome.record() | {"provider": provider.name, "model": model}
+        if cfg.cover_letter.enabled:
+            record |= _cover_letter(job, profile, outcome, ledger, score_models, summary)
         store.save_tailoring(job.id, record, outcome.tex.encode(), outcome.pdf)
         store.update_job(
             job.id, {"status": "tailored", "ats_score": outcome.ats.score if outcome.ats else None}

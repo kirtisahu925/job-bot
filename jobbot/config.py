@@ -14,6 +14,8 @@ CONFIG_DIR = ROOT / "config"
 PROMPTS_DIR = ROOT / "prompts"
 TEMPLATES_DIR = ROOT / "templates"
 PROFILE_PATH = ROOT / "profile" / "master_profile.yaml"
+RESUME_TEX_PATH = ROOT / "profile" / "resume.tex"  # your own LaTeX resume (from Overleaf); optional
+RESUME_ASSET_SUFFIXES = {".cls", ".sty", ".bst", ".otf", ".ttf", ".png", ".jpg", ".jpeg", ".pdf"}
 EXAMPLE_PROFILE_PATH = ROOT / "profile" / "master_profile.example.yaml"
 
 
@@ -45,6 +47,10 @@ class AtsConfig(BaseModel):
     max_rounds: int = 2  # revision calls per resume (each fixes lint issues and ATS keywords)
 
 
+class CoverLetterConfig(BaseModel):
+    enabled: bool = True  # one cheap scoring-model call per tailored resume
+
+
 class SearchConfig(BaseModel):
     candidate: dict[str, Any] = Field(default_factory=dict)
     tracks: dict[str, Track]
@@ -53,6 +59,7 @@ class SearchConfig(BaseModel):
     locations: Locations
     limits: Limits = Field(default_factory=Limits)
     ats: AtsConfig = Field(default_factory=AtsConfig)
+    cover_letter: CoverLetterConfig = Field(default_factory=CoverLetterConfig)
     sources: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
     @property
@@ -163,6 +170,19 @@ def load_profile(path: Path | None = None) -> dict[str, Any]:
     if PROFILE_PATH.exists():
         return _read_yaml(PROFILE_PATH)
     return _read_yaml(EXAMPLE_PROFILE_PATH)
+
+
+def load_own_resume(path: Path = RESUME_TEX_PATH) -> tuple[str, dict[str, bytes]] | None:
+    """Your own LaTeX resume and the files beside it that it may need (class, style, font or image files),
+    or None when there is no profile/resume.tex and the built-in template is used."""
+    if not path.exists():
+        return None
+    assets = {
+        f.name: f.read_bytes()
+        for f in path.parent.iterdir()
+        if f.is_file() and f.suffix.lower() in RESUME_ASSET_SUFFIXES
+    }
+    return path.read_text(encoding="utf-8"), assets
 
 
 def load_dotenv(path: Path = ROOT / ".env") -> None:

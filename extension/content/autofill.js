@@ -121,9 +121,10 @@
     if (!resume) return;
     const inputs = [...root.querySelectorAll("input[type=file]")];
     if (!inputs.length) return;
-    const target =
-      inputs.find((i) => /resume|cv|curriculum/i.test(labelFor(i) + i.name + i.id + (i.getAttribute("aria-label") || ""))) ||
-      (inputs.length === 1 ? inputs[0] : null);
+    const text = (i) => labelFor(i) + i.name + i.id + (i.getAttribute("aria-label") || "");
+    // the resume never goes into a cover-letter upload, even when that is the only file field
+    const others = inputs.filter((i) => !/cover/i.test(text(i)));
+    const target = inputs.find((i) => /resume|cv|curriculum/i.test(text(i))) || (others.length === 1 ? others[0] : null);
     if (!target) return;
     const bytes = Uint8Array.from(atob(resume.base64), (c) => c.charCodeAt(0));
     const file = new File([bytes], resume.name, { type: "application/pdf" });

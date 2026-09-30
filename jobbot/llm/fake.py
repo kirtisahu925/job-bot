@@ -82,11 +82,56 @@ class FakeProvider:
         payload = json.loads(user)
         if schema is ScoreBatch:
             return self._score(payload), usage  # type: ignore[return-value]
+        if schema.__name__ == "CoverLetter":
+            job = payload["job"]
+            first = next((ln.strip() for ln in payload["resume"].splitlines() if len(ln.strip()) > 40), "")
+            text = (
+                f"Dear Hiring Team,\nI am applying for the {job['title']} role at {job['company']}.\n\n"
+                f"{first}\n\nI would welcome a conversation about the role.\n\nRegards,\n{payload['name']}"
+            )
+            return schema.model_validate({"text": text}), usage
+        if schema.__name__ == "OwnResumePatches":
+            return self._own(payload, schema), usage
         if schema is TailoredResume:
             if "previous" in payload:
                 return TailoredResume.model_validate(payload["previous"]), usage  # type: ignore[return-value]
             return resume_from_profile(payload["profile"]), usage  # type: ignore[return-value]
         raise LLMError(f"fake provider cannot produce {schema.__name__}")
+
+    @staticmethod
+    def _own(payload: dict, schema: type[T]) -> T:
+        """Honest offline rewrite of your own resume: skills lines reordered so the job's keywords come first."""
+        from jobbot.ats.skills import in_text, normalize_text
+        from jobbot.tailor.facts import split_items
+
+        if "current_patches" in payload:
+            patches = payload["current_patches"]
+        else:
+            jd = normalize_text(f"{payload['job']['title']} {payload['job']['description'] or ''}")
+            patches = []
+            for slot in payload["slots"]:
+                if slot["kind"] != "skill":
+                    continue
+                items = split_items(slot["text"])
+                ordered = sorted(items, key=lambda i: not in_text(i, jd))
+                if ordered != items:
+                    patches.append({"id": slot["id"], "text": ", ".join(ordered)})
+        return schema.model_validate(
+            {
+                "diagnostics": {
+                    "match_score": 75,
+                    "missing_keywords": [],
+                    "red_flags": [],
+                    "strong_sections": [],
+                    "weak_sections": [],
+                },
+                "patches": patches,
+                "verification": {
+                    "ats_parser": "offline fake provider",
+                    "hiring_manager": "offline fake provider",
+                },
+            }
+        )
 
     @staticmethod
     def _score(payload: dict) -> ScoreBatch:

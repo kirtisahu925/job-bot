@@ -296,6 +296,42 @@ best-scoring version is kept, and a version that claims a skill your profile lac
 **best honest score** shows how high the score can go without inventing anything. When it is below 80,
 the job page names the skills holding it back, and they appear on the Skills page.
 
+## Your own LaTeX resume (Overleaf)
+
+By default resumes are built from `profile/master_profile.yaml` with the bot's own one-page template. To
+tailor **inside your own resume** instead, with your layout, fonts and sections exactly as in Overleaf:
+
+1. In Overleaf: **Menu → Download → Source**. Unzip it.
+2. Copy the main file to `profile/resume.tex`. If it uses a class, style, font or image file of its own
+   (`resume.cls`, `*.sty`, `*.ttf`...), copy those into `profile/` too.
+3. Check it on your laptop: `python -m jobbot tailor jd.txt --llm fake` should print
+   *Tailoring inside profile/resume.tex (N editable lines, 1 page(s))*. Then commit and push.
+
+From then on every resume (scheduled and **Tailor now**) is your file with only these parts rewritten for
+the job: the text of each bullet, the items of each skills line (reordered, plus skills your profile lists),
+and a summary paragraph if you have one. Headings, roles, dates, links and spacing never change.
+
+Each rewrite passes a **fact gate** (`jobbot/tailor/facts.py`) before it is used. A rewrite is dropped, and
+your original line kept, when it uses a number or names a tool that the same role or project never mentions
+(in your resume or in the matching entry of `master_profile.yaml`), drops a skill, adds a skill your profile
+does not list, adds vague words ("significantly", "cutting-edge"), or grows so much the page would overflow.
+The result must compile to the same number of pages as your original. The job page lists anything the gate
+kept back.
+
+Supported layouts: Jake's resume and its variants (`\resumeSubheading` + `\resumeItem`, including the
+older two-argument `\resumeItem`) and plain `tabularx` + `itemize` resumes. A layout it cannot read, or a
+file that does not compile, falls back to the built-in template and says so in the run summary. The slot
+finder is a Python port of [career-ops](https://github.com/career-ops-hq/career-ops)' `latex-content.mjs`
+(MIT).
+
+## Cover letters
+
+With each tailored resume the bot writes a short cover letter (three paragraphs, one Flash-Lite call) from
+that resume's own text. Any sentence that cites a number or a tool your resume and profile never mention
+is removed before it is saved. The job page shows it with a **Copy** button, and the extension fills it into
+a "Cover letter" box on application forms (only the letter saved for that job, never a generic one). Turn it
+off with `cover_letter.enabled: false` in `config/search.yaml`.
+
 ## How the tailoring follows the framework
 
 | Framework | Where |
