@@ -16,4 +16,3 @@ What you look for, in this order:
    or shorten them.
 5. Credibility. Keyword stuffing, the same verb opening several bullets, inflated wording, buzzwords, and
    anything that reads as copied from the job ad make you trust the rest less. Fix them.
-6. Everything in `problems`.

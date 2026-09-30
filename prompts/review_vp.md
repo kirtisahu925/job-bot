@@ -13,6 +13,6 @@ What you look for:
    say it plainly in the candidate's voice, not as a list of keywords.
 5. One story. Headline, summary, experience and projects should point at this role. Cut what dilutes it.
 6. Finish. Consistent tense and style, no filler, every line earns its space, nothing a skeptical reader
-   would doubt. Then everything still in `problems`.
+   would doubt.
 
 Keep the hiring manager's fixes unless one of your findings explains why it should change.
