@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { eligible, istDay, openedToday, pickOutcome, settingsOf } = require("../extension/lib/autoapply.js");
+const { CLOSED_PAGE, eligible, istDay, openedToday, pickOutcome, settingsOf } = require("../extension/lib/autoapply.js");
 
 const NOW = Date.parse("2026-09-29T10:00:00Z");
 const job = (id, extra = {}) => ({
@@ -56,6 +56,14 @@ test("the daily limit counts by India date", () => {
     { at: "2026-09-28T17:00:00Z" }, // 22:30 IST on the 28th
   ];
   assert.equal(openedToday(results, NOW), 2);
+});
+
+test("closed postings are recognised from the page text", () => {
+  assert.ok(CLOSED_PAGE.test("Backend Engineer · No longer accepting applications"));
+  assert.ok(CLOSED_PAGE.test("Sorry, this job is no longer available."));
+  assert.ok(!CLOSED_PAGE.test("We are accepting applications until Friday"));
+  // a closed page outranks "applies on the company site", so the job is marked closed rather than left open
+  assert.equal(pickOutcome([{ state: "external" }, { state: "closed" }]).state, "closed");
 });
 
 test("the furthest frame's result counts", () => {

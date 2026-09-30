@@ -7,6 +7,7 @@ export const STATUSES = [
   "interviewing",
   "offer",
   "rejected",
+  "expired",
   "skipped",
   "archived",
 ] as const;
@@ -21,6 +22,7 @@ export const STATUS_LABEL: Record<JobStatus, string> = {
   interviewing: "Interviewing",
   offer: "Offer",
   rejected: "Rejected",
+  expired: "No longer accepting",
   skipped: "Skipped",
   archived: "Archived",
 };

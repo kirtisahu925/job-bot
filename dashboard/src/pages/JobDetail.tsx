@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import AtsPanel from "../components/AtsPanel";
 import CoverLetter from "../components/CoverLetter";
+import { PeopleAtCompany } from "../components/contacts";
 import {
   AtsScore,
   ICON,
@@ -291,6 +292,8 @@ export default function JobDetail() {
               )}
             </section>
           )}
+
+          <PeopleAtCompany company={job.company} />
 
           <section className="panel panel-pad" aria-labelledby="notes-h">
             <h2 id="notes-h">Notes</h2>

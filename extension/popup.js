@@ -16,8 +16,8 @@ function el(tag, props = {}, ...children) {
 const TAILOR_WINDOW_MS = 15 * 60 * 1000;
 const STATUS_LABEL = {
   new: "New", shortlisted: "Shortlisted", tailor_queued: "Queued for resume", tailored: "Resume ready",
-  applied: "Applied", interviewing: "Interviewing", offer: "Offer", rejected: "Rejected", skipped: "Skipped",
-  archived: "Archived",
+  applied: "Applied", interviewing: "Interviewing", offer: "Offer", rejected: "Rejected",
+  expired: "No longer accepting", skipped: "Skipped", archived: "Archived",
 };
 
 function latestTailoring(job) {
@@ -40,6 +40,23 @@ function atsText(score) {
   const cls = score >= 90 ? "ok" : score >= 80 ? "" : "bad";
   return el("strong", { className: `num ${cls}`, textContent: String(score), title: score >= 80 ? "ATS 80 or more" : "ATS below the 80 minimum" });
 }
+
+/** True when the open page says the posting stopped taking applications (LinkedIn: "No longer accepting
+ * applications"). The pattern lives in lib/autoapply.js. */
+async function pageSaysClosed(tab) {
+  try {
+    const [r] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      args: [globalThis.JobbotAutoApply.CLOSED_PAGE.source],
+      func: (pattern) => new RegExp(pattern, "i").test(document.body?.innerText || ""),
+    });
+    return !!r?.result;
+  } catch {
+    return false; // pages the extension may not read (chrome://, the web store)
+  }
+}
+
+let pageClosed = false;
 
 function renderJobs(result) {
   const box = $("job");
@@ -90,6 +107,16 @@ function renderJobs(result) {
       }
     });
 
+    const closedLine = el("span");
+    if (pageClosed && job.status !== "expired") {
+      const mark = el("button", { textContent: "Mark as closed" });
+      mark.addEventListener("click", async () => {
+        const r = await send({ type: "setStatus", jobId: job.id, status: "expired" });
+        closedLine.replaceChildren(el("span", { className: r.ok ? "soft" : "bad", textContent: r.ok ? "Marked: no longer accepting applications." : r.error }));
+      });
+      closedLine.append(el("span", { className: "warn", textContent: "This page says it is no longer accepting applications. " }), mark);
+    }
+
     box.append(
       el(
         "div",
@@ -102,6 +129,7 @@ function renderJobs(result) {
           el("span", {}, "ATS ", atsText(job.ats_score ?? latest?.ats_score ?? null)),
         ),
         resumeLine,
+        closedLine,
         el("div", { className: "row", style: "margin-top:4px" }, tailor, applied),
       ),
     );
@@ -115,6 +143,7 @@ async function init() {
   else $("account").textContent = `Signed in as ${status.email}`;
 
   const tab = await activeTab();
+  pageClosed = await pageSaysClosed(tab);
   if (status?.email) renderJobs(await send({ type: "findJob", url: tab.url }));
   else $("job").textContent = "Sign in to look up jobs.";
 }

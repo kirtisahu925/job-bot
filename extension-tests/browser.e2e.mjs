@@ -128,8 +128,17 @@ async function injectApply(page) {
     await page.addScriptTag({ path: path.join(ext, f) });
   }
 }
-const queuePayload = { profile, customAnswers, resume };
+const queuePayload = { profile, customAnswers, resume, closedPattern: "no longer accepting applications" };
 const sentAnything = (page) => page.evaluate(() => !!(window.__submitted || window.__sent || window.__newsletter));
+
+await check("apply queue: a posting that says it is no longer accepting applications is marked closed, not filled", async () => {
+  await page.goto(fixture("closed_job.html"));
+  await injectApply(page);
+  const r = await page.evaluate((p) => globalThis.JobbotApply.run(p), queuePayload);
+  assert.equal(r.state, "closed");
+  assert.equal(await page.inputValue("#first"), "", "nothing is filled on a closed posting");
+  assert.equal(await sentAnything(page), false);
+});
 
 await check("apply queue: a complete form is filled up to Submit and not sent", async () => {
   await page.goto(fixture("apply_form.html"));

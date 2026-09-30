@@ -110,6 +110,7 @@ textarea { width: 100%; min-height: 140px; height: auto; padding: 8px 10px; resi
 .mark.offer { background: var(--good); border-color: var(--good); }
 .mark.rejected { background: var(--bad); border-color: var(--bad); }
 .mark.skipped, .mark.archived { border-color: var(--text-3); opacity: 0.6; }
+.mark.expired { border-color: var(--warn); opacity: 0.8; }
 .working { color: var(--warn); font-weight: 500; }
 .results { list-style: none; margin: 8px 0 0; padding: 0; }
 .results li { padding: 10px 0; border-top: 1px solid var(--line); }

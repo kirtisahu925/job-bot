@@ -1,9 +1,10 @@
-import { Columns3, Gauge, GraduationCap, History, LogOut, Monitor, Moon, Plus, Search, Sun, Table2 } from "lucide-react";
+import { Columns3, Gauge, GraduationCap, History, LogOut, Monitor, Moon, Plus, Search, Sun, Table2, UsersRound } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { ICON, Mark, Notice } from "./components/bits";
 import CommandMenu, { openCommandMenu } from "./components/CommandMenu";
 import { api } from "./lib/api";
+import { contactsApi } from "./lib/contacts/api";
 import { istTime, nextScan } from "./lib/format";
 import { applyTheme, currentTheme, THEME_LABEL, type Theme } from "./lib/theme";
 import AddJob from "./pages/AddJob";
@@ -14,12 +15,19 @@ import Login from "./pages/Login";
 import Runs from "./pages/Runs";
 import Skills from "./pages/Skills";
 
-// recharts only loads on the Consumption page
+// recharts only loads on the Consumption page; the Contacts add-on only for accounts that have it
 const Consumption = lazy(() => import("./pages/Consumption"));
+const Contacts = lazy(() => import("./pages/Contacts"));
+const ContactDetail = lazy(() => import("./pages/ContactDetail"));
+const ContactsImport = lazy(() => import("./pages/ContactsImport"));
+const ContactsSettings = lazy(() => import("./pages/ContactsSettings"));
+const loading = <p className="muted">Loading…</p>;
 
 const NAV = [
   { to: "/jobs", label: "Jobs", short: "Jobs", Icon: Table2 },
   { to: "/board", label: "Board", short: "Board", Icon: Columns3 },
+  // an add-on: shown only to accounts granted it (see supabase/migrations/0006_contacts.sql)
+  { to: "/contacts", label: "Contacts", short: "Contacts", Icon: UsersRound, feature: "contacts" },
   { to: "/skills", label: "Skills", short: "Skills", Icon: GraduationCap },
   { to: "/consumption", label: "Consumption", short: "Consumption", Icon: Gauge },
   { to: "/runs", label: "Runs", short: "Runs", Icon: History },
@@ -69,9 +77,29 @@ function useCounts(signedIn: boolean) {
   return counts;
 }
 
+/** Add-ons the signed-in account holds, e.g. ["contacts"]; null while they load. */
+function useFeatures(signedIn: boolean): string[] | null {
+  const [features, setFeatures] = useState<string[] | null>(null);
+  useEffect(() => {
+    if (!signedIn) return setFeatures(null);
+    contactsApi.features().then(setFeatures, () => setFeatures([]));
+  }, [signedIn]);
+  return features;
+}
+
+/** A page from an add-on: waits for the account's add-ons, then shows the page or goes back to Jobs. */
+function Gate({ feature, features, children }: { feature: string; features: string[] | null; children: React.ReactNode }) {
+  if (features === null) return loading;
+  if (!features.includes(feature)) return <Navigate to="/jobs" replace />;
+  return <Suspense fallback={loading}>{children}</Suspense>;
+}
+
 export default function App() {
   const [email, setEmail] = useState<string | null | undefined>(undefined);
   const counts = useCounts(!!email);
+  const features = useFeatures(!!email);
+  const nav = NAV.filter((n) => !n.feature || !!features?.includes(n.feature));
+  const contacts = !!features?.includes("contacts");
 
   useEffect(() => {
     // a failed session check means "signed out", never a blank page
@@ -103,7 +131,7 @@ export default function App() {
         </Link>
         <nav className="nav" aria-label="Pages">
           <div className="nav-label">Workspace</div>
-          {NAV.map(({ to, label, Icon }) => {
+          {nav.map(({ to, label, Icon }) => {
             const count = counts && (to === "/jobs" ? counts.triage : to === "/board" ? counts.ready : null);
             const hint = to === "/jobs" ? "in the New tab" : "in the Ready tab, resumes ready to apply with";
             return (
@@ -175,13 +203,18 @@ export default function App() {
               }
             />
             <Route path="/runs" element={<Runs />} />
+            <Route path="/contacts" element={<Gate feature="contacts" features={features}><Contacts /></Gate>} />
+            <Route path="/contacts/import" element={<Gate feature="contacts" features={features}><ContactsImport /></Gate>} />
+            <Route path="/contacts/settings" element={<Gate feature="contacts" features={features}><ContactsSettings /></Gate>} />
+            <Route path="/contacts/:id" element={<Gate feature="contacts" features={features}><ContactDetail /></Gate>} />
             <Route path="*" element={<Navigate to="/jobs" replace />} />
           </Routes>
         </div>
       </main>
 
       <nav className="tabbar" aria-label="Pages">
-        {NAV.map(({ to, short, Icon }) => (
+        {/* five tabs fit a phone; Runs stays in the search menu */}
+        {nav.slice(0, 5).map(({ to, short, Icon }) => (
           <NavLink key={to} to={to}>
             <Icon {...ICON} size={20} />
             {short}
@@ -189,7 +222,7 @@ export default function App() {
         ))}
       </nav>
 
-      <CommandMenu onSignOut={signOut} />
+      <CommandMenu onSignOut={signOut} contacts={contacts} />
     </div>
   );
 }

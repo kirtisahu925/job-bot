@@ -47,7 +47,7 @@ const titles: [string, string][] = [
 const cities = ["Bengaluru", "Gurugram", "Noida", "Hyderabad", "Pune", "Delhi", "Chennai"];
 const sources = ["linkedin", "naukri", "indeed", "foundit", "wellfound", "greenhouse", "lever", "adzuna", "jsearch"];
 const statuses: JobStatus[] = ["new", "new", "new", "new", "shortlisted", "shortlisted", "tailor_queued", "tailored",
-  "tailored", "tailored", "applied", "applied", "interviewing", "rejected", "skipped"];
+  "tailored", "tailored", "applied", "applied", "interviewing", "rejected", "skipped", "expired"];
 
 const JD = `About the role
 We are hiring a backend engineer to build payment and order services.

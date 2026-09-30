@@ -183,6 +183,11 @@ Apify, Adzuna) only skips that source, with a warning on the run page.
 
 Without the token, Tailor now still marks the job as queued and the next scheduled run tailors it.
 
+If Tailor now says **"GitHub rejected the GH_DISPATCH_TOKEN secret (401 Bad credentials)"**, the token has
+expired (fine-grained tokens have an end date you pick when creating them), was revoked, or was copied
+incompletely. Generate a new one as in step 1 and save it over the old secret in step 2. Spaces, newlines
+and quotes around the pasted token are ignored.
+
 ### 6. Turn on the schedule
 
 GitHub only runs scheduled workflows from the **default branch**: Settings → General → Default branch →
@@ -257,11 +262,41 @@ restrict accounts it thinks are automated.
   experience.
 - **Board**: drag cards through New → Shortlisted → Queued → Resume ready, then Applied → Interviewing →
   Offer / Rejected.
+- **No longer accepting**: a status for postings that stopped taking applications (LinkedIn shows "No
+  longer accepting applications"). Set it from a job's status menu; the extension's apply queue sets it by
+  itself when a page says so, and the popup offers **Mark as closed** on such a page. These jobs sit under
+  the **Closed** tab.
 - **Consumption**: tokens, money used, current balances, top-ups, and the health of each job source.
 
 Tune `config/search.yaml` (queries, cities, title rules, `max_required_years`, `tailor_per_run`,
 `min_score`, `ats.target`, `ats.minimum`, `ats.max_rounds`) and `config/companies.yaml` (find a company's
 board with `python -m jobbot probe-company <slug>`).
+
+## Contacts (an add-on for your account)
+
+HR, recruiter and hiring-manager contacts, grouped by company, with every follow-up recorded. The page appears
+only for accounts granted the `contacts` add-on (`feature_grants` in `supabase/migrations/0006_contacts.sql`);
+the owner account has it. To give it to another account later, for example after a separate payment, run in the
+Supabase SQL editor: `insert into feature_grants (user_id, feature) select id, 'contacts' from auth.users where
+email = 'their@email';`. Each account sees only its own contacts. The contact data lives in your Supabase
+project only, never in this repository.
+
+- **Due**: who to contact today and in the next 3 days, target companies first. The order follows one rule:
+  start on **LinkedIn** (an invite, or an InMail with Premium); if they do not accept or reply within 2-3 days,
+  send a **cold e-mail**; then a **WhatsApp** message; then **call**. Channels a contact has no details for
+  are skipped. Once they reply, follow up every 2-3 days where they answered.
+- **A contact's page**: the next step, a ready-to-send message for each channel (written from your details
+  in Contacts, Your details), buttons that open LinkedIn, your mail app, WhatsApp or the dialler with the
+  text in place, and one click to record what happened, which schedules the next follow-up. Nothing is sent
+  for you: you press Send in each app. The call notes include the rule for interviews: when HR asks your
+  availability, say yes to a face-to-face round and let them schedule it around you.
+- **Companies**: contacts, how many you reached, and your open jobs per company. Star a company as a
+  **target** (Qualys is starred) to get LinkedIn people searches for its Directors, VPs and Managers.
+- **Import**: paste a WhatsApp chat export, vCards, name/number lists or e-mail lists. Numbers are normalised,
+  spellings like "Phone Pay" become PhonePe, duplicates merge, and contacts you already have are skipped.
+  WhatsApp exports only the count for multi-contact cards ("[82 contacts]"); forward those cards as .vcf files,
+  or open each and copy its details, to import them.
+- A job's page lists your **People at** that company.
 
 ## Evaluation: do not apply, and is the posting real
 

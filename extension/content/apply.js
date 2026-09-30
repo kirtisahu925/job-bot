@@ -143,6 +143,7 @@
       10000,
     );
     if (!apply) {
+      if (closedPage(payload.closedPattern)) return outcome("closed", "LinkedIn says: No longer accepting applications; marked as closed.");
       const top = document.querySelector(".jobs-unified-top-card, .job-details-jobs-unified-top-card__container--two-pane, main");
       const applied = /\bapplied\b/i.test(squash(top?.innerText));
       return outcome(applied ? "applied_before" : "no_apply", applied ? "You already applied on LinkedIn." : "No apply button (the job may be closed).");
@@ -155,8 +156,16 @@
     return walk(easyApplyDialog, payload, () => true);
   }
 
+  // The page says the posting stopped taking applications (the pattern comes from lib/autoapply.js).
+  function closedPage(pattern) {
+    return !!pattern && window === top && new RegExp(pattern, "i").test(document.body?.innerText || "");
+  }
+
   async function run(payload) {
     try {
+      if (closedPage(payload.closedPattern)) {
+        return outcome("closed", "The page says it is no longer accepting applications; marked as closed.");
+      }
       if (/(^|\.)linkedin\.com$/.test(location.hostname)) {
         return window === top ? await linkedin(payload) : null;
       }

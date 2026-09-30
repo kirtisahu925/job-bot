@@ -58,7 +58,8 @@ Deno.serve(async (req) => {
     .eq("id", jobId);
   if (updateError) return json({ error: updateError.message }, 400);
 
-  const token = Deno.env.get("GH_DISPATCH_TOKEN");
+  // a secret pasted with a trailing newline, spaces or quotes is still the token
+  const token = (Deno.env.get("GH_DISPATCH_TOKEN") ?? "").trim().replace(/^["']|["']$/g, "");
   if (!token) {
     return json({ ok: true, message: "Queued. Add the GH_DISPATCH_TOKEN secret to start it immediately; otherwise the next scheduled run tailors it." }, 202);
   }
@@ -75,7 +76,22 @@ Deno.serve(async (req) => {
     body: JSON.stringify({ ref, inputs: { job_id: jobId } }),
   });
   if (res.status !== 204) {
-    return json({ error: `GitHub refused to start the workflow (${res.status}): ${(await res.text()).slice(0, 300)}` }, 502);
+    const fallback = " The job stays queued, so the next scheduled scan (10:00 or 22:00 IST) tailors it anyway.";
+    const fixes: Record<number, string> = {
+      401:
+        "GitHub rejected the GH_DISPATCH_TOKEN secret (401 Bad credentials): the token has expired, was revoked, or was " +
+        "copied incompletely. Create a new fine-grained token (Repository access: only sde-job-bot; Permissions: " +
+        "Actions, Read and write) and save it again in Supabase: Edge Functions, Secrets, GH_DISPATCH_TOKEN.",
+      403:
+        "GitHub accepted the token but it may not start workflows (403): give it Actions, Read and write, on the " +
+        "sde-job-bot repository.",
+      404:
+        `GitHub cannot see ${repo} or its tailor.yml with this token (404): make sure the token's repository access ` +
+        "includes sde-job-bot.",
+      422: `GitHub could not start tailor.yml on "${ref}" (422): the workflow must exist on that branch.`,
+    };
+    const detail = fixes[res.status] ?? `GitHub refused to start the workflow (${res.status}): ${(await res.text()).slice(0, 300)}`;
+    return json({ error: detail + fallback }, 502);
   }
   return json({ ok: true, message: `Tailoring "${job.title}". The resume and ATS score appear in about 3 minutes.` }, 202);
 });

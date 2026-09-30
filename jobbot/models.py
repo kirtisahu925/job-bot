@@ -18,6 +18,7 @@ JOB_STATUSES = (
     "interviewing",
     "offer",
     "rejected",
+    "expired",  # the posting stopped taking applications ("No longer accepting applications")
     "skipped",
     "archived",
 )

@@ -29,6 +29,7 @@ const RING: Record<JobStatus, { color: string; fill: number; kind: "dash" | "rin
   interviewing: { color: "var(--info)", fill: 1, kind: "done" },
   offer: { color: "var(--good)", fill: 1, kind: "done" },
   rejected: { color: "var(--bad)", fill: 1, kind: "stop" },
+  expired: { color: "var(--warn)", fill: 0, kind: "stop" },
   skipped: { color: "var(--text-3)", fill: 0, kind: "stop" },
   archived: { color: "var(--text-3)", fill: 0, kind: "stop" },
 };

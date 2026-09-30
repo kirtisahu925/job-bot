@@ -12,8 +12,12 @@
     retryAfterHours: 24, // a job already opened is not reopened sooner than this
   };
 
+  // A job page saying the posting has closed. LinkedIn shows "No longer accepting applications".
+  const CLOSED_PAGE = /no longer accepting applications|this (job|position) is no longer (available|open)|this job has expired/i;
+
   const LABEL = {
     ready: "Filled up to Submit",
+    closed: "No longer accepting applications",
     needs_you: "Needs you",
     external: "Applies on the company site",
     applied_before: "Already applied",
@@ -65,7 +69,7 @@
     return results.filter((r) => istDay(Date.parse(r.at)) === day).length;
   }
 
-  const RANK = ["ready", "needs_you", "applied_before", "external", "no_apply", "error", "no_form"];
+  const RANK = ["ready", "needs_you", "applied_before", "closed", "external", "no_apply", "error", "no_form"];
 
   /** A page runs in every frame (application forms are often iframes); the furthest frame's result counts. */
   function pickOutcome(frameResults) {
@@ -75,7 +79,7 @@
     return [...outcomes].sort((a, b) => rank(a) - rank(b) || (b.filled || 0) - (a.filled || 0))[0];
   }
 
-  const api = { DEFAULTS, LABEL, KEEP_TAB, settingsOf, hostOf, isLinkedIn, istDay, eligible, openedToday, pickOutcome };
+  const api = { DEFAULTS, LABEL, KEEP_TAB, CLOSED_PAGE, settingsOf, hostOf, isLinkedIn, istDay, eligible, openedToday, pickOutcome };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.JobbotAutoApply = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

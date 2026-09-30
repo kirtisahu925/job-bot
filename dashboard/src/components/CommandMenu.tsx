@@ -1,4 +1,4 @@
-import { Columns3, CornerDownLeft, Gauge, GraduationCap, History, LogOut, Monitor, Moon, Plus, Search, Sun, Table2 } from "lucide-react";
+import { Columns3, CornerDownLeft, Gauge, GraduationCap, History, LogOut, Monitor, Moon, Plus, Search, Sun, Table2, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
@@ -22,7 +22,7 @@ interface Item {
 const THEME_ICON: Record<Theme, typeof Moon> = { dark: Moon, light: Sun, system: Monitor };
 
 /** ⌘K: jump to any page or job, add a job, switch theme, sign out. */
-export default function CommandMenu({ onSignOut }: { onSignOut?: () => void }) {
+export default function CommandMenu({ onSignOut, contacts = false }: { onSignOut?: () => void; contacts?: boolean }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -76,6 +76,9 @@ export default function CommandMenu({ onSignOut }: { onSignOut?: () => void }) {
     const base: Item[] = [
       { id: "p-jobs", group: "Go to", label: "Jobs", icon: <Table2 {...ICON} />, run: go("/jobs") },
       { id: "p-board", group: "Go to", label: "Board", icon: <Columns3 {...ICON} />, run: go("/board") },
+      ...(contacts
+        ? [{ id: "p-contacts", group: "Go to", label: "Contacts", icon: <UsersRound {...ICON} />, keywords: "hr recruiters follow up whatsapp email", run: go("/contacts") }]
+        : []),
       { id: "p-skills", group: "Go to", label: "Skills", icon: <GraduationCap {...ICON} />, keywords: "gaps learn", run: go("/skills") },
       { id: "p-usage", group: "Go to", label: "Consumption", icon: <Gauge {...ICON} />, keywords: "usage tokens money quota balance", run: go("/consumption") },
       { id: "p-runs", group: "Go to", label: "Runs", icon: <History {...ICON} />, keywords: "scans history", run: go("/runs") },
@@ -116,7 +119,7 @@ export default function CommandMenu({ onSignOut }: { onSignOut?: () => void }) {
         run: go(`/jobs/${j.id}`),
       }));
     return q ? [...jobItems, ...pages] : pages;
-  }, [query, jobs, go, onSignOut]);
+  }, [query, jobs, go, onSignOut, contacts]);
 
   useEffect(() => setActive(0), [query]);
 

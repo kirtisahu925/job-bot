@@ -201,12 +201,14 @@ const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 const demo = import.meta.env.VITE_DEMO === "1" || !url || !key;
 
-export const api: Api = demo ? demoApi : supabaseApi(createClient(url!, key!));
+/** The signed-in Supabase client (null in demo mode); the Contacts module shares it. */
+export const supabase: SupabaseClient | null = demo ? null : createClient(url!, key!);
+export const api: Api = supabase ? supabaseApi(supabase) : demoApi;
 
 export const nextStatusActions: Partial<Record<JobStatus, JobStatus[]>> = {
-  new: ["shortlisted", "tailor_queued", "skipped"],
-  shortlisted: ["tailor_queued", "applied", "skipped"],
-  tailored: ["applied", "tailor_queued", "skipped"],
+  new: ["shortlisted", "tailor_queued", "expired", "skipped"],
+  shortlisted: ["tailor_queued", "applied", "expired", "skipped"],
+  tailored: ["applied", "tailor_queued", "expired", "skipped"],
   applied: ["interviewing", "rejected"],
   interviewing: ["offer", "rejected"],
 };

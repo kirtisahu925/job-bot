@@ -33,7 +33,9 @@ const RANGES = [
 ];
 
 // Groups read top to bottom in the order you act on them: ready to apply first.
-const GROUP_ORDER: JobStatus[] = ["tailored", "tailor_queued", "shortlisted", "new", "applied", "interviewing", "offer", "rejected", "skipped", "archived"];
+const GROUP_ORDER: JobStatus[] = [
+  "tailored", "tailor_queued", "shortlisted", "new", "applied", "interviewing", "offer", "rejected", "expired", "skipped", "archived",
+];
 
 const VIEWS: { id: string; label: string; statuses: JobStatus[] }[] = [
   { id: "ready", label: "Ready", statuses: ["tailored"] },
@@ -41,7 +43,7 @@ const VIEWS: { id: string; label: string; statuses: JobStatus[] }[] = [
   { id: "all", label: "All", statuses: GROUP_ORDER },
   { id: "applied", label: "Applied", statuses: ["applied", "interviewing", "offer"] },
   // not in the contract's four: keeps skipped, rejected and archived jobs reachable, as the old status filter did
-  { id: "closed", label: "Closed", statuses: ["rejected", "skipped", "archived"] },
+  { id: "closed", label: "Closed", statuses: ["rejected", "expired", "skipped", "archived"] },
 ];
 const TRACK_LABEL = { java: "Java backend", python: "Python backend", fullstack: "Full-stack JS" };
 const MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
@@ -56,7 +58,8 @@ export default function Jobs() {
   const tailor = useTailorNow(replace);
   const [runs, setRuns] = useState<Run[] | null>(null);
   const [balances, setBalances] = useState<Balance[]>([]);
-  const [q, setQ] = useState("");
+  // /jobs?q=Acme opens pre-filtered (the Contacts page links a company's open jobs this way)
+  const [q, setQ] = useState(() => new URLSearchParams(window.location.search).get("q") ?? "");
   const [view, setView] = useState("all");
   const [track, setTrack] = useState("all");
   const [source, setSource] = useState("all");

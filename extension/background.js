@@ -79,6 +79,12 @@ async function coverLetterFor(jobId) {
   return t[0]?.cover_letter || null;
 }
 
+const SETTABLE = new Set(["applied", "expired", "skipped"]);
+async function setJobStatus(jobId, status) {
+  if (!SETTABLE.has(status)) throw new Error(`cannot set status ${status} from the extension`);
+  await rest(`/rest/v1/jobs?id=eq.${jobId}`, { method: "PATCH", body: { status }, prefer: "return=minimal" });
+}
+
 async function resumeFor(jobId) {
   const [job] = await rest(`/rest/v1/jobs?select=${JOB_FIELDS}&id=eq.${jobId}`);
   const path = job && latestPdf(job);
@@ -152,9 +158,16 @@ async function prepareOne(job) {
     await sleep(2500); // client-rendered forms
     const target = { tabId: tab.id, allFrames: true };
     await chrome.scripting.executeScript({ target, files: ["lib/fieldmap.js", "content/autofill.js", "content/apply.js"] });
-    const payload = { profile: { ...profile, coverLetter }, customAnswers: self.JobbotFieldMap.parseCustomAnswers(customAnswers), resume };
+    const payload = {
+      profile: { ...profile, coverLetter },
+      customAnswers: self.JobbotFieldMap.parseCustomAnswers(customAnswers),
+      resume,
+      closedPattern: AA.CLOSED_PAGE.source,
+    };
     const frames = await chrome.scripting.executeScript({ target, args: [payload], func: (p) => globalThis.JobbotApply.run(p) });
     const outcome = AA.pickOutcome(frames.map((f) => f.result));
+    // a posting that stopped taking applications leaves the queue for good
+    if (outcome.state === "closed") await setJobStatus(job.id, "expired").catch(() => {});
     const keep = AA.KEEP_TAB.has(outcome.state);
     if (!keep) await chrome.tabs.remove(tab.id).catch(() => {});
     return { ...outcome, note: resume ? outcome.note : `${outcome.note} No resume was available to attach.`, tabId: keep ? tab.id : null };
@@ -228,7 +241,11 @@ const handlers = {
     return { id };
   },
   async markApplied({ jobId }) {
-    await rest(`/rest/v1/jobs?id=eq.${jobId}`, { method: "PATCH", body: { status: "applied" }, prefer: "return=minimal" });
+    await setJobStatus(jobId, "applied");
+    return {};
+  },
+  async setStatus({ jobId, status }) {
+    await setJobStatus(jobId, status);
     return {};
   },
   async resume({ jobId }) {

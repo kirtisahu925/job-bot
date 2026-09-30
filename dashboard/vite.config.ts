@@ -20,4 +20,10 @@ const buildStamp = (): Plugin => ({
 
 export default defineConfig({
   plugins: [react(), buildStamp()],
+  build: {
+    rollupOptions: {
+      // libraries in their own long-cached files, so a deploy only re-downloads the app code
+      output: { manualChunks: { react: ["react", "react-dom", "react-router-dom"], supabase: ["@supabase/supabase-js"] } },
+    },
+  },
 });
