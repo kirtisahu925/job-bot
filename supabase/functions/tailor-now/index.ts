@@ -19,6 +19,30 @@ function json(body: unknown, status = 200): Response {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** What the saved secret looks like, without revealing any of it: only GitHub's public prefixes and the length. */
+export function tokenShape(token: string): string {
+  const n = token.length;
+  if (!/^(github_pat_|ghp_|gh[ousr]_)/.test(token)) {
+    return `The saved value (${n} characters) does not start with github_pat_ or ghp_, so it is not a GitHub token: it ` +
+      "may be the token's name or note rather than the token itself.";
+  }
+  if (/^gh[ousr]_/.test(token)) {
+    return "The saved value is an app or OAuth token, which cannot start workflows: create a fine-grained personal access token.";
+  }
+  if (/\s/.test(token)) return `The saved value has spaces or line breaks inside it (${n} characters): paste the token alone.`;
+  if (/[^\x21-\x7e]/.test(token)) return `The saved value has characters a token never has (${n} characters), e.g. "…" from a shortened copy.`;
+  if (token.startsWith("github_pat_")) {
+    return /^github_pat_[A-Za-z0-9]{22}_[A-Za-z0-9]{59}$/.test(token)
+      ? "The saved value is a complete fine-grained token (93 characters), so GitHub has revoked it, it has expired, or it " +
+          "is not the token you just created (the new value may not have been saved)."
+      : `The saved value starts like a fine-grained token but is ${n} characters long instead of 93: part of it is missing ` +
+          "or something extra was pasted.";
+  }
+  return /^ghp_[A-Za-z0-9]{36}$/.test(token)
+    ? "The saved value is a complete classic token (40 characters), so GitHub has revoked it or it has expired."
+    : `The saved value starts like a classic token but is ${n} characters long instead of 40: part of it is missing.`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "use POST" }, 405);
@@ -76,12 +100,15 @@ Deno.serve(async (req) => {
     body: JSON.stringify({ ref, inputs: { job_id: jobId } }),
   });
   if (res.status !== 204) {
+    // nothing is running: no "tailoring" spinner, and pressing again is not blocked; the job stays queued for the scan
+    await supabase.from("jobs").update({ tailor_requested_at: job.tailor_requested_at }).eq("id", jobId);
     const fallback = " The job stays queued, so the next scheduled scan (10:00 or 22:00 IST) tailors it anyway.";
     const fixes: Record<number, string> = {
       401:
-        "GitHub rejected the GH_DISPATCH_TOKEN secret (401 Bad credentials): the token has expired, was revoked, or was " +
-        "copied incompletely. Create a new fine-grained token (Repository access: only sde-job-bot; Permissions: " +
-        "Actions, Read and write) and save it again in Supabase: Edge Functions, Secrets, GH_DISPATCH_TOKEN.",
+        "GitHub does not recognise the GH_DISPATCH_TOKEN secret (401 Bad credentials). " + tokenShape(token) +
+        " Fix: GitHub, Settings, Developer settings, Fine-grained tokens, Generate new token (Repository access: only " +
+        "sde-job-bot; Permissions: Actions, Read and write), copy it with the copy button, then Supabase, Edge " +
+        "Functions, Secrets: replace GH_DISPATCH_TOKEN and press Save.",
       403:
         "GitHub accepted the token but it may not start workflows (403): give it Actions, Read and write, on the " +
         "sde-job-bot repository.",
