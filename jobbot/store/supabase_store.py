@@ -252,6 +252,24 @@ class SupabaseStore:
             merge=True,
         )
 
+    def user_settings(self) -> dict[str, Any]:
+        """The dashboard's Preferences and Settings ({} before you save them, or before migration 0008)."""
+        try:
+            rows = self._get("user_settings", {"select": "preferences,settings", "id": "eq.1"})
+        except httpx.HTTPStatusError:
+            return {}
+        return rows[0] if rows else {}
+
+    def company_boards(self) -> list[dict[str, Any]]:
+        """Career boards added on the dashboard's Companies page: [{"board": "greenhouse", "slug", "name"}]."""
+        try:
+            rows = self._get("companies", {"select": "name,board,board_slug", "board_slug": "not.is.null"})
+        except httpx.HTTPStatusError:
+            return []
+        return [
+            {"board": r["board"], "slug": r["board_slug"], "name": r["name"]} for r in rows if r.get("board")
+        ]
+
     def topups(self, provider: str) -> list[dict[str, Any]]:
         return self._get(
             "credit_topups", {"select": "*", "provider": f"eq.{provider}", "order": "purchased_at.asc"}

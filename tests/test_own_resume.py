@@ -183,12 +183,16 @@ def _jd():
 def test_pipeline_without_a_tex_engine_patches_and_scores():
     ledger = Ledger(FakeProvider(), __import__("jobbot.config").config.load_settings().pricing, LocalStore())
     own = OwnResume(TEX, engine=None)
-    outcome = tailor_own_resume(_job(), PROFILE, own, ledger, ["gemini-flash-latest"], 1, jd=_jd(), target=90)
+    outcome = tailor_own_resume(_job(), PROFILE, own, ledger, ["gemini-flash-latest"], jd=_jd(), target=90)
     # the offline model moves the job's keywords to the front of each skills line; nothing else changes
     assert r"\textbf{Frameworks}{: Spring Boot, FastAPI, Flask, React}" in outcome.tex
     assert outcome.ats is not None and outcome.ats.score > 0
     record = outcome.record()
     assert record["content"]["patches"] and record["ats_score"] == outcome.ats.score
+    # the same rounds as the built-in template: build, then both reviews, each on the patches so far
+    assert [r["name"] for r in record["rounds"]][:3] == ["build", "hiring_manager", "vp_hiring"]
+    analysis = record["rounds"][0]["analysis"]
+    assert "FastAPI" in analysis["keywords"] and analysis["gaps"] == ["PostgreSQL"]
 
 
 def _can_compile_jake() -> bool:
@@ -203,6 +207,6 @@ def test_pipeline_compiles_your_file_and_keeps_its_page_count():
     ledger = Ledger(FakeProvider(), __import__("jobbot.config").config.load_settings().pricing, LocalStore())
     own = OwnResume(TEX, engine="pdflatex")
     assert own.pages == 1
-    outcome = tailor_own_resume(_job(), PROFILE, own, ledger, ["gemini-flash-latest"], 1, jd=_jd(), target=90)
+    outcome = tailor_own_resume(_job(), PROFILE, own, ledger, ["gemini-flash-latest"], jd=_jd(), target=90)
     assert outcome.pdf and outcome.pages == 1 and outcome.status == "ok"
     assert outcome.ats.breakdown["format"]["points"] > 0

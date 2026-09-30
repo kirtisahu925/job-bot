@@ -5,13 +5,14 @@ import pytest
 from jobbot.ats.score import JDKeywords, compute, improvement_requests, title_overlap
 from jobbot.ats.skills import canonical, expand_item, in_text, normalize_text, profile_vocabulary
 from jobbot.config import PROFILE_PATH, load_profile, load_settings
+from jobbot.llm.base import RateLimited
 from jobbot.llm.fake import FakeProvider
 from jobbot.llm.ledger import Ledger
 from jobbot.models import Job
 from jobbot.store.local_store import LocalStore
 from jobbot.tailor.compile import find_engine
 from jobbot.tailor.generate import tailor_job
-from jobbot.tailor.schema import TailoredResume
+from jobbot.tailor.schema import ReviewedResume
 from tests.conftest import FIXTURES, requires_tex
 
 
@@ -127,7 +128,7 @@ def test_real_profile_vocabulary_covers_resume_skills():
 
 
 class SmartFake(FakeProvider):
-    """A revising model that follows the ATS instructions it is given (or, when cheat=True, also invents)."""
+    """A reviewing model that follows the ATS instructions it is given (or, when cheat=True, also invents)."""
 
     def __init__(self, cheat: bool = False):
         super().__init__()
@@ -138,17 +139,16 @@ class SmartFake(FakeProvider):
             model=model, system=system, user=user, schema=schema, max_output_tokens=max_output_tokens
         )
         payload = json.loads(user) if user.startswith("{") else {}
-        if schema is TailoredResume and "previous" in payload:
-            resume = parsed
-            ats = payload["ats"]
-            words = ", ".join(ats["supported_by_profile"][:6])
-            resume.experience[0].bullets[0].text += f" using {words}"
+        resume = parsed.resume if schema is ReviewedResume else parsed if "previous" in payload else None
+        if resume is not None:
+            words = ", ".join(payload["ats"]["supported_by_profile"][:6])
+            if words not in resume.experience[0].bullets[0].text:
+                resume.experience[0].bullets[0].text += f" using {words}"
             for ask in payload["problems"]:
                 if ask.startswith("ATS: set headline to '"):
                     resume.headline = ask.split("'")[1]
             if self.cheat:
                 resume.experience[0].bullets[1].text += " with Kafka"
-            return resume, usage
         return parsed, usage
 
 
@@ -165,7 +165,7 @@ def _job():
 
 
 @requires_tex
-def test_revision_rounds_raise_the_score_and_keep_the_best():
+def test_review_rounds_raise_the_score_and_keep_the_latest_good_round():
     settings = load_settings()
     profile = load_profile(PROFILE_PATH)
     ledger = Ledger(SmartFake(), settings.pricing, LocalStore())
@@ -183,14 +183,32 @@ def test_revision_rounds_raise_the_score_and_keep_the_best():
         preferred=["Redis", "AWS", "System Design"],
         degree_required=True,
     )
-    out = tailor_job(_job(), profile, ledger, ["gemini-flash-latest"], find_engine(), 2, jd=jd, target=90)
+    out = tailor_job(
+        _job(),
+        profile,
+        ledger,
+        ["gemini-flash-latest"],
+        find_engine(),
+        jd=jd,
+        preferences={"target_level": "SDE-2"},
+    )
+    names = [r["name"] for r in out.rounds]
+    assert names[:3] == ["build", "hiring_manager", "vp_hiring"]
+    assert [r.purpose for r in ledger.rows][:3] == ["tailor", "review", "review"]
+    # round 1 reasons first: it sees your preferences and names the gaps it will leave out
+    build = out.rounds[0]["analysis"]
+    assert "Kafka" in build["gaps"] and any("SDE-2" in p for p in build["preferences_applied"])
+    assert all(r["review"]["findings"] is not None for r in out.rounds[1:3])
     assert out.pages == 1
-    assert len(out.ats_rounds) == 3 and out.ats_rounds[-1] > out.ats_rounds[0]
-    assert out.ats.score == max(out.ats_rounds)
+    assert out.ats_rounds[1] > out.ats_rounds[0]
+    kept = [r for r in out.rounds if r["kept"]]
+    assert len(kept) == 1 and kept[0]["ats_score"] == out.ats.score and out.ats.score >= 80
+    assert kept[0]["name"] != "build"  # a review round that clears the bar beats the first draft
     assert out.resume.headline == "Software Development Engineer"
     assert set(out.ats.missing_gaps) == {"Kafka", "Redis"}
     record = out.record()
     assert record["ats_score"] == out.ats.score and record["ats"]["rounds"] == out.ats_rounds
+    assert record["rounds"] == out.rounds
 
 
 @requires_tex
@@ -199,8 +217,28 @@ def test_invented_skills_are_never_the_winning_version():
     ledger = Ledger(SmartFake(cheat=True), settings.pricing, LocalStore())
     jd = JDKeywords(required=["Java", "Spring Boot", "Kafka"], preferred=[])
     out = tailor_job(
-        _job(), load_profile(PROFILE_PATH), ledger, ["gemini-flash-latest"], find_engine(), 1, jd=jd
+        _job(), load_profile(PROFILE_PATH), ledger, ["gemini-flash-latest"], find_engine(), jd=jd
     )
-    # the revised draft claims Kafka, so the honest first draft wins even though its keyword score is lower
+    # the reviewers' drafts claim Kafka, so the honest first draft wins even though its keyword score is lower
     assert "Kafka" in out.ats.missing_gaps
     assert not any(i.code == "unsupported" for i in out.issues)
+    assert [r["name"] for r in out.rounds if r["kept"]] == ["build"]
+    assert out.rounds[-1]["name"] == "fix"  # the invented claim broke a hard rule, so one fix-up ran
+
+
+def test_a_review_round_that_runs_out_of_quota_keeps_the_earlier_draft():
+    settings = load_settings()
+    fake = FakeProvider()
+    ledger = Ledger(fake, settings.pricing, LocalStore())
+    real_generate = fake.generate
+
+    def generate(**kw):
+        if kw["schema"] is ReviewedResume:
+            raise RateLimited("gemini-flash-latest: fake 429")
+        return real_generate(**kw)
+
+    fake.generate = generate
+    out = tailor_job(_job(), load_profile(PROFILE_PATH), ledger, ["gemini-flash-latest"], None, fix_rounds=0)
+    assert [r["name"] for r in out.rounds] == ["build", "hiring_manager"]
+    assert out.rounds[1]["skipped"] and out.rounds[0]["kept"]
+    assert any("Hiring manager review skipped" in f for f in out.fixes)

@@ -278,7 +278,8 @@ export default function AtsPanel({
 
       <Keywords ats={ats} />
 
-      {!!ats.rounds && ats.rounds.length > 1 && (
+      {/* resumes written in review rounds show them in "How this resume was built" instead */}
+      {!t?.rounds?.length && !!ats.rounds && ats.rounds.length > 1 && (
         <div style={{ marginTop: 20 }}>
           <h3 className="xs muted" style={{ marginBottom: 8, fontWeight: 500 }}>
             Revisions: the highest-scoring honest version is kept

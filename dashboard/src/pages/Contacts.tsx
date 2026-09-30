@@ -83,7 +83,7 @@ export default function Contacts() {
   const navigate = useNavigate();
   const { data, rows, error, reload } = useContacts();
   const [view, setView] = useState<View>("due");
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(() => new URLSearchParams(window.location.search).get("q") ?? "");
   const [kind, setKind] = useState<ContactKind | "all">("all");
   const [status, setStatus] = useState<ContactStatus | "active" | "all">("active");
   const [jobs, setJobs] = useState<Job[]>([]);

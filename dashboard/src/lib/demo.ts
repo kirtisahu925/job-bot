@@ -11,6 +11,7 @@ import type {
   Run,
   SkillDemand,
   SkillStatus,
+  RoundRecord,
   Tailoring,
   Topup,
   UsageDay,
@@ -130,6 +131,66 @@ function demoAts(kw: { required: string[]; preferred: string[] }, minYears: numb
   };
 }
 
+export const DEMO_ROUNDS: RoundRecord[] = [
+  {
+    name: "build",
+    title: "Build",
+    ats_score: 78,
+    analysis: {
+      role_focus: "Own payment APIs in Java and Spring Boot end to end.",
+      must_haves: ["Java", "Spring Boot", "REST APIs", "PostgreSQL", "3+ years"],
+      nice_to_haves: ["Kafka", "AWS"],
+      seniority: "SDE-2; you have 2.4 years, close to the 3 asked for",
+      candidate_fit: ["Java: current role, orders platform", "PostgreSQL: current role, onboarding portal"],
+      keywords: ["Java", "Spring Boot", "REST APIs", "PostgreSQL", "AWS"],
+      gaps: ["Kafka"],
+      preferences_applied: ["target level SDE-2: led with ownership of the orders platform"],
+      strategy: "Lead with the orders platform APIs, then the automation work that shows production ownership.",
+    },
+    review: null,
+    problems: [],
+    skipped: null,
+    kept: false,
+  },
+  {
+    name: "hiring_manager",
+    title: "Hiring manager review",
+    ats_score: 86,
+    analysis: null,
+    review: {
+      first_impression: "Backend engineer with real Java APIs, but the scale is buried.",
+      verdict: "maybe",
+      findings: [
+        { area: "current/orders bullet 1", issue: "Says what was built, not how many users it serves", fix: "Added the user count the profile states", severity: "high" },
+        { area: "summary", issue: "Lists technologies instead of saying what they own", fix: "Rewrote around owning the orders and onboarding APIs", severity: "medium" },
+        { area: "skills", issue: "PostgreSQL only in the skills list", fix: "Named it in the onboarding portal bullet", severity: "medium" },
+      ],
+      after: "Reads as someone who ships and runs backend services.",
+    },
+    problems: ["ATS: these required skills appear only in the skills list: PostgreSQL"],
+    skipped: null,
+    kept: false,
+  },
+  {
+    name: "vp_hiring",
+    title: "VP of hiring review",
+    ats_score: 88,
+    analysis: null,
+    review: {
+      first_impression: "Solid SDE-1 profile; the SDE-2 signals need to be louder.",
+      verdict: "interview",
+      findings: [
+        { area: "current/automation", issue: "The design decision behind the move to serverless is missing", fix: "Stated the trade-off the profile describes", severity: "high" },
+        { area: "previous/portal", issue: "Two bullets say the same thing", fix: "Merged them and used the space for the production support work", severity: "low" },
+      ],
+      after: "Tells one story: an engineer who owns services end to end.",
+    },
+    problems: [],
+    skipped: null,
+    kept: true,
+  },
+];
+
 function demoTailoring(job: Job, i: number, created: string): Tailoring {
   const needsReview = i % 4 === 0;
   const ats = demoAts(job.jd_keywords ?? { required: [], preferred: [] }, job.min_years ?? 2, i, needsReview);
@@ -146,6 +207,8 @@ function demoTailoring(job: Job, i: number, created: string): Tailoring {
     fixes: ats.missing_gaps.length ? [`skills: left out ${ats.missing_gaps[0]}, which your profile does not list`] : [],
     revisions: (ats.rounds?.length ?? 1) - 1, pages: 1, fill_ratio: 0.97, tex_path: "demo/resume.tex", pdf_path: "demo/resume.pdf",
     ats_score: ats.score, ats,
+    // resumes written after the review rounds shipped: build, hiring manager, VP of hiring (the last one kept)
+    rounds: i >= 7 && i <= 12 ? DEMO_ROUNDS.map((r, n) => ({ ...r, ats_score: Math.max(0, ats.score - [11, 3, 0][n]), kept: n === 2 })) : null,
     cover_letter:
       `Dear Hiring Team,\nI am applying for the ${job.title} role at ${job.company}. The team's work on payment and ` +
       "order services is close to what I build every day.\n\nAt my current company I built REST APIs on Azure Functions " +

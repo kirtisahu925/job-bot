@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import anthropic
 
-from jobbot.llm.base import LLMError, RateLimited, RawUsage, T
+from jobbot.llm.base import LLMError, RateLimited, RawUsage, T, Unavailable
 
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
@@ -43,6 +43,8 @@ class AnthropicProvider:
         except anthropic.RateLimitError as exc:
             raise RateLimited(f"{model}: rate limited") from exc
         except anthropic.APIStatusError as exc:
+            if exc.status_code in (500, 502, 503, 529):  # overloaded after the SDK's own retries
+                raise Unavailable(f"{model}: HTTP {exc.status_code} {exc.message}") from exc
             raise LLMError(f"{model}: HTTP {exc.status_code} {exc.message}") from exc
         except anthropic.APIConnectionError as exc:
             raise LLMError(f"{model}: connection error {exc}") from exc

@@ -1,4 +1,23 @@
-import { Columns3, CornerDownLeft, Gauge, GraduationCap, History, LogOut, Monitor, Moon, Plus, Search, Sun, Table2, UsersRound } from "lucide-react";
+import {
+  Activity,
+  Building2,
+  Columns3,
+  CornerDownLeft,
+  Gauge,
+  GraduationCap,
+  History,
+  LogOut,
+  Monitor,
+  Moon,
+  Plus,
+  Search,
+  Send,
+  Settings,
+  SlidersHorizontal,
+  Sun,
+  Table2,
+  UsersRound,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
@@ -76,12 +95,17 @@ export default function CommandMenu({ onSignOut, contacts = false }: { onSignOut
     const base: Item[] = [
       { id: "p-jobs", group: "Go to", label: "Jobs", icon: <Table2 {...ICON} />, run: go("/jobs") },
       { id: "p-board", group: "Go to", label: "Board", icon: <Columns3 {...ICON} />, run: go("/board") },
+      { id: "p-apps", group: "Go to", label: "Applications", icon: <Send {...ICON} />, keywords: "applied interviewing offer follow up tracker", run: go("/applications") },
+      { id: "p-companies", group: "Go to", label: "Companies", icon: <Building2 {...ICON} />, keywords: "salary lpa pay targets boards", run: go("/companies") },
       ...(contacts
         ? [{ id: "p-contacts", group: "Go to", label: "Contacts", icon: <UsersRound {...ICON} />, keywords: "hr recruiters follow up whatsapp email", run: go("/contacts") }]
         : []),
       { id: "p-skills", group: "Go to", label: "Skills", icon: <GraduationCap {...ICON} />, keywords: "gaps learn", run: go("/skills") },
       { id: "p-usage", group: "Go to", label: "Consumption", icon: <Gauge {...ICON} />, keywords: "usage tokens money quota balance", run: go("/consumption") },
       { id: "p-runs", group: "Go to", label: "Runs", icon: <History {...ICON} />, keywords: "scans history", run: go("/runs") },
+      { id: "p-activity", group: "Go to", label: "Activity", icon: <Activity {...ICON} />, keywords: "timeline history feed what happened", run: go("/activity") },
+      { id: "p-prefs", group: "Go to", label: "Preferences", icon: <SlidersHorizontal {...ICON} />, keywords: "level roles cities remote salary emphasis", run: go("/preferences") },
+      { id: "p-settings", group: "Go to", label: "Settings", icon: <Settings {...ICON} />, keywords: "ai model claude gemini ats review rounds account sign out", run: go("/settings") },
       { id: "a-add", group: "Actions", label: "Add a job", hint: "Paste a job the scans missed", icon: <Plus {...ICON} />, keywords: "new create", run: go("/add") },
       ...(["dark", "light", "system"] as Theme[])
         .filter((t) => t !== currentTheme())

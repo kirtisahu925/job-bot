@@ -67,6 +67,14 @@ class Filters:
             return not region or any(r in region for r in self.remote_regions)
         return False
 
+    def salary_ok(self, job: Job) -> bool:
+        """Only a stated INR salary can fail the dashboard's minimum; most ads state none and pass."""
+        floor = self.cfg.candidate.get("min_salary_lpa")
+        top = job.salary_max or job.salary_min
+        if not floor or not top or (job.currency or "INR").upper() != "INR":
+            return True
+        return top >= float(floor) * 100_000
+
     def track_of(self, job: Job) -> str | None:
         title, desc = job.title.lower(), job.description.lower()
         scores = {
@@ -86,6 +94,9 @@ class Filters:
                 continue
             if not self.location_ok(job):
                 dropped["location"] += 1
+                continue
+            if not self.salary_ok(job):
+                dropped["salary"] += 1
                 continue
             job.min_years = min_years_required(job.description, job.experience_text)
             if job.min_years is not None and job.min_years > self.cfg.max_required_years:

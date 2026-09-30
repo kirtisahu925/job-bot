@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import AtsPanel from "../components/AtsPanel";
 import CoverLetter from "../components/CoverLetter";
+import ResumeRounds from "../components/ResumeRounds";
 import { PeopleAtCompany } from "../components/contacts";
 import {
   AtsScore,
@@ -138,6 +139,8 @@ export default function JobDetail() {
         <div className="stack">
           <AtsPanel job={job} have={have} onTailor={tailor.start} busy={tailor.busy === job.id} />
 
+          {!!t?.rounds?.length && <ResumeRounds rounds={t.rounds} target={t.ats?.target} />}
+
           {t?.cover_letter && <CoverLetter text={t.cover_letter} />}
 
           <section className="panel panel-pad" aria-labelledby="jd-h">
@@ -241,7 +244,10 @@ export default function JobDetail() {
                   {t.pages ?? "?"} page{t.pages === 1 ? "" : "s"}
                   {t.fill_ratio != null && <span className="muted xs"> · {Math.round(t.fill_ratio * 100)}% filled</span>}
                 </Prop>
-                <Prop term="Revisions">{t.revisions ?? 0}</Prop>
+                <Prop term="Rounds">
+                  {t.rounds?.length ? t.rounds.filter((r) => !r.skipped).length : (t.revisions ?? 0) + 1}
+                  <span className="muted xs"> AI calls</span>
+                </Prop>
                 <Prop term="Model">
                   <span className="soft">{t.model ?? "–"}</span>
                 </Prop>

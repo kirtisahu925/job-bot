@@ -105,9 +105,11 @@ def test_tailor_job_with_fake_llm(profile):
     job = Job(
         id="j1", fingerprint="f", title="Backend Engineer", company="Acme", apply_url="u", description="Java"
     )
-    outcome = tailor_job(job, profile, ledger, ["gemini-flash-latest"], find_engine(), max_revisions=1)
+    outcome = tailor_job(job, profile, ledger, ["gemini-flash-latest"], find_engine())
     assert outcome.pdf and outcome.pages == 1
     # the example profile is short, so the page is under-filled and flagged for review rather than padded
     assert outcome.status == "needs_review" and any(i.code == "underfill" for i in outcome.issues)
-    assert outcome.revisions == 1
-    assert [r.purpose for r in ledger.rows] == ["tailor", "revise"]
+    # build, then the hiring manager and the VP of hiring; no fix-up, since nothing broke a hard rule
+    assert outcome.revisions == 2
+    assert [r.purpose for r in ledger.rows] == ["tailor", "review", "review"]
+    assert [r["title"] for r in outcome.rounds] == ["Build", "Hiring manager review", "VP of hiring review"]

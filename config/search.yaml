@@ -119,9 +119,19 @@ limits:
 
 # ATS match score (0-100) of each tailored resume against its job description.
 ats:
-  target: 90       # revise until the score reaches this...
-  minimum: 80      # ...below this the dashboard flags it
-  max_rounds: 2    # ...using at most this many revision calls per resume (Gemini free tier: ~18 calls/day)
+  target: 90       # the review rounds aim for this...
+  minimum: 80      # ...below this a fix-up round runs and the dashboard flags the resume
+
+# How each resume is written (one LLM call per round):
+#   1. build: read the JD, your skills and preferences, reason, pick keywords, write the resume
+#   2. hiring_manager: the role's hiring manager critiques the draft and fixes it
+#   3. vp_hiring: a senior hiring manager / VP of hiring critiques it again and rebuilds it
+#   4. ATS score (in code, free), plus a fix-up call only if a hard rule is broken or the score is under minimum
+# Three calls per resume, four at most. Gemini's free tier allows ~18 Flash calls a day: about 5 resumes.
+# The dashboard's Settings page can switch reviewers off (fewer calls) without editing this file.
+resume:
+  reviewers: [hiring_manager, vp_hiring]
+  fix_rounds: 1
 
 # A short cover letter with each tailored resume, from the resume's own facts (one Flash-Lite call).
 cover_letter:

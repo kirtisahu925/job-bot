@@ -108,7 +108,44 @@ export interface Tailoring {
   ats?: AtsDetail | null;
   /** written from this resume's facts; sentences citing anything else were removed */
   cover_letter?: string | null;
+  /** build, hiring manager review, VP of hiring review, fix-up: analysis or findings and ATS each */
+  rounds?: RoundRecord[] | null;
 }
+
+export interface Finding {
+  area: string;
+  issue: string;
+  fix: string;
+  severity: "high" | "medium" | "low";
+}
+
+/** One round of a tailored resume (jobbot/tailor/rounds.py round_record). */
+export interface RoundRecord {
+  name: "build" | "hiring_manager" | "vp_hiring" | "fix";
+  title: string;
+  ats_score: number | null;
+  analysis: {
+    role_focus: string;
+    must_haves: string[];
+    nice_to_haves: string[];
+    seniority: string;
+    candidate_fit: string[];
+    keywords: string[];
+    gaps: string[];
+    preferences_applied: string[];
+    strategy: string;
+  } | null;
+  review: {
+    first_impression: string;
+    verdict: "reject" | "maybe" | "interview" | "strong_interview";
+    findings: Finding[];
+    after: string;
+  } | null;
+  problems: string[];
+  skipped: string | null;
+  kept: boolean;
+}
+
 
 export type Verdict = "apply" | "maybe" | "skip";
 export type Legitimacy = "high" | "caution" | "suspicious";

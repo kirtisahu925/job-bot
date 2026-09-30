@@ -55,7 +55,7 @@ jobs:
           # run from the repository root so the detector reads .impeccable/config.json (its recorded exceptions)
           detect() { (cd .. && .claude/skills/impeccable/scripts/impeccable "$@"); }
           fail=0
-          for route in jobs jobs/demo-8 jobs/demo-1 skills add board consumption runs contacts contacts/p-3 contacts/import contacts/settings; do
+          for route in jobs jobs/demo-8 jobs/demo-1 skills add board consumption runs contacts contacts/p-3 contacts/import contacts/settings applications companies activity preferences settings; do
             for viewport in 1440x900 390x844; do
               detect detect --no-advisory --viewport "$viewport" "http://localhost:4173/$route" || fail=1
             done

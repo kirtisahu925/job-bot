@@ -78,6 +78,19 @@ def _cover_letter(job: Job, profile: dict, outcome, ledger: Ledger, models: list
     return {"cover_letter": letter or None, "fixes": outcome.fixes + removed}
 
 
+def round_options(settings: Settings, known_skills: list[str] | None) -> dict:
+    """The keyword arguments both tailoring modes take: ATS bar, preferences and which rounds run."""
+    cfg = settings.search
+    return {
+        "target": cfg.ats.target,
+        "minimum": cfg.ats.minimum,
+        "known_skills": known_skills,
+        "preferences": cfg.preferences,
+        "reviewers": cfg.resume.reviewers,
+        "fix_rounds": cfg.resume.fix_rounds,
+    }
+
+
 def tailor_jobs(
     settings: Settings,
     store,
@@ -96,6 +109,7 @@ def tailor_jobs(
         summary["errors"].append("no LaTeX engine found (install tectonic or pdflatex); saved .tex only")
     known = store.known_skills()
     own = load_own(engine, summary["errors"])
+    rounds = round_options(settings, known)
     summary.setdefault("ats", [])
     for job in jobs:
         jd = JDKeywords.model_validate(job.jd_keywords) if job.jd_keywords else None
@@ -104,29 +118,9 @@ def tailor_jobs(
                 jd = extract_keywords(job, ledger, score_models)
                 store.update_job(job.id, {"jd_keywords": jd.model_dump()})
             if own is not None:
-                outcome = tailor_own_resume(
-                    job,
-                    profile,
-                    own,
-                    ledger,
-                    tailor_models,
-                    cfg.ats.max_rounds,
-                    jd=jd,
-                    target=cfg.ats.target,
-                    known_skills=known,
-                )
+                outcome = tailor_own_resume(job, profile, own, ledger, tailor_models, jd=jd, **rounds)
             else:
-                outcome = tailor_job(
-                    job,
-                    profile,
-                    ledger,
-                    tailor_models,
-                    engine,
-                    cfg.ats.max_rounds,
-                    jd=jd,
-                    target=cfg.ats.target,
-                    known_skills=known,
-                )
+                outcome = tailor_job(job, profile, ledger, tailor_models, engine, jd=jd, **rounds)
         except (QuotaExhausted, BudgetExceeded) as exc:
             summary["tailor_stopped"] = str(exc)[:300]
             break
@@ -153,6 +147,7 @@ def tailor_jobs(
                     "score": outcome.ats.score,
                     "max_achievable": outcome.ats.max_achievable,
                     "rounds": outcome.ats_rounds,
+                    "reviews": [r["title"] for r in outcome.rounds if r["review"]],
                     "gaps": outcome.ats.missing_gaps,
                 }
             )

@@ -103,3 +103,30 @@ def test_cost_math_with_cache():
 def test_quota_day_starts_at_pacific_midnight():
     start = quota_day_start(datetime(2026, 9, 26, 4, 30, tzinfo=UTC))  # 10:00 IST = 21:30 PDT on the 25th
     assert start == datetime(2026, 9, 25, 7, 0, tzinfo=UTC)
+
+
+def test_a_model_that_stays_overloaded_is_skipped_for_the_rest_of_the_run():
+    from jobbot.llm.base import Unavailable
+
+    class Overloaded(FakeProvider):
+        def generate(self, *, model, **kw):
+            if model == "flash":
+                self.calls.append((model, "503"))
+                raise Unavailable(f"{model}: server error after retries: 503")
+            return super().generate(model=model, **kw)
+
+    fake = Overloaded()
+    free = {"provider": "gemini", "tier": "free"}
+    ledger = Ledger(fake, pricing(flash=free, lite=free), LocalStore())
+    for _ in range(3):  # e.g. the build and both review rounds
+        ledger.call(
+            purpose="tailor",
+            models=["flash", "lite"],
+            system="s",
+            user=USER,
+            schema=ScoreBatch,
+            max_output_tokens=10,
+        )
+    # minutes of retries are paid once, not once per round
+    assert [m for m, _ in fake.calls].count("flash") == 1
+    assert [r.status for r in ledger.rows] == ["error", "ok", "ok", "ok"]

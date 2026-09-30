@@ -55,6 +55,33 @@ def resume_from_profile(profile: dict, max_projects: int = 2, max_bullets: int =
     )
 
 
+def _analysis(payload: dict) -> dict:
+    ats = payload.get("ats") or {}
+    return {
+        "role_focus": f"offline: {payload['job']['title']}",
+        "must_haves": ats.get("required", []),
+        "nice_to_haves": ats.get("preferred", []),
+        "seniority": "not assessed offline",
+        "candidate_fit": [f"{k}: profile" for k in ats.get("supported_by_profile", [])],
+        "keywords": ats.get("supported_by_profile", []),
+        "gaps": ats.get("not_in_profile", []),
+        "preferences_applied": [f"{k}: {v}" for k, v in (payload.get("preferences") or {}).items()],
+        "strategy": "offline fake provider: the profile's own bullets, unchanged",
+    }
+
+
+def _review(payload: dict) -> dict:
+    return {
+        "first_impression": "offline fake provider",
+        "verdict": "interview",
+        "findings": [
+            {"area": "document", "issue": p, "fix": "not changed offline", "severity": "medium"}
+            for p in payload.get("problems", [])[:3]
+        ],
+        "after": "unchanged offline",
+    }
+
+
 class FakeProvider:
     name = "fake"
 
@@ -90,6 +117,16 @@ class FakeProvider:
                 f"{first}\n\nI would welcome a conversation about the role.\n\nRegards,\n{payload['name']}"
             )
             return schema.model_validate({"text": text}), usage
+        if schema.__name__ in ("BuiltResume", "OwnBuild"):
+            inner = "resume" if schema.__name__ == "BuiltResume" else "answer"
+            first = resume_from_profile(payload["profile"]) if inner == "resume" else self._own(payload, None)
+            return schema.model_validate({"analysis": _analysis(payload), inner: first}), usage
+        if schema.__name__ in ("ReviewedResume", "OwnReview"):
+            current = payload["current"]
+            if schema.__name__ == "ReviewedResume":
+                return schema.model_validate({"review": _review(payload), "resume": current}), usage
+            answer = self._own({"current_patches": current["current_patches"]}, None)
+            return schema.model_validate({"review": _review(payload), "answer": answer}), usage
         if schema.__name__ == "OwnResumePatches":
             return self._own(payload, schema), usage
         if schema is TailoredResume:
@@ -99,8 +136,9 @@ class FakeProvider:
         raise LLMError(f"fake provider cannot produce {schema.__name__}")
 
     @staticmethod
-    def _own(payload: dict, schema: type[T]) -> T:
-        """Honest offline rewrite of your own resume: skills lines reordered so the job's keywords come first."""
+    def _own(payload: dict, schema: type[T] | None):
+        """Honest offline rewrite of your own resume: skills lines reordered so the job's keywords come first.
+        With no schema, the plain dict (for wrapping in a round's answer)."""
         from jobbot.ats.skills import in_text, normalize_text
         from jobbot.tailor.facts import split_items
 
@@ -116,22 +154,21 @@ class FakeProvider:
                 ordered = sorted(items, key=lambda i: not in_text(i, jd))
                 if ordered != items:
                     patches.append({"id": slot["id"], "text": ", ".join(ordered)})
-        return schema.model_validate(
-            {
-                "diagnostics": {
-                    "match_score": 75,
-                    "missing_keywords": [],
-                    "red_flags": [],
-                    "strong_sections": [],
-                    "weak_sections": [],
-                },
-                "patches": patches,
-                "verification": {
-                    "ats_parser": "offline fake provider",
-                    "hiring_manager": "offline fake provider",
-                },
-            }
-        )
+        answer = {
+            "diagnostics": {
+                "match_score": 75,
+                "missing_keywords": [],
+                "red_flags": [],
+                "strong_sections": [],
+                "weak_sections": [],
+            },
+            "patches": patches,
+            "verification": {
+                "ats_parser": "offline fake provider",
+                "hiring_manager": "offline fake provider",
+            },
+        }
+        return answer if schema is None else schema.model_validate(answer)
 
     @staticmethod
     def _score(payload: dict) -> ScoreBatch:

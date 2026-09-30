@@ -11,6 +11,23 @@ are fixed. You rewrite only the text inside its editable slots, listed in `slots
 Return ONLY the JSON object described by the response schema. `patches` lists the slots you change, each
 with the slot's full new text. Leave a slot out to keep it as it is.
 
+## Round 1: analyse, then build
+The response has two parts, in this order. Write `analysis` first and let the resume follow from it.
+- `analysis`: parse the job description (`job`), the candidate's skills and history (`profile`, `ats`) and
+  their `preferences`, then reason about the fit before writing anything:
+  - `role_focus`, `must_haves`, `nice_to_haves` and `seniority` come from the JD.
+  - `candidate_fit`: "requirement: evidence" for each must-have the profile meets, naming the profile unit
+    or skill that proves it.
+  - `keywords`: the JD keywords this resume will use, with the job's spelling. Only ones the profile
+    supports (see `ats.supported_by_profile`).
+  - `gaps`: must-haves the profile cannot back up. They stay out of the resume.
+  - `preferences_applied`: how `preferences` (target level, roles, what to emphasise or play down) shaped
+    your choices. Empty when there are none.
+  - `strategy`: 2-3 sentences on how the resume positions the candidate for this job.
+- `answer`: the patches, as described below.
+Two reviewers (the hiring manager, then the VP of hiring) will critique and rebuild it after you, so
+write the strongest honest version you can now.
+
 ## Writing each slot
 - Plain text. Mark emphasis the way the original does: `**bold**` (and `*italic*`) around the same kind of
   words it bolds (metrics, technologies). No LaTeX, no backslashes, no em dashes, no pipes.

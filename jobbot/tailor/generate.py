@@ -1,5 +1,6 @@
-"""Tailor one job: LLM content (Phases 1-3) -> code fixes -> render -> compile -> fit one page (Phase 4),
-with at most `max_revisions` targeted LLM fix-up calls for problems code cannot fix itself."""
+"""Tailor one job with the built-in template, in rounds (see rounds.py): build, hiring manager review,
+VP of hiring review, then the ATS score. Every round's draft gets code fixes -> render -> compile -> fit
+one page (Phase 4) -> lint -> ATS score, and one fix-up call runs only if the final draft breaks a hard rule."""
 
 from __future__ import annotations
 
@@ -14,13 +15,22 @@ from jobbot.ats.score import AtsResult, JDKeywords, improvement_requests, profil
 from jobbot.ats.score import compute as ats_compute
 from jobbot.ats.skills import canonical, in_text, normalize_text
 from jobbot.config import read_prompt
+from jobbot.llm.base import LLMError
 from jobbot.llm.ledger import Ledger
 from jobbot.models import Job
 from jobbot.profile import experience_units
 from jobbot.tailor import lint
 from jobbot.tailor.compile import TARGET_FILL, CompileError, FitResult, fit_one_page
 from jobbot.tailor.latex import Layout, achievements_of, ladder, render
-from jobbot.tailor.schema import TailoredResume
+from jobbot.tailor.rounds import (
+    DEFAULT_REVIEWERS,
+    ats_report,
+    pick,
+    review_payload,
+    review_system,
+    round_record,
+)
+from jobbot.tailor.schema import BuiltResume, ReviewedResume, TailoredResume
 
 log = logging.getLogger(__name__)
 
@@ -49,19 +59,28 @@ def ats_block(profile: dict, jd: JDKeywords | None, known_skills: list[str] | No
     }
 
 
+def job_for_llm(job: Job) -> dict:
+    return {
+        "title": job.title,
+        "company": job.company,
+        "location": job.location,
+        "description": job.description,
+    }
+
+
 def first_prompt(
-    job: Job, profile: dict, jd: JDKeywords | None = None, known_skills: list[str] | None = None
+    job: Job,
+    profile: dict,
+    jd: JDKeywords | None = None,
+    known_skills: list[str] | None = None,
+    preferences: dict | None = None,
 ) -> str:
     return json.dumps(
         {
             "profile": profile_for_llm(profile),
-            "job": {
-                "title": job.title,
-                "company": job.company,
-                "location": job.location,
-                "description": job.description,
-            },
+            "job": job_for_llm(job),
             "ats": ats_block(profile, jd, known_skills),
+            "preferences": preferences or {},
         },
         ensure_ascii=False,
         indent=1,
@@ -122,6 +141,8 @@ class Version:
     issues: list[lint.Issue]
     ats: AtsResult | None
     notes: list[str]
+    draft: TailoredResume | None = None  # what the model returned (before cuts), for the next round to edit
+    overflowed: bool = False  # the model's own draft ran past one page
 
     @property
     def blocking(self) -> list[lint.Issue]:
@@ -153,6 +174,7 @@ class TailorOutcome:
     layout_level: int | None = None
     ats: AtsResult | None = None
     ats_rounds: list[int] = field(default_factory=list)
+    rounds: list[dict] = field(default_factory=list)  # build, reviews, fix-up: analysis, findings, ATS each
 
     def record(self) -> dict:
         return {
@@ -168,6 +190,7 @@ class TailorOutcome:
             "layout_level": self.layout_level,
             "ats_score": self.ats.score if self.ats else None,
             "ats": (self.ats.model_dump() | {"rounds": self.ats_rounds}) if self.ats else None,
+            "rounds": self.rounds,
         }
 
 
@@ -294,59 +317,121 @@ def _evaluate(
     return Version(candidate, fit, issues, ats, notes), overflowed
 
 
+def problems_of(version: Version, job: Job, target: int) -> list[str]:
+    """What code found wrong with a draft, as instructions for the next round."""
+    problems = [i.message for i in version.issues if i.llm_fixable and i.code != "pages"]
+    if version.overflowed:
+        problems.append(
+            "content does not fit on one page; drop the least relevant units or bullets for this job"
+        )
+    if version.ats and version.ats.score < target:
+        problems += improvement_requests(version.ats, job.title, version.resume.headline)
+    return problems
+
+
+def needs_fix(version: Version, minimum: int) -> bool:
+    return bool(version.blocking) or bool(version.ats and version.ats.score < minimum)
+
+
 def tailor_job(
     job: Job,
     profile: dict,
     ledger: Ledger,
     models: list[str],
     engine: str | None,
-    max_revisions: int = 2,
     *,
     jd: JDKeywords | None = None,
     target: int = 90,
+    minimum: int = 80,
     known_skills: list[str] | None = None,
+    preferences: dict | None = None,
+    reviewers: tuple[str, ...] | list[str] = DEFAULT_REVIEWERS,
+    fix_rounds: int = 1,
 ) -> TailorOutcome:
-    """Tailor, then revise up to `max_revisions` times: each revision fixes lint problems and, while the ATS
-    score is under `target`, adds keywords the profile supports. The best version wins; gaps are never added."""
-    system = system_prompt()
+    """Build, then each reviewer critiques and rebuilds, then one fix-up call if the result still breaks a hard
+    rule or scores under `minimum`. The latest good round wins; gaps are never added."""
+    base = system_prompt()
     layouts = ladder()
-    resume = ledger.call(
+    fixes: list[str] = []
+    versions: list[Version] = []
+    rounds: list[dict] = []
+
+    def evaluate(resume: TailoredResume) -> Version:
+        fixes.extend(lint.sanitize(resume, profile, known_skills))
+        version, overflowed = _evaluate(resume, job, profile, engine, layouts, jd, known_skills, target)
+        version.draft, version.overflowed = resume, overflowed
+        versions.append(version)
+        return version
+
+    built = ledger.call(
         purpose="tailor",
         models=models,
-        system=system,
-        user=first_prompt(job, profile, jd, known_skills),
-        schema=TailoredResume,
+        system=base,
+        user=first_prompt(job, profile, jd, known_skills, preferences),
+        schema=BuiltResume,
         max_output_tokens=24576,
         job_id=job.id,
     )
-    versions: list[Version] = []
-    fixes: list[str] = []
-    revisions = 0
-    while True:
-        fixes += lint.sanitize(resume, profile, known_skills)
-        version, overflowed = _evaluate(resume, job, profile, engine, layouts, jd, known_skills, target)
-        versions.append(version)
-        problems = [i.message for i in version.issues if i.llm_fixable and i.code != "pages"]
-        if overflowed:
-            problems.append(
-                "content does not fit on one page; drop the least relevant units or bullets for this job"
-            )
-        if version.ats and version.ats.score < target:
-            problems += improvement_requests(version.ats, job.title, version.resume.headline)
-        if not problems or revisions >= max_revisions:
-            break
-        revisions += 1
-        resume = ledger.call(
-            purpose="revise",
-            models=models,
-            system=system,
-            user=revision_prompt(job, profile, resume, problems, jd, known_skills),
-            schema=TailoredResume,
-            max_output_tokens=24576,
-            job_id=job.id,
-        )
+    version = evaluate(built.resume)
+    rounds.append(round_record("build", version.ats, analysis=built.analysis))
 
-    best = max(versions, key=Version.rank)
+    calls = 0
+    for reviewer in reviewers:
+        problems = problems_of(version, job, target)
+        try:
+            reviewed = ledger.call(
+                purpose="review",
+                models=models,
+                system=review_system(base, reviewer),
+                user=review_payload(
+                    reviewer,
+                    job=job_for_llm(job),
+                    profile=profile_for_llm(profile),
+                    current=version.draft.model_dump(),
+                    problems=problems,
+                    ats=ats_report(version.ats, minimum),
+                    ats_keywords=ats_block(profile, jd, known_skills),
+                    preferences=preferences or {},
+                    rounds=rounds,
+                ),
+                schema=ReviewedResume,
+                max_output_tokens=24576,
+                job_id=job.id,
+            )
+        except LLMError as exc:  # quota or a bad answer: keep what the earlier rounds built
+            rounds.append(round_record(reviewer, None, problems=problems, skipped=str(exc)[:200]))
+            break
+        calls += 1
+        version = evaluate(reviewed.resume)
+        rounds.append(round_record(reviewer, version.ats, review=reviewed.review, problems=problems))
+
+    for _ in range(fix_rounds):
+        if not needs_fix(version, minimum):
+            break
+        problems = problems_of(version, job, target)
+        try:
+            resume = ledger.call(
+                purpose="revise",
+                models=models,
+                system=base,
+                user=revision_prompt(job, profile, version.draft, problems, jd, known_skills),
+                schema=TailoredResume,
+                max_output_tokens=24576,
+                job_id=job.id,
+            )
+        except LLMError as exc:
+            rounds.append(round_record("fix", None, problems=problems, skipped=str(exc)[:200]))
+            break
+        calls += 1
+        version = evaluate(resume)
+        rounds.append(round_record("fix", version.ats, problems=problems))
+
+    best = pick(
+        versions, lambda v: bool(v.blocking), lambda v: v.ats.score if v.ats else None, Version.rank, minimum
+    )
+    evaluated = [r for r in rounds if not r["skipped"]]
+    evaluated[next(i for i, v in enumerate(versions) if v is best)]["kept"] = True
+    fixes += [f"{r['title']} skipped: {r['skipped']}" for r in rounds if r["skipped"]]
     status = "ok" if not best.blocking and not best.soft else "needs_review"
     tex = best.fit.tex if best.fit else render(profile, best.resume, Layout())
     return TailorOutcome(
@@ -356,10 +441,11 @@ def tailor_job(
         status=status,
         issues=best.issues,
         fixes=fixes + best.notes,
-        revisions=revisions,
+        revisions=calls,
         pages=best.fit.report.pages if best.fit else None,
         fill_ratio=best.fit.report.fill_ratio if best.fit else None,
         layout_level=best.fit.level if best.fit else None,
         ats=best.ats,
         ats_rounds=[v.ats.score for v in versions if v.ats],
+        rounds=rounds,
     )

@@ -301,6 +301,12 @@ class LocalStore:
         )
         return [dict(r) for r in rows.fetchall()]
 
+    def user_settings(self) -> dict[str, Any]:
+        return {}  # the dashboard's Preferences and Settings live in Supabase only
+
+    def company_boards(self) -> list[dict[str, Any]]:
+        return []
+
     def known_skills(self) -> list[str]:
         rows = self.db.execute("select skill from skill_status where status='known' order by skill")
         return [r["skill"] for r in rows.fetchall()]

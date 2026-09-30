@@ -47,3 +47,18 @@ class TailoredResume(BaseModel):
         default_factory=list, description="profile achievements reworded to fit line lengths; same facts"
     )
     verification: Verification
+
+
+# The rounds (jobbot/tailor/rounds.py) wrap the resume: the reasoning or the review comes first, so the
+# model writes the resume after it and the resume follows from it.
+from jobbot.tailor.rounds import JDAnalysis, Review  # noqa: E402
+
+
+class BuiltResume(BaseModel):
+    analysis: JDAnalysis
+    resume: TailoredResume
+
+
+class ReviewedResume(BaseModel):
+    review: Review
+    resume: TailoredResume

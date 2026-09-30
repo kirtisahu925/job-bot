@@ -7,7 +7,7 @@ from google.genai import errors, types
 from pydantic import ValidationError
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from jobbot.llm.base import LLMError, RateLimited, RawUsage, T
+from jobbot.llm.base import LLMError, RateLimited, RawUsage, T, Unavailable
 
 
 class _Transient(Exception):
@@ -53,7 +53,7 @@ class GeminiProvider:
         try:
             resp = self._call(model, system, user, schema, max_output_tokens)
         except _Transient as exc:
-            raise LLMError(f"{model}: server error after retries: {exc}") from exc
+            raise Unavailable(f"{model}: server error after retries: {exc}") from exc
         meta = resp.usage_metadata
         usage = RawUsage(
             input_tokens=(meta.prompt_token_count or 0) if meta else 0,

@@ -4,8 +4,8 @@
 #
 # Format:  - {slug: <board slug>, name: <display name>}
 
-greenhouse: []
-#  - {slug: examplecompany, name: Example Company}
+greenhouse:
+  - {slug: remotecom, name: Remote}   # https://job-boards.greenhouse.io/remotecom
 
 lever: []
 

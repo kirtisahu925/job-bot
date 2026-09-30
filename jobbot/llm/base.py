@@ -26,6 +26,10 @@ class RateLimited(LLMError):
     """Quota or rate limit hit; the ledger moves on to the next model in the chain."""
 
 
+class Unavailable(LLMError):
+    """The model stayed overloaded (503) through every retry; the ledger skips it for the rest of the run."""
+
+
 class QuotaExhausted(LLMError):
     """Every model in the chain is capped or rate limited for now."""
 

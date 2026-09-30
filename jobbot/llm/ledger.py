@@ -8,7 +8,16 @@ from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 from jobbot.config import PricingConfig
-from jobbot.llm.base import BudgetExceeded, LLMError, LLMProvider, QuotaExhausted, RateLimited, RawUsage, T
+from jobbot.llm.base import (
+    BudgetExceeded,
+    LLMError,
+    LLMProvider,
+    QuotaExhausted,
+    RateLimited,
+    RawUsage,
+    T,
+    Unavailable,
+)
 from jobbot.models import LLMUsage
 
 PACIFIC = ZoneInfo("America/Los_Angeles")
@@ -147,6 +156,9 @@ class Ledger:
                 continue
             except LLMError as exc:
                 self.requests_today[model] = self.requests_today.get(model, 0) + 1
+                if isinstance(exc, Unavailable):
+                    # it already retried for minutes; later rounds of this run go straight to the next model
+                    self.exhausted.add(model)
                 self._record(
                     purpose, model, "error", getattr(exc, "usage", None), _ms(started), str(exc)[:300], job_id
                 )

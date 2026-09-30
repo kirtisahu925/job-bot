@@ -1,4 +1,22 @@
-import { Columns3, Gauge, GraduationCap, History, LogOut, Monitor, Moon, Plus, Search, Sun, Table2, UsersRound } from "lucide-react";
+import {
+  Activity as ActivityIcon,
+  Building2,
+  Columns3,
+  Gauge,
+  GraduationCap,
+  History,
+  LogOut,
+  Monitor,
+  Moon,
+  Plus,
+  Search,
+  Send,
+  Settings as SettingsIcon,
+  SlidersHorizontal,
+  Sun,
+  Table2,
+  UsersRound,
+} from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { ICON, Mark, Notice } from "./components/bits";
@@ -21,16 +39,34 @@ const Contacts = lazy(() => import("./pages/Contacts"));
 const ContactDetail = lazy(() => import("./pages/ContactDetail"));
 const ContactsImport = lazy(() => import("./pages/ContactsImport"));
 const ContactsSettings = lazy(() => import("./pages/ContactsSettings"));
+const Applications = lazy(() => import("./pages/Applications"));
+const Companies = lazy(() => import("./pages/Companies"));
+const Activity = lazy(() => import("./pages/Activity"));
+const Preferences = lazy(() => import("./pages/Preferences"));
+const Settings = lazy(() => import("./pages/Settings"));
 const loading = <p className="muted">Loading…</p>;
 
-const NAV = [
-  { to: "/jobs", label: "Jobs", short: "Jobs", Icon: Table2 },
-  { to: "/board", label: "Board", short: "Board", Icon: Columns3 },
+type NavItem = { to: string; label: string; short: string; Icon: typeof Table2; feature?: string; group: "work" | "insight" | "you"; tab?: number };
+
+// `tab`: the order on the phone tab bar, which shows the first five the account has
+const NAV: NavItem[] = [
+  { to: "/jobs", label: "Jobs", short: "Jobs", Icon: Table2, group: "work", tab: 1 },
+  { to: "/board", label: "Board", short: "Board", Icon: Columns3, group: "work", tab: 5 },
+  { to: "/applications", label: "Applications", short: "Applied", Icon: Send, group: "work", tab: 2 },
+  { to: "/companies", label: "Companies", short: "Companies", Icon: Building2, group: "work", tab: 4 },
   // an add-on: shown only to accounts granted it (see supabase/migrations/0006_contacts.sql)
-  { to: "/contacts", label: "Contacts", short: "Contacts", Icon: UsersRound, feature: "contacts" },
-  { to: "/skills", label: "Skills", short: "Skills", Icon: GraduationCap },
-  { to: "/consumption", label: "Consumption", short: "Consumption", Icon: Gauge },
-  { to: "/runs", label: "Runs", short: "Runs", Icon: History },
+  { to: "/contacts", label: "Contacts", short: "Contacts", Icon: UsersRound, feature: "contacts", group: "work", tab: 3 },
+  { to: "/activity", label: "Activity", short: "Activity", Icon: ActivityIcon, group: "insight", tab: 6 },
+  { to: "/skills", label: "Skills", short: "Skills", Icon: GraduationCap, group: "insight" },
+  { to: "/consumption", label: "Consumption", short: "Consumption", Icon: Gauge, group: "insight" },
+  { to: "/runs", label: "Runs", short: "Runs", Icon: History, group: "insight" },
+  { to: "/preferences", label: "Preferences", short: "Preferences", Icon: SlidersHorizontal, group: "you" },
+  { to: "/settings", label: "Settings", short: "Settings", Icon: SettingsIcon, group: "you" },
+];
+const NAV_GROUPS: [NavItem["group"], string][] = [
+  ["work", "Workspace"],
+  ["insight", "Insights"],
+  ["you", "You"],
 ];
 
 const NEXT_THEME: Record<Theme, Theme> = { dark: "light", light: "system", system: "dark" };
@@ -130,22 +166,28 @@ export default function App() {
           Add a job
         </Link>
         <nav className="nav" aria-label="Pages">
-          <div className="nav-label">Workspace</div>
-          {nav.map(({ to, label, Icon }) => {
-            const count = counts && (to === "/jobs" ? counts.triage : to === "/board" ? counts.ready : null);
-            const hint = to === "/jobs" ? "in the New tab" : "in the Ready tab, resumes ready to apply with";
-            return (
-              <NavLink key={to} to={to}>
-                <Icon {...ICON} />
-                {label}
-                {!!count && (
-                  <span className="count" title={`${count} ${hint}`} aria-label={`${count} ${hint}`}>
-                    {count}
-                  </span>
-                )}
-              </NavLink>
-            );
-          })}
+          {NAV_GROUPS.map(([group, title]) => (
+            <div key={group} className="nav-group">
+              <div className="nav-label">{title}</div>
+              {nav
+                .filter((n) => n.group === group)
+                .map(({ to, label, Icon }) => {
+                  const count = counts && (to === "/jobs" ? counts.triage : to === "/board" ? counts.ready : null);
+                  const hint = to === "/jobs" ? "in the New tab" : "in the Ready tab, resumes ready to apply with";
+                  return (
+                    <NavLink key={to} to={to}>
+                      <Icon {...ICON} />
+                      {label}
+                      {!!count && (
+                        <span className="count" title={`${count} ${hint}`} aria-label={`${count} ${hint}`}>
+                          {count}
+                        </span>
+                      )}
+                    </NavLink>
+                  );
+                })}
+            </div>
+          ))}
         </nav>
         <div className="sidebar-foot">
           <ThemeButton />
@@ -176,6 +218,9 @@ export default function App() {
         <Link to="/add" className="btn" aria-label="Add a job">
           <Plus {...ICON} />
         </Link>
+        <Link to="/settings" className="btn quiet" aria-label="Settings">
+          <SettingsIcon {...ICON} />
+        </Link>
         <ThemeButton compact />
       </header>
 
@@ -203,6 +248,11 @@ export default function App() {
               }
             />
             <Route path="/runs" element={<Runs />} />
+            <Route path="/applications" element={<Suspense fallback={loading}><Applications /></Suspense>} />
+            <Route path="/companies" element={<Suspense fallback={loading}><Companies /></Suspense>} />
+            <Route path="/activity" element={<Suspense fallback={loading}><Activity /></Suspense>} />
+            <Route path="/preferences" element={<Suspense fallback={loading}><Preferences /></Suspense>} />
+            <Route path="/settings" element={<Suspense fallback={loading}><Settings email={email} onSignOut={signOut} /></Suspense>} />
             <Route path="/contacts" element={<Gate feature="contacts" features={features}><Contacts /></Gate>} />
             <Route path="/contacts/import" element={<Gate feature="contacts" features={features}><ContactsImport /></Gate>} />
             <Route path="/contacts/settings" element={<Gate feature="contacts" features={features}><ContactsSettings /></Gate>} />
@@ -213,13 +263,17 @@ export default function App() {
       </main>
 
       <nav className="tabbar" aria-label="Pages">
-        {/* five tabs fit a phone; Runs stays in the search menu */}
-        {nav.slice(0, 5).map(({ to, short, Icon }) => (
-          <NavLink key={to} to={to}>
-            <Icon {...ICON} size={20} />
-            {short}
-          </NavLink>
-        ))}
+        {/* five tabs fit a phone; the rest are in the search menu and the header's Settings button */}
+        {nav
+          .filter((n) => n.tab)
+          .sort((a, b) => a.tab! - b.tab!)
+          .slice(0, 5)
+          .map(({ to, short, Icon }) => (
+            <NavLink key={to} to={to}>
+              <Icon {...ICON} size={20} />
+              {short}
+            </NavLink>
+          ))}
       </nav>
 
       <CommandMenu onSignOut={signOut} contacts={contacts} />

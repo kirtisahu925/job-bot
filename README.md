@@ -88,15 +88,40 @@ if its free scraper gets blocked.
 
 ### Token consumption
 
-Per scheduled run: scoring about 34k input / 5k output tokens, plus one tailored resume. A resume costs
-**up to three Gemini Flash requests** (the first draft and up to two ATS revision rounds), about 6–9k input
-and 3–5k output tokens each, thinking included. Every Tailor now press costs the same as one resume.
-**On the Gemini free tier this costs $0.** The free tier allows about 18 Flash requests a day, so about
-six resumes a day: two from the schedule (`limits.tailor_per_run: 1`) and about four from Tailor now.
+Per scheduled run: scoring about 34k input / 5k output tokens, plus one tailored resume. A resume is
+**three LLM calls** (build, hiring manager review, VP of hiring review; see "How each resume is written"),
+about 20k input and 6k output tokens in all, measured on real runs, plus a fourth fix-up call only when
+the result breaks a hard rule. Every Tailor now press costs the same as one resume. **On the Gemini free
+tier this costs $0**, but the free tier allows only about 20 Flash calls a day, and Flash often answers
+"503: high demand": on the first runs every resume fell back to Flash-Lite. The bot now skips a model that
+stayed overloaded for the rest of that run instead of retrying it in every round.
 
-If you switch to Claude later (`llm.provider: anthropic` in `config/pricing.yaml`), the Consumption page
-already shows what your real usage would cost on the model named in `shadow_model` ("Would cost on a paid
-model"), so you can decide with your own numbers instead of an estimate.
+If you switch to Claude (dashboard **Settings → AI for resumes**, or `llm.provider: anthropic` in
+`config/pricing.yaml`), the Consumption page already shows what your real usage would cost on the model
+named in `shadow_model` ("Would cost on a paid model"), so you can decide with your own numbers.
+
+**Projected cost per resume by provider** (three rounds; ~20k input and ~6k output tokens, plus ~6k
+thinking tokens on reasoning models; prices per million tokens as listed in September 2026, at ₹88/$;
+Claude from Anthropic's price list, the others from public price trackers because their pricing pages
+were not reachable from the build environment; check before you commit money):
+
+| Provider and model | $ in / out | Per resume | 150 resumes a month | Wired in | Resume quality |
+|---|---|---|---|---|---|
+| Gemini Flash-Lite (free / paid) | 0 / 0, or 0.10–0.25 / 0.40–1.50 | ₹0–1.2 | ₹0–180 | yes | Follows the schema; weakest reviews |
+| Gemini Flash, paid tier | 0.30–0.75 / 2.50–3.75 | ₹3–5 | ₹480–790 | yes (enable billing) | Good, and no daily cap or free-tier 503s |
+| Gemini Pro (3.1) | 2 / 12 | ₹16 | ₹2,400 | yes (model name) | Frontier |
+| Claude Haiku 4.5 | 1 / 5 | ₹4.4 | ₹660 | yes | Good, fast |
+| Claude Sonnet 5.5 | 2 / 10 | ₹14 | ₹2,100 | yes | Frontier writing and critique |
+| Claude Opus 5.5 | 4 / 20 | ₹28 | ₹4,200 | yes (the Claude default) | Frontier, most careful |
+| OpenAI GPT-5 mini | 0.25 / 2 | ₹2.6 | ₹390 | no | Good |
+| OpenAI GPT-5.4 / 5.5 | 2.50 / 15, 5 / 30 | ₹20 / ₹40 | ₹3,000 / ₹6,000 | no | Frontier |
+| DeepSeek V3.2 | 0.28 / 0.42 | ₹1 | ₹145 | no | Good English; JSON mode without schema enforcement; data processed in China |
+| Grok 4 Fast / Grok 4.6 | 0.20 / 0.50, 2 / 6 | ₹0.9 / ₹10 | ₹130 / ₹1,450 | no | Budget / frontier |
+| Groq (gpt-oss-120b / Kimi K2) | 0.15 / 0.60, 1 / 3 | ₹0.9 / ₹3.3 | ₹130 / ₹500 | no | Very fast; open models, reviews shallower |
+
+Scoring jobs and cover letters stay on free Flash-Lite whichever you pick (well under ₹100 a month even
+on a paid tier). The providers marked "no" all speak the OpenAI API, so one small client class would
+cover them.
 
 ### Balance and usage tracking
 
@@ -252,7 +277,9 @@ restrict accounts it thinks are automated.
   searches, and `⌘K` / `Ctrl+K` opens the command menu anywhere. A job the evaluation marks **Do not apply**
   or **Check posting** says so on its company line.
 - **Job page**: the **ATS panel** (score, what earned it, what your profile could still add, the skills
-  you lack, and each revision round), the resume's checks and PDF, the job description, and your notes.
+  you lack), **How this resume was built** (the build round's reading of the job, the keywords it used
+  and the gaps it left out, then each reviewer's findings and fixes, with the ATS score after every
+  round), the resume's checks and PDF, the job description, and your notes.
 - **Tailor now**: on any job, in the dashboard or the extension. A GitHub Action tailors and scores the
   resume in about 3 minutes; the page updates when it lands.
 - **Add a job**: paste a job the scans missed (referral, careers page), then tailor it straight away.
@@ -266,11 +293,31 @@ restrict accounts it thinks are automated.
   longer accepting applications"). Set it from a job's status menu; the extension's apply queue sets it by
   itself when a page says so, and the popup offers **Mark as closed** on such a page. These jobs sit under
   the **Closed** tab.
+- **Applications**: every job you applied to, by stage (Applied, Interviewing, Offer, Rejected), with
+  the day you applied, the resume's ATS score, and the next step: follow up every 2-3 days until they
+  answer (LinkedIn, then e-mail, then WhatsApp, then a call), say yes to a face-to-face round, and weigh
+  an offer against the company's salary bracket. The summary line shows how many companies answered.
+- **Companies**: where you want to work and what they pay, in LPA. It starts with the 65 companies from
+  hey.aanchal's Instagram post ("Everyone is chasing FAANG. Meanwhile, these companies are quietly paying
+  30+ LPA in India"), each with its bracket on one shared scale, how many of its jobs are in your tracker,
+  and your contacts there. Star your targets, edit a bracket, add a company, and paste its Greenhouse,
+  Lever or Ashby board link: every scan then reads its openings directly (Remote's board,
+  `greenhouse/remotecom`, is already in).
+- **Activity**: one timeline of scans, resumes (with their round-by-round ATS), application changes and,
+  with the Contacts add-on, messages to contacts, grouped by day.
+- **Preferences**: what you are aiming for (level such as SDE-2, roles, what to bring forward or play down,
+  notes for the writer; the resume rounds read these) and what the scans look for (kinds of role, cities,
+  remote, maximum years asked, extra title words to skip, a minimum salary).
+- **Settings**: which review rounds run, the ATS target and minimum, fix-up calls, the AI for resumes
+  (free Gemini, Claude Sonnet 5.5 or Claude Opus 5.5, with the cost of each), resumes per scheduled scan,
+  cover letters, and your account.
 - **Consumption**: tokens, money used, current balances, top-ups, and the health of each job source.
 
-Tune `config/search.yaml` (queries, cities, title rules, `max_required_years`, `tailor_per_run`,
-`min_score`, `ats.target`, `ats.minimum`, `ats.max_rounds`) and `config/companies.yaml` (find a company's
-board with `python -m jobbot probe-company <slug>`).
+Preferences and Settings live in Supabase (`user_settings`, migration 0008) and are laid over the repo's
+config at the start of every scan and Tailor now; anything left blank keeps `config/search.yaml`
+(queries, cities, title rules, `max_required_years`, `tailor_per_run`, `min_score`, `ats.target`,
+`ats.minimum`, `resume.reviewers`, `resume.fix_rounds`). Company boards come from `config/companies.yaml`
+plus the Companies page (find a board with `python -m jobbot probe-company <slug>`).
 
 ## Contacts (an add-on for your account)
 
@@ -326,10 +373,36 @@ which is what an ATS reads:
 | Skills used in bullets | 5 | Required skills that appear in experience bullets, not only in the skills list |
 | Format | 10 | One page, standard headings, contact details extractable, layout checks passed |
 
-Below the target, up to two revision rounds add the missing skills **your profile already has**. The
-best-scoring version is kept, and a version that claims a skill your profile lacks never wins. The
+Each review round is told which skills **your profile already has** but the draft does not say, and is
+asked to reach the target with them. A version that claims a skill your profile lacks never wins. The
 **best honest score** shows how high the score can go without inventing anything. When it is below 80,
 the job page names the skills holding it back, and they appear on the Skills page.
+
+## How each resume is written
+
+Every resume goes through the same rounds, with the built-in template or inside your own LaTeX file
+(`jobbot/tailor/rounds.py`, prompts in `prompts/review*.md`):
+
+1. **Build.** One call reads the job description, your profile and skills, and your Preferences, and
+   writes its reasoning first: what the team needs, the must-haves and nice-to-haves, the level, which
+   of your work proves each must-have, the keywords it will use (only ones your profile supports), the
+   gaps it will leave out, and its strategy. Then it writes the resume from that.
+2. **Hiring manager review.** The manager for this exact role reads the draft the way they screen 200
+   applicants: is the top third convincing, does each bullet show evidence (what, with what, at what
+   scale, with what result), is there depth in the job's core stack, is anything irrelevant, inflated or
+   keyword-stuffed. It lists 3-8 findings and rebuilds the resume to fix them.
+3. **VP of hiring review.** A senior hiring manager / VP of Engineering reads for level (SDE-2 signals:
+   ownership, design decisions, production responsibility), trajectory, business impact, what makes you
+   memorable, and one coherent story, keeps the manager's fixes, and rebuilds it again.
+4. **ATS score.** Code compiles each round's resume, fits it to one page, runs the layout and honesty
+   checks, and scores it (the table above). The latest round that clears the ATS minimum and claims
+   nothing your profile lacks is kept. If the final round breaks a hard rule or scores under the
+   minimum, one fix-up call runs.
+
+Facts never change across rounds: every reviewer works from the same profile, and the honesty check
+rejects any claim it cannot back. If a round cannot run (the day's quota is used up), the resume from the
+rounds before it is saved and the skipped round is noted. Switch reviewers off on the Settings page to
+save calls.
 
 ## Your own LaTeX resume (Overleaf)
 

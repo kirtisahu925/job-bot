@@ -42,9 +42,15 @@ class Limits(BaseModel):
 
 
 class AtsConfig(BaseModel):
-    target: int = 90  # keep revising (within max_rounds) until the ATS score reaches this
-    minimum: int = 80  # below this the dashboard flags the resume
-    max_rounds: int = 2  # revision calls per resume (each fixes lint issues and ATS keywords)
+    target: int = 90  # the review rounds are asked to reach this
+    minimum: int = 80  # below this a fix-up round runs, and the dashboard flags the resume
+
+
+class ResumeRoundsConfig(BaseModel):
+    """Round 1 builds the resume; each reviewer then critiques and rebuilds it (one call each)."""
+
+    reviewers: list[str] = Field(default_factory=lambda: ["hiring_manager", "vp_hiring"])
+    fix_rounds: int = 1  # extra calls, only when the result breaks a hard rule or scores under ats.minimum
 
 
 class CoverLetterConfig(BaseModel):
@@ -59,6 +65,8 @@ class SearchConfig(BaseModel):
     locations: Locations
     limits: Limits = Field(default_factory=Limits)
     ats: AtsConfig = Field(default_factory=AtsConfig)
+    resume: ResumeRoundsConfig = Field(default_factory=ResumeRoundsConfig)
+    preferences: dict[str, Any] = Field(default_factory=dict)  # resume preferences from the dashboard
     cover_letter: CoverLetterConfig = Field(default_factory=CoverLetterConfig)
     sources: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
@@ -87,7 +95,7 @@ class LLMChoice(BaseModel):
     score_models: list[str] = Field(default_factory=lambda: ["gemini-flash-lite-latest"])
     tailor_models: list[str] = Field(default_factory=lambda: ["gemini-flash-latest"])
     anthropic_score_model: str = "claude-haiku-4-5"
-    anthropic_tailor_model: str = "claude-opus-5"
+    anthropic_tailor_model: str = "claude-opus-5-5"
 
 
 class PricingConfig(BaseModel):

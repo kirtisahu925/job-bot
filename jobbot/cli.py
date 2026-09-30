@@ -41,6 +41,15 @@ def _store(kind: str, out_dir: Path, settings):
     return LocalStore(out_dir / "jobbot.db" if kind == "local" else ":memory:", out_dir=out_dir)
 
 
+def _dashboard_settings(settings, store) -> None:
+    """Lay the dashboard's Preferences and Settings over config/*.yaml for this run."""
+    from jobbot.preferences import apply_user_settings, merge_company_boards
+
+    for note in apply_user_settings(settings, store.user_settings()):
+        logging.getLogger("jobbot").info("from the dashboard: %s", note)
+    merge_company_boards(settings, store.company_boards())
+
+
 def _provider(kind: str, settings):
     kind = kind or settings.pricing.llm.provider
     if kind == "none":
@@ -101,6 +110,7 @@ def run(
     settings = load_settings()
     out.mkdir(parents=True, exist_ok=True)
     st = _store(store, out, settings)
+    _dashboard_settings(settings, st)
     with make_client() as client:
         summary = run_pipeline(
             settings,
@@ -219,34 +229,18 @@ def tailor(
     score_models = [llm_cfg.anthropic_score_model] if anthropic else llm_cfg.score_models
     tailor_models = [llm_cfg.anthropic_tailor_model] if anthropic else llm_cfg.tailor_models
     jd = extract_keywords(job, ledger, score_models)
-    ats_cfg = settings.search.ats
+    from jobbot.run import round_options
+
     engine = find_engine()
     own = None if template else load_own(engine)
+    rounds = round_options(settings, None)
     if own is not None:
         typer.echo(
             f"Tailoring inside profile/resume.tex ({len(own.slots)} editable lines, {own.pages or '?'} page(s))"
         )
-        outcome = tailor_own_resume(
-            job,
-            settings.profile,
-            own,
-            ledger,
-            tailor_models,
-            ats_cfg.max_rounds,
-            jd=jd,
-            target=ats_cfg.target,
-        )
+        outcome = tailor_own_resume(job, settings.profile, own, ledger, tailor_models, jd=jd, **rounds)
     else:
-        outcome = tailor_job(
-            job,
-            settings.profile,
-            ledger,
-            tailor_models,
-            engine,
-            ats_cfg.max_rounds,
-            jd=jd,
-            target=ats_cfg.target,
-        )
+        outcome = tailor_job(job, settings.profile, ledger, tailor_models, engine, jd=jd, **rounds)
     out.mkdir(parents=True, exist_ok=True)
     (out / "resume.tex").write_text(outcome.tex, encoding="utf-8")
     if outcome.pdf:
@@ -255,8 +249,14 @@ def tailor(
     d = outcome.resume.diagnostics
     typer.echo(f"Base-profile match {d.match_score}/100. Red flags: {'; '.join(d.red_flags) or '-'}")
     print_ats(outcome.ats)
-    if outcome.ats_rounds:
-        typer.echo(f"ATS by round: {' -> '.join(str(x) for x in outcome.ats_rounds)}")
+    for r in outcome.rounds:
+        mark = " (kept)" if r["kept"] else ""
+        if r["skipped"]:
+            typer.echo(f"{r['title']}: skipped, {r['skipped']}")
+            continue
+        typer.echo(f"{r['title']}: ATS {r['ats_score']}{mark}")
+        for f in (r["review"] or {}).get("findings", []):
+            typer.echo(f"  - [{f['severity']}] {f['area']}: {f['issue']} -> {f['fix']}"[:220])
     typer.echo(
         f"Status {outcome.status}, pages {outcome.pages}, fill {outcome.fill_ratio}, revisions {outcome.revisions}"
     )
@@ -285,6 +285,7 @@ def tailor_queued_cmd(
     settings = load_settings()
     out.mkdir(parents=True, exist_ok=True)
     st = _store(store, out, settings)
+    _dashboard_settings(settings, st)
     with make_client() as client:
         summary = tailor_queued(settings, st, _provider(llm, settings), client, job_id or None, limit)
     text = markdown(summary, settings.pricing.fx_usd_inr)

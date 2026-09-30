@@ -700,3 +700,89 @@ tr.dim td { opacity: 0.5; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* companies, applications, activity, preferences, settings, resume rounds ---------------------- */
+.nav { min-height: 0; overflow-y: auto; scrollbar-width: none; }
+.nav-group + .nav-group { margin-top: 4px; }
+.footnote { margin-top: 10px; }
+
+/* one company's salary bracket: a single neutral range mark on a shared 0-90 LPA track, figures in text ink */
+.salary { display: grid; grid-template-columns: 52px minmax(90px, 1fr); align-items: center; gap: 10px; max-width: 280px; }
+.salary-figure { color: var(--text); font-weight: 500; }
+.range-track { position: relative; height: 6px; border-radius: 3px; background: var(--surface-3); }
+.range-mark { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: var(--series-1); transition: background var(--t) var(--ease); }
+tr:hover .range-mark { background: var(--text-2); }
+table.companies td { vertical-align: middle; }
+.star-col { width: 34px; padding-right: 0; }
+.c-company { display: flex; align-items: center; gap: 6px; }
+tr.editing:hover { background: transparent; }
+tr.editing td { padding: 16px 18px; background: var(--surface-1); }
+.company-editor { max-width: 720px; }
+
+.next-cell { min-width: 220px; }
+.next-title { font-weight: 500; font-size: var(--fs-small); }
+
+.activity-day { margin-top: 18px; }
+.activity-day .group-head { padding: 0 2px 8px; font-size: var(--fs-small); }
+.feed { list-style: none; margin: 0; padding: 0; }
+.feed li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.feed li:last-child { border-bottom: 0; }
+.feed-icon { color: var(--text-3); display: grid; place-items: center; padding-top: 1px; }
+.feed-title { font-size: var(--fs-small); color: var(--text); }
+.feed-title a { color: var(--text); font-weight: 500; }
+.feed-detail { font-size: var(--fs-xs); color: var(--text-3); margin-top: 2px; }
+.feed-detail a { color: var(--text-2); }
+
+fieldset.plain { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+fieldset.plain legend { padding: 0; font-size: var(--fs-xs); font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+.chip-input { gap: 6px; }
+.chip-input > label { font-size: var(--fs-xs); font-weight: 500; color: var(--text-2); }
+.chip-input input { width: 100%; }
+.form .hint { font-size: var(--fs-xs); color: var(--text-3); font-weight: 400; }
+.form h2 { font-size: var(--fs-h3); }
+
+.round-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 12px; max-width: 62ch; }
+.round-steps li { display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-small); }
+.round-steps li::marker { color: var(--text-3); font-variant-numeric: tabular-nums; }
+.provider-list { gap: 4px; }
+.provider { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md); cursor: pointer; font-size: var(--fs-small); font-weight: 400; color: var(--text); }
+.form label.provider { flex-direction: row; font-size: var(--fs-small); color: var(--text); }
+.provider:hover { border-color: var(--line-strong); }
+.provider:has(input:checked) { border-color: color-mix(in srgb, var(--accent) 55%, transparent); background: var(--accent-soft); }
+.provider input { margin-top: 3px; accent-color: var(--accent); }
+.provider-note { display: block; margin-top: 2px; max-width: 62ch; }
+
+.round-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.round-list > li { border-top: 1px solid var(--line); }
+.round-list summary { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 10px 0; cursor: pointer; list-style: none; font-size: var(--fs-small); }
+.round-list summary::-webkit-details-marker { display: none; }
+.round-list summary:hover strong { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--text-3); }
+.round-n { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line-strong); font-size: var(--fs-xs); color: var(--text-3); }
+.round-list li.kept .round-n { border-color: var(--accent); color: var(--accent-text); }
+.round-body { padding: 0 0 12px 30px; display: flex; flex-direction: column; gap: 10px; }
+.round-facts { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 6px 12px; margin: 0; font-size: var(--fs-small); }
+.round-facts dt { color: var(--text-3); }
+.round-facts dd { margin: 0; color: var(--text-2); }
+.tag.gap { border-style: dashed; background: transparent; color: var(--text-3); }
+.findings { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.findings li { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 10px; }
+.sev { font-size: var(--fs-xs); font-weight: 500; text-transform: capitalize; color: var(--text-3); padding-top: 1px; }
+.sev.high { color: var(--warn); }
+
+@media (max-width: 860px) {
+  .salary { grid-template-columns: 44px minmax(70px, 1fr); max-width: none; }
+  table.entries.companies td.salary-cell { grid-column: 1 / -1; }
+  .round-body { padding-left: 0; }
+  .round-facts { grid-template-columns: 1fr; gap: 2px; }
+  .round-facts dd { margin-bottom: 6px; }
+  .findings li { grid-template-columns: 1fr; gap: 2px; }
+  .feed li { grid-template-columns: 22px minmax(0, 1fr); }
+  .feed li time { grid-column: 2; }
+}
+/* each term and figure stays together; lines break between them */
+.ledger > div { display: inline-block; }
+.form label.check { flex-direction: row; align-items: center; font-size: var(--fs-small); color: var(--text); font-weight: 400; }
+.form label.check > input, .form label.provider > input { width: auto; flex: none; }
+.round-steps label.check strong { font-weight: 600; }
+.c-company .icon.star { color: var(--warn); fill: currentColor; }
+.form p.small, .panel > p.small, .panel .stack > p.small { max-width: 62ch; }
