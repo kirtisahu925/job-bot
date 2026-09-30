@@ -1,19 +1,13 @@
 import { Component, StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import "@fontsource/barlow/400.css";
-import "@fontsource/barlow/500.css";
-import "@fontsource/barlow/600.css";
-import "@fontsource/barlow/700.css";
+import "@fontsource-variable/inter";
+import "@fontsource-variable/jetbrains-mono";
 import App from "./App";
 import "./index.css";
+import { loadSavedTheme } from "./lib/theme";
 
-try {
-  const saved = localStorage.getItem("theme");
-  if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
-} catch {
-  /* storage unavailable: follow the OS theme */
-}
+loadSavedTheme();
 
 /** A render error shows what broke, instead of unmounting the whole sheet to a blank page. */
 class Crash extends Component<{ children: ReactNode }, { error: Error | null }> {

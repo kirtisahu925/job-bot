@@ -140,7 +140,7 @@ export default function Skills() {
             <tbody>
               {loading && <SkeletonRows cols={6} rows={5} />}
               {gaps.map((d) => (
-                <tr key={d.skill_key} id={`skill-${d.skill_key}`} style={hash === `#${encodeURIComponent(d.skill_key)}` ? { background: "var(--accent-wash)" } : undefined}>
+                <tr key={d.skill_key} id={`skill-${d.skill_key}`} style={hash === `#${encodeURIComponent(d.skill_key)}` ? { background: "var(--accent-soft)" } : undefined}>
                   <td className="cell-role" style={{ fontWeight: 600 }}>{d.skill}</td>
                   <td className="cell-status">
                     <Demand n={d.required_by} of={total} />
@@ -240,7 +240,9 @@ export default function Skills() {
 
       {ignored.length > 0 && (
         <section className="section" aria-labelledby="ign-h">
-          <h2 id="ign-h">Ignored ({ignored.length})</h2>
+          <div className="section-head">
+            <h2 id="ign-h">Ignored ({ignored.length})</h2>
+          </div>
           <div className="tags">
             {ignored.map((d) => (
               <button key={d.skill_key} className="tag" style={{ cursor: "pointer" }} onClick={() => set(d.skill, null)} title="Show it among the gaps again">

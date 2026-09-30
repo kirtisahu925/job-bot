@@ -23,6 +23,8 @@ export interface Api {
   signOut(): Promise<void>;
   currentEmail(): Promise<string | null>;
   listJobs(): Promise<Job[]>;
+  /** Sidebar counts: resumes ready to apply with, and jobs waiting for triage. */
+  counts(): Promise<{ ready: number; triage: number }>;
   getJob(id: string): Promise<Job | null>;
   updateJob(id: string, patch: Partial<Pick<Job, "status" | "notes">>): Promise<void>;
   signedUrl(path: string): Promise<string>;
@@ -48,6 +50,7 @@ export interface Api {
 const JOB_LIST_COLUMNS =
   "id,title,company,location,city,remote,apply_url,posted_at,track,min_years,llm_score,score_reason," +
   "missing_keywords,status,captured_by,notes,applied_at,created_at,updated_at,ats_score,tailor_requested_at," +
+  "verdict,legitimacy,legitimacy_signals,hard_stops," +
   "job_links(source,url,url_key),tailorings(id,job_id,created_at,status,pdf_path,tex_path,ats_score)";
 
 function must<T>(res: { data: T | null; error: { message: string } | null }): T {
@@ -147,6 +150,15 @@ function supabaseApi(client: SupabaseClient): Api {
         await client.from("skill_demand").select("*").order("required_by", { ascending: false }).limit(500),
       ) as SkillDemand[];
     },
+    async counts() {
+      const count = async (statuses: string[]) => {
+        const { count: n, error } = await client.from("jobs").select("id", { count: "exact", head: true }).in("status", statuses);
+        if (error) throw new Error(error.message);
+        return n ?? 0;
+      };
+      const [ready, triage] = await Promise.all([count(["tailored"]), count(["new", "shortlisted", "tailor_queued"])]);
+      return { ready, triage };
+    },
     async jobsWithKeywords() {
       const row = must(await client.from("skill_demand_total").select("jobs_with_keywords").maybeSingle()) as {
         jobs_with_keywords: number;
@@ -175,7 +187,14 @@ function sortTailorings(job: Job): Job {
   const tailorings = [...(job.tailorings ?? [])].sort((a: Tailoring, b: Tailoring) =>
     b.created_at.localeCompare(a.created_at),
   );
-  return { ...job, tailorings, job_links: job.job_links ?? [], missing_keywords: job.missing_keywords ?? [] };
+  return {
+    ...job,
+    tailorings,
+    job_links: job.job_links ?? [],
+    missing_keywords: job.missing_keywords ?? [],
+    legitimacy_signals: job.legitimacy_signals ?? [],
+    hard_stops: job.hard_stops ?? [],
+  };
 }
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;

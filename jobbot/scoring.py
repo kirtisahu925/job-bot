@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import UTC, datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -20,6 +22,9 @@ _BOILERPLATE = re.compile(
 )
 
 
+STALE_DAYS = 30
+
+
 class JobScore(BaseModel):
     job_id: str
     score: int
@@ -29,6 +34,27 @@ class JobScore(BaseModel):
     required_skills: list[str] = Field(default_factory=list)
     preferred_skills: list[str] = Field(default_factory=list)
     degree_required: bool = False
+    # career-ops style evaluation: a do-not-apply verdict, and posting legitimacy kept separate from fit
+    verdict: Literal["apply", "maybe", "skip"] = "maybe"
+    legitimacy: Literal["high", "caution", "suspicious"] = "high"
+    signals: list[str] = Field(default_factory=list)
+    hard_stops: list[str] = Field(default_factory=list)
+
+    def apply_rules(self, job: Job, now: datetime | None = None) -> None:
+        """Facts the code knows better than the model: a hard stop always means skip, and an old posting is
+        flagged (legitimacy only; staleness never changes the verdict on its own)."""
+        self.signals = [s for s in self.signals if s][:3]
+        self.hard_stops = [s for s in self.hard_stops if s][:3]
+        if self.hard_stops:
+            self.verdict = "skip"
+        posted = job.posted_at
+        if posted is not None:
+            now = now or datetime.now(UTC)
+            age = (now - (posted if posted.tzinfo else posted.replace(tzinfo=UTC))).days
+            if age > STALE_DAYS:
+                self.signals.append(f"posted {age} days ago")
+                if self.legitimacy == "high":
+                    self.legitimacy = "caution"
 
     def jd_keywords(self) -> dict:
         from jobbot.ats.score import JDKeywords
@@ -132,5 +158,6 @@ def score_jobs(
             if item.job_id in valid:
                 item.score = max(0, min(100, item.score))
                 item.track = canonical_track(item.track, cfg, valid[item.job_id].track) or item.track
+                item.apply_rules(valid[item.job_id])
                 scores[item.job_id] = item
     return scores

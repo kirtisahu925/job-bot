@@ -115,7 +115,7 @@ queueState().then(({ state }) => state.running && saveQueue({ running: false, cu
 
 async function queueJobs(settings, tried) {
   const jobs = await rest(
-    "/rest/v1/jobs?select=id,title,company,status,apply_url,llm_score,ats_score&status=eq.tailored&apply_url=not.is.null" +
+    "/rest/v1/jobs?select=id,title,company,status,verdict,apply_url,llm_score,ats_score&status=eq.tailored&apply_url=not.is.null" +
       "&order=llm_score.desc.nullslast&limit=100",
   );
   return AA.eligible(jobs, settings, tried);

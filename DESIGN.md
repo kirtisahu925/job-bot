@@ -1,485 +1,445 @@
 ---
 name: Fairsheet
-description: A job-hunt tracker drawn as an engineering sheet by day and a blueprint by night; every score dimensioned, every gap drawn as a hidden line.
+description: The job hunt as an issue tracker; a dark, dense, keyboard-first product UI in the Linear and Raycast tradition, where every score explains itself.
 colors:
-  # Drawing sheet (light, default)
-  page: "#f8fafc"
-  rail: "#ecf1f5"
-  surface-1: "#fcfeff"
-  surface-2: "#eef3f7"
-  rule: "#ccd2d7"
-  rule-strong: "#393e43"
-  control: "#7b8187"
-  ink: "#1b2025"
-  ink-2: "#43484e"
-  ink-3: "#5f646a"
-  accent: "#204ec3"
-  accent-hover: "#103baf"
-  accent-wash: "#dfecff"
-  on-accent: "#ffffff"
-  selection: "#c4d8ff"
-  good: "#197037"
-  good-wash: "#dcf7e1"
-  warn: "#935a11"
-  warn-mark: "#e8a127"
-  warn-wash: "#feefcf"
-  bad: "#b72725"
-  bad-wash: "#ffe7e4"
-  series-1: "#3463a6"
-  # Blueprint (dark): its own steps, same roles
-  blueprint-page: "#092c4f"
-  blueprint-rail: "#042343"
-  blueprint-surface-1: "#103356"
-  blueprint-surface-2: "#1a3c60"
-  blueprint-rule: "#3a5f7d"
-  blueprint-rule-strong: "#c0d4e3"
-  blueprint-control: "#7198b4"
-  blueprint-ink: "#eff6fb"
-  blueprint-ink-2: "#c7dbea"
-  blueprint-ink-3: "#a7c2d5"
-  blueprint-accent: "#f4d660"
-  blueprint-accent-hover: "#ffe77d"
-  blueprint-accent-wash: "#2b5074"
-  blueprint-on-accent: "#032242"
-  blueprint-selection: "#2a5885"
-  blueprint-good: "#83e499"
-  blueprint-good-wash: "#174a3b"
-  blueprint-warn: "#ffb777"
-  blueprint-warn-mark: "#ffb777"
-  blueprint-warn-wash: "#513b21"
-  blueprint-bad: "#ff9e9b"
-  blueprint-bad-wash: "#5b3232"
-  blueprint-series-1: "#379ecc"
+  # Dark (default world: :root, no data-theme attribute)
+  canvas: "#0b0b0f"
+  sidebar: "#0e0e13"
+  surface-1: "#131319"
+  surface-2: "#1a1a22"
+  surface-3: "#22222c"
+  line: "#22222b"
+  line-strong: "#30303c"
+  control: "#3a3a48"
+  text: "#ededf2"
+  text-2: "#b6b6c3"
+  text-3: "#8a8a9c"
+  violet: "#6d5ef0"
+  violet-hover: "#7d70f5"
+  violet-text: "#a59cff"
+  violet-soft: "rgb(109 94 240 / 0.16)"
+  on-violet: "#ffffff"
+  selection: "rgb(109 94 240 / 0.38)"
+  good: "#4cc38a"
+  good-soft: "rgb(76 195 138 / 0.14)"
+  warn: "#f0b429"
+  warn-soft: "rgb(240 180 41 / 0.14)"
+  bad: "#f2646d"
+  bad-soft: "rgb(242 100 109 / 0.14)"
+  info: "#4fb8f0"
+  series-ink: "#66667a"
+  overlay: "rgb(4 4 8 / 0.62)"
+  # Light (data-theme="light", or data-theme="system" when the device prefers light)
+  light-canvas: "#fbfbfc"
+  light-sidebar: "#f4f4f7"
+  light-surface-1: "#ffffff"
+  light-surface-2: "#f2f2f6"
+  light-surface-3: "#e8e8ef"
+  light-line: "#e6e6ec"
+  light-line-strong: "#d4d4de"
+  light-control: "#c4c4d0"
+  light-text: "#16161d"
+  light-text-2: "#464655"
+  light-text-3: "#676778"
+  light-violet: "#5b4bdb"
+  light-violet-hover: "#4d3ecd"
+  light-violet-text: "#4f3fd0"
+  light-violet-soft: "rgb(91 75 219 / 0.1)"
+  light-selection: "rgb(91 75 219 / 0.2)"
+  light-good: "#1d8150"
+  light-warn: "#9a6200"
+  light-bad: "#c9303a"
+  light-info: "#0b76b3"
+  light-series-ink: "#8a8a9c"
+  light-overlay: "rgb(20 20 30 / 0.28)"
 typography:
   display:
-    fontFamily: "Barlow, Segoe UI, system-ui, sans-serif"
-    fontSize: "2.25rem"
+    fontFamily: "Inter Variable, Inter, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "2.5rem"
     fontWeight: 600
     lineHeight: 1
-    fontFeature: "tnum"
+    letterSpacing: "-0.035em"
+    fontFeature: "\"cv11\", \"ss03\", \"tnum\""
   headline:
-    fontFamily: "Barlow, Segoe UI, system-ui, sans-serif"
-    fontSize: "1.5rem"
+    fontFamily: "Inter Variable, Inter, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "1.375rem"
     fontWeight: 600
-    lineHeight: 1.2
-    letterSpacing: "-0.01em"
+    lineHeight: 1.25
+    letterSpacing: "-0.02em"
+    fontFeature: "\"cv11\", \"ss03\""
   title:
-    fontFamily: "Barlow, Segoe UI, system-ui, sans-serif"
-    fontSize: "1.1875rem"
+    fontFamily: "Inter Variable, Inter, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "1.0625rem"
     fontWeight: 600
-    lineHeight: 1.2
+    lineHeight: 1.25
+    letterSpacing: "-0.01em"
+    fontFeature: "\"cv11\", \"ss03\""
   title-sm:
-    fontFamily: "Barlow, Segoe UI, system-ui, sans-serif"
-    fontSize: "1rem"
-    fontWeight: 600
-    lineHeight: 1.2
-  wordmark:
-    fontFamily: "Barlow, Segoe UI, system-ui, sans-serif"
-    fontSize: "1.1875rem"
-    fontWeight: 700
-    lineHeight: 1.2
-  body:
-    fontFamily: "Barlow, Segoe UI, system-ui, sans-serif"
+    fontFamily: "Inter Variable, Inter, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "0.9375rem"
-    fontWeight: 400
-    lineHeight: 1.45
-  body-sm:
-    fontFamily: "Barlow, Segoe UI, system-ui, sans-serif"
+    fontWeight: 600
+    lineHeight: 1.25
+    fontFeature: "\"cv11\", \"ss03\""
+  body:
+    fontFamily: "Inter Variable, Inter, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "0.8125rem"
     fontWeight: 400
-    lineHeight: 1.45
-  control:
-    fontFamily: "Barlow, Segoe UI, system-ui, sans-serif"
-    fontSize: "0.9375rem"
-    fontWeight: 500
-    lineHeight: 1.2
-  control-strong:
-    fontFamily: "Barlow, Segoe UI, system-ui, sans-serif"
-    fontSize: "0.9375rem"
-    fontWeight: 600
-    lineHeight: 1.2
+    lineHeight: 1.5
+    fontFeature: "\"cv11\", \"ss03\""
   label:
-    fontFamily: "Barlow, Segoe UI, system-ui, sans-serif"
-    fontSize: "0.71875rem"
-    fontWeight: 600
-    lineHeight: 1.45
-    letterSpacing: "0.07em"
-  extension-body:
-    fontFamily: "Barlow, Segoe UI, system-ui, sans-serif"
-    fontSize: "13px"
+    fontFamily: "Inter Variable, Inter, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "0.75rem"
+    fontWeight: 500
+    lineHeight: 1.5
+    fontFeature: "\"cv11\", \"ss03\""
+  mono:
+    fontFamily: "JetBrains Mono Variable, ui-monospace, monospace"
+    fontSize: "0.86em"
     fontWeight: 400
-    lineHeight: 1.45
 rounded:
-  none: "0px"
-  control: "2px"
-  balloon: "50%"
+  xs: "4px"
+  sm: "6px"
+  md: "8px"
+  lg: "10px"
+  xl: "12px"
+  full: "999px"
 spacing:
-  hair: "4px"
-  tag-gap: "6px"
-  control-gap: "8px"
-  cell-y: "10px"
-  cell-x: "12px"
-  panel-y: "16px"
+  hair: "2px"
+  xs: "4px"
+  sm: "6px"
+  md: "8px"
+  row: "12px"
+  lg: "16px"
   panel-x: "18px"
-  page-head: "20px"
+  xl: "20px"
   section: "28px"
-  phone-gutter: "16px"
+  page-x: "32px"
 components:
   button:
-    backgroundColor: "{colors.surface-1}"
-    textColor: "{colors.ink}"
-    typography: "{typography.control}"
-    rounded: "{rounded.control}"
-    padding: "7px 14px"
-    height: "36px"
-  button-hover:
     backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.text}"
+    typography: "{typography.label}"
+    rounded: "{rounded.md}"
+    padding: "0 12px"
+    height: "32px"
+  button-hover:
+    backgroundColor: "{colors.surface-3}"
   button-primary:
-    backgroundColor: "{colors.accent}"
-    textColor: "{colors.on-accent}"
-    typography: "{typography.control-strong}"
-    rounded: "{rounded.control}"
-    padding: "7px 14px"
-    height: "36px"
+    backgroundColor: "{colors.violet}"
+    textColor: "{colors.on-violet}"
+    rounded: "{rounded.md}"
+    padding: "0 12px"
+    height: "32px"
   button-primary-hover:
-    backgroundColor: "{colors.accent-hover}"
+    backgroundColor: "{colors.violet-hover}"
   button-act:
-    backgroundColor: "{colors.surface-1}"
-    textColor: "{colors.accent}"
-    typography: "{typography.control-strong}"
-    rounded: "{rounded.control}"
-    padding: "7px 14px"
-    height: "36px"
+    backgroundColor: "{colors.violet-soft}"
+    textColor: "{colors.violet-text}"
+    rounded: "{rounded.md}"
+    padding: "0 12px"
+    height: "32px"
   button-act-hover:
-    backgroundColor: "{colors.accent-wash}"
+    backgroundColor: "{colors.violet}"
+    textColor: "{colors.on-violet}"
   button-quiet:
     backgroundColor: "transparent"
-    textColor: "{colors.ink-2}"
-    typography: "{typography.control}"
-    rounded: "{rounded.control}"
+    textColor: "{colors.text-2}"
+    rounded: "{rounded.md}"
   button-quiet-hover:
     backgroundColor: "{colors.surface-2}"
-    textColor: "{colors.ink}"
+    textColor: "{colors.text}"
   button-small:
-    typography: "{typography.body-sm}"
-    padding: "4px 10px"
-    height: "30px"
-  button-disabled:
-    backgroundColor: "{colors.surface-2}"
-    textColor: "{colors.ink-3}"
+    rounded: "{rounded.sm}"
+    padding: "0 10px"
+    height: "28px"
   input:
     backgroundColor: "{colors.surface-1}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.control}"
-    padding: "6px 10px"
-    height: "36px"
-  segmented-pressed:
-    backgroundColor: "{colors.accent}"
-    textColor: "{colors.on-accent}"
-    typography: "{typography.control-strong}"
+    textColor: "{colors.text}"
+    rounded: "{rounded.md}"
+    padding: "0 10px"
     height: "32px"
-  nav-link:
+  pill:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.text-2}"
+    typography: "{typography.label}"
+    rounded: "{rounded.sm}"
+    padding: "0 8px"
+    height: "22px"
+  pill-ats-on-target:
+    backgroundColor: "{colors.good-soft}"
+    textColor: "{colors.good}"
+  pill-ats-below-minimum:
+    backgroundColor: "{colors.bad-soft}"
+    textColor: "{colors.bad}"
+  tag:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.text-2}"
+    rounded: "{rounded.full}"
+    padding: "0 9px"
+    height: "24px"
+  tag-fixable:
+    backgroundColor: "{colors.violet-soft}"
+    textColor: "{colors.violet-text}"
+  tag-gap:
     backgroundColor: "transparent"
-    textColor: "{colors.ink-2}"
-    typography: "{typography.control}"
-    rounded: "{rounded.control}"
-    padding: "8px 10px"
-  nav-link-active:
-    backgroundColor: "{colors.surface-1}"
-    textColor: "{colors.ink}"
-    typography: "{typography.control-strong}"
-  rail:
-    backgroundColor: "{colors.rail}"
-    width: "216px"
-    padding: "20px 14px 16px"
-  bottom-nav-item:
-    backgroundColor: "{colors.rail}"
-    textColor: "{colors.ink-2}"
-    height: "52px"
+    textColor: "{colors.text-3}"
+  chip:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.text-2}"
+    rounded: "{rounded.full}"
+    padding: "0 4px 0 10px"
+    height: "26px"
+  view-tab:
+    backgroundColor: "transparent"
+    textColor: "{colors.text-3}"
+    rounded: "{rounded.sm}"
+    padding: "0 10px"
+    height: "26px"
+  view-tab-active:
+    backgroundColor: "{colors.surface-3}"
+    textColor: "{colors.text}"
+  nav-item:
+    backgroundColor: "transparent"
+    textColor: "{colors.text-2}"
+    rounded: "{rounded.sm}"
+    padding: "0 10px"
+    height: "30px"
+  nav-item-active:
+    backgroundColor: "{colors.surface-3}"
+    textColor: "{colors.text}"
   panel:
     backgroundColor: "{colors.surface-1}"
-    rounded: "{rounded.none}"
+    rounded: "{rounded.lg}"
     padding: "16px 18px"
-  title-block-cell:
+  job-row:
     backgroundColor: "{colors.surface-1}"
-    textColor: "{colors.ink}"
-    rounded: "{rounded.none}"
-    padding: "7px 14px 8px"
-  table-header:
-    backgroundColor: "{colors.surface-1}"
-    textColor: "{colors.ink-2}"
-    typography: "{typography.label}"
-    padding: "9px 12px"
-  table-cell:
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
-    padding: "10px 12px"
-  tag:
-    backgroundColor: "{colors.surface-1}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.control}"
-    padding: "4px 9px"
-  tag-hidden-line:
-    backgroundColor: "transparent"
-    textColor: "{colors.ink-2}"
-  notice:
+    padding: "5px 14px"
+    height: "46px"
+  job-row-cursor:
     backgroundColor: "{colors.surface-2}"
-    textColor: "{colors.ink}"
-    padding: "10px 14px"
-  notice-error:
-    backgroundColor: "{colors.bad-wash}"
-    textColor: "{colors.ink}"
-  notice-ok:
-    backgroundColor: "{colors.good-wash}"
-    textColor: "{colors.ink}"
-  notice-pending:
-    backgroundColor: "{colors.warn-wash}"
-    textColor: "{colors.ink}"
-  job-card:
-    backgroundColor: "{colors.surface-1}"
-    rounded: "{rounded.none}"
-    padding: "10px 12px"
-  status-mark:
-    size: "10px"
-    rounded: "{rounded.none}"
-  balloon:
-    textColor: "{colors.ink}"
-    rounded: "{rounded.balloon}"
-    size: "18px"
-  meter:
+  group-head:
     backgroundColor: "{colors.surface-2}"
-    height: "8px"
-  extension-button:
+    textColor: "{colors.text}"
+    padding: "0 14px"
+    height: "36px"
+  command-menu:
     backgroundColor: "{colors.surface-1}"
-    textColor: "{colors.ink}"
-    typography: "{typography.extension-body}"
-    rounded: "{rounded.control}"
-    padding: "6px 12px"
-    height: "32px"
+    rounded: "{rounded.xl}"
+    width: "620px"
+  command-item-active:
+    backgroundColor: "{colors.surface-3}"
+    textColor: "{colors.text}"
+    rounded: "{rounded.md}"
+    height: "38px"
+  kbd:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.text-2}"
+    height: "20px"
+  tooltip:
+    backgroundColor: "{colors.surface-2}"
+    textColor: "{colors.text-2}"
+    rounded: "{rounded.md}"
+    padding: "8px 10px"
 ---
 
 # Design System: Fairsheet
 
 ## Overview
 
-**Creative North Star: "The Fair Sheet"**
+**Creative North Star: "The Job Hunt as an Issue Tracker"**
 
-Every job is a drawing sheet checked against its specification. The light theme is a cool white drawing sheet ruled in graphite with one ballpoint-blue hand for what the owner does; the dark theme is a blueprint, a Prussian-blue ground with white linework and a pale sodium-yellow hand. Both are the same drawing: one engineered grotesk set like drafting lettering, 1px rules at three weights, square corners, hatching for what was earned and dashed hidden lines for what is absent or still reachable. The fair sheet is the clean copy made from rough work, and the system keeps that promise visually: values are measured, tolerances are drawn, nothing is decorated.
+Fairsheet is a dark-first product UI that sits alongside Linear and Raycast. Every job is an issue moving through one workflow (New, Shortlisted, Resume queued, Resume ready, Applied, Interviewing, Offer), triaged at keyboard speed from a dense grouped list. The canvas is near-black with a violet tint, surfaces step one tone lighter, 1px hairlines divide everything, and a single violet accent marks focus, selection, the cursor and the one action that matters next. A faint violet aurora sits at the top of the main column and the login screen; nothing else decorates.
 
-Density is that of an observation table, not a card deck. Pages are ruled tables, ruled strips and flat panels set inside a double-rule sheet frame, with a single framed title block for scan metadata. Depth comes from line weight and two tonal steps, never from shadow; the only lifted object is a floating tooltip. Motion is limited to 180ms state changes and one signature draw: the ATS dimension line extends to its measured length the first time a browser sees a resume's score.
+Density is the point: a 13px base, 46px list rows, 32px controls, 22px pills. Numbers use tabular figures so columns of scores line up. Scores never stand alone: the ATS panel shows the earned parts, the reachable points and the gap on a true 0 to 100 scale. Motion is short (150ms, ease-out-expo), the command menu scales in from 0.98, rows highlight instantly, skeletons shimmer, and nothing is choreographed on page load.
 
-The world refuses the category default of rounded kanban cards with a bright accent and emoji badges, and it equally refuses the neon hacker terminal. Status is told by checking-ink marks that differ in shape as well as hue, so meaning survives without color.
+Dark is the default world. A light theme mirrors every role for daylight, and a "follow device" option applies light only when the OS prefers it. The rejected drawing-sheet metaphor and the generic admin template (white cards, stat tiles) are both out.
 
 **Key Characteristics:**
-- Two complete token sets (drawing sheet, blueprint) with identical roles; dark is its own steps, not an inversion.
-- One accent per theme, carried by the owner's hand: actions, selection, and what the owner did or can still do.
-- Three line weights (rule, control, rule-strong) do the work that elevation does elsewhere.
-- Square containers, 2px controls, and one circle: the drafting balloon.
-- Drafting lettering (small tracked capitals) for data labels only; tabular figures for every comparable number.
-- Dashed line means hidden, pending or still reachable, everywhere.
+- Near-black violet-tinted neutrals with three surface steps and 1px hairlines.
+- One violet accent; semantic green, amber, red and blue only where they carry meaning.
+- Inter Variable at a 13px dense base, 600 headings with tight tracking, tabular figures.
+- Status as a family of progress-circle icons.
+- Keyboard-first: ⌘K command menu, j/k/Enter/T/A/Esc triage, `/` to search.
+- Radius ladder: 6px pills and small controls, 8px buttons and inputs, 10px panels, 12px dialogs.
 
 ## Colors
 
-A graphite-on-cool-white sheet (or white-on-Prussian blueprint) with one ink for the owner's hand and three checking inks with fixed meanings.
+A monochrome violet-grey ramp carrying one saturated violet, with four semantic hues held back for meaning.
 
 ### Primary
-- **Ballpoint Blue** (`accent`, light) / **Sodium Yellow** (`blueprint-accent`, dark): the owner's hand. Primary buttons, the outlined Tailor now action, the pressed segment, the active nav icon, focus rings, checkbox fill, the caret, the brand mark's check stroke, and the status marks for shortlisted (outline) and applied (fill). Dashed accent also draws what the owner can still add: fixable keyword tags and the reachable points in the ATS chain.
-- **Pressed Ballpoint** (`accent-hover` / `blueprint-accent-hover`): hover on primary buttons only.
-- **Accent Wash** (`accent-wash` / `blueprint-accent-wash`): the ground under an outlined action on hover and a board column while a card is dragged over it.
-- **On Accent** (`on-accent` / `blueprint-on-accent`): text on the filled accent (white on blue, deep navy on yellow).
-
-### Secondary
-- **Checked Green** (`good`, `good-wash`): checked marks: tailored and interviewing/offer status marks, ATS on target, the minimum and target reference lines in the chain, matched-keyword check icons, success notices, healthy cells in the source-health grid.
-- **Amber Pencil** (`warn`, `warn-mark`, `warn-wash`): pending. `warn` is the text-safe amber for the working label, the dashed tailor-queued mark and the pending notice border; `warn-mark` is a fill only (the meter at 20 to 40 percent left). In the light sheet `warn-mark` is 2.2:1 on surface-1, so it never carries text and never stands without a text value beside it.
-- **Correction Red** (`bad`, `bad-wash`): corrections: ATS below 80, the rejected mark's strike, the Low flag, meters under 20 percent left, error notices and error text.
-
-### Tertiary
-- **Chart Ink** (`series-1` / `blueprint-series-1`): the single data series (token bars on Consumption). Validated for lightness band, chroma floor and 3:1 against the chart surface in both themes. It is the only series color.
+- **Signal Violet** (`violet`; `light-violet` in light): the primary button, the hovered chart bar, earned ATS segments, the focus outline, the input focus border, the checkbox accent and the brand mark tile. Its hover step (`violet-hover`) is lighter in dark and deeper in light.
+- **Violet Ink** (`violet-text`): violet used as text or icon colour on dark surfaces (active nav icon, selected command item icon, "Tailor now" label, fixable keyword text, "best honest" figures, the Applied status circle). It is the accessible form of the accent for type (7.7:1 on surface-1 in dark, 7.1:1 on white in light).
+- **Violet Wash** (`violet-soft`): the "Tailor now" act button at rest, fixable keyword tags, the kept revision pill, the avatar ground, the input focus halo, the board drop target.
 
 ### Neutral
-- **Sheet White** (`page`) / **Prussian Ground** (`blueprint-page`): the page body and the scrollbar track.
-- **Rail Tint** (`rail` / `blueprint-rail`): the left rail, the phone header and the bottom bar.
-- **Sheet Surface** (`surface-1`): panels, tables, title block, inputs, default buttons, tags, job cards, the active nav item.
-- **Wash Surface** (`surface-2`): hover rows, quiet hover, disabled controls, info notices, skeleton bars, meter track, chart cursor.
-- **Hairline** (`rule`): row rules, panel borders, cell dividers. Decorative separator (about 1.5:1), never the boundary of an operable control.
-- **Control Line** (`control`): the border of anything operable (buttons, inputs, selects, segmented groups, tags) and the scrollbar thumb. At least 3.7:1 against page and surfaces in both themes.
-- **Heavy Line** (`rule-strong`): the sheet frame, the title block, table header underlines, and the top rule of ledgers, filter strips and the board.
-- **Graphite Ink** (`ink`, `ink-2`, `ink-3`): primary text; secondary text, labels and hatching; muted metadata and placeholders. All three pass 4.5:1 on page, surface-1, surface-2, rail and accent-wash in both themes.
-- **Selection** (`selection`): text selection ground.
+- **Night Canvas** (`canvas`): page ground behind everything; also the knockout colour inside filled status circles.
+- **Sidebar Night** (`sidebar`): the 240px sidebar, the phone header and the phone tab bar; one hair darker than surface-1 so the rail recedes.
+- **Surface One / Two / Three** (`surface-1`, `surface-2`, `surface-3`): panels and lists; hovered rows, group heads, pills, tags, default buttons, tooltips; active nav item, active view tab, selected command item, empty meter and score-bar track.
+- **Hairline / Strong Hairline** (`line`, `line-strong`): every divider and container edge; strong for control edges, pills, tags and dialog borders.
+- **Control Edge** (`control`): the hover edge of buttons, inputs and board cards.
+- **Primary / Secondary / Tertiary Text** (`text`, `text-2`, `text-3`): titles and figures; body copy and nav labels; metadata, column headers, placeholders, counts and chart ticks.
+
+### Semantic
+- **Good** (`good`, `good-soft`): ATS on target (90+), the target marker on the score bar, healthy sources, matched keywords' check, Tailored and Offer status, the live-scan pulse.
+- **Warn** (`warn`, `warn-soft`): "Check posting" flag, Resume queued status, the in-progress "Tailoring" spinner, quota under 40%.
+- **Bad** (`bad`, `bad-soft`): "Do not apply" flag, ATS below 80, Rejected status, errors, quota under 20%.
+- **Info** (`info`): the Interviewing status circle only.
+
+### Data
+- **Series Ink** (`series-ink`; `light-series-ink` in light): the neutral ink of any single-series chart. It clears 3:1 against its panel in both themes (3.3:1 on surface-1 dark, 3.4:1 on white).
 
 ### Named Rules
+**The One Violet Rule.** Violet marks focus, selection, the cursor, the next action and earned score. It never fills a panel, a heading or a decorative shape.
 
-**The Ballpoint Rule.** The accent is the owner's hand: actions, selection, focus, and marks for what the owner did or can still do. It never colors a heading, a decorative fill or a checking meaning (good, pending, bad).
+**The Neutral Ink Rule.** A single-series chart draws in series ink; only the hovered bar takes violet. Colour in a chart means "you are pointing here", never "this is data".
 
-**The Checking Ink Rule.** Green checked, amber pending, red correction; each has a wash for grounds. A checking ink is always paired with a shape (filled, dashed, ringed, struck) or a word, never hue alone.
-
-**The Two Sheets Rule.** Every color token exists in both sets. The dark set is declared twice: under `prefers-color-scheme: dark` guarded by `:root:not([data-theme="light"])`, and under `:root[data-theme="dark"]`. A token added to one sheet and not the other is a defect.
+**The Meaning-Only Semantics Rule.** Green, amber, red and blue appear only when they report a state (target met, check this, stop, interviewing). A calm screen is a grey screen with one violet.
 
 ## Typography
 
-**Display Font:** Barlow (with Segoe UI, system-ui, sans-serif)
-**Body Font:** Barlow
-**Label Font:** Barlow, set as drafting lettering
+**Display Font:** Inter Variable (self-hosted via @fontsource-variable/inter; falls back to Inter, system-ui, -apple-system, Segoe UI)
+**Body Font:** Inter Variable
+**Label/Mono Font:** JetBrains Mono Variable (self-hosted via @fontsource-variable/jetbrains-mono), for inline code only
 
-**Character:** One engineered grotesk at four weights (400, 500, 600, 700), self-hosted. Its narrow, drafted forms read like the lettering on a title block; hierarchy comes from weight and size steps, not from a second family.
+**Character:** One neutral grotesque carrying everything, set small and tight with stylistic alternates `cv11` and `ss03` on globally, so weight and tone, not size, build the hierarchy. The Inter choice is owner-pinned (a sanctioned shared ignore in `.impeccable/config.json`).
 
 ### Hierarchy
-- **Display** (600, 2.25rem, 1, tabular): the ATS figure on the job page. One per page.
-- **Headline** (600, 1.5rem, 1.2, -0.01em): the page h1, balanced wrapping.
-- **Title** (600, 1.1875rem, 1.2): section and panel h2.
-- **Title Small** (600, 1rem, 1.2): h3 and empty-state titles. Group headings inside panels drop to body-sm in ink-2, sentence case.
-- **Wordmark** (700, 1.1875rem): "Fairsheet" beside the sheet mark in the rail and phone header. Nowhere else.
-- **Body** (400, 0.9375rem, 1.45): all running text; paragraphs cap at 72ch, reasons at 60ch.
-- **Body Small** (400, 0.8125rem): metadata, hints, tags, small buttons, legends, chart ticks (12px).
-- **Control** (500, 0.9375rem, 1.2): buttons and nav links; 600 for primary, act, active nav and the pressed segment.
-- **Label** (600, 0.71875rem, 0.07em, uppercase): drafting lettering for table headers, title-block and ledger terms, and board column statuses.
-- **Extension** (400, 13px, 1.45): the popup's compact ramp (12px small, 16.5px h2, 21px h1); the options page lifts it to 14px body, 18px h2, 24px h1.
+- **Display** (600, 2.5rem, line-height 1, -0.035em, tabular): the ATS score figure on the job page. One per screen.
+- **Headline** (600, 1.375rem, 1.25, -0.02em): page titles on detail and form pages (job title, Add a job).
+- **Title** (600, 1.0625rem, 1.25, -0.01em): section headings, and the page title inside the compact list bar on Jobs.
+- **Title Small** (600, 0.9375rem, 1.25): panel headings and section-head titles, empty-state headings.
+- **Body** (400, 0.8125rem, 1.5): all running text, table cells, nav items, buttons. Prose is capped at 72ch; job descriptions at 72ch with 1.65 line-height.
+- **Label** (500, 0.75rem): column headers, view tabs, chips, pills, tags, form labels, nav group label, legend text. Sentence case, no tracking, never uppercase.
+- **Mono** (400, 0.86em): inline `code` only, on a surface-2 chip with a 4px corner.
 
 ### Named Rules
+**The Weight-Not-Size Rule.** Headings stay within 0.9375 to 1.375rem and separate by weight 600 and tighter tracking; the only large type is the ATS figure.
 
-**The Drafting Lettering Rule.** Small tracked capitals label data: a column, a term, a column status. They never sit above a heading as an eyebrow, and headings themselves stay in sentence case.
-
-**The Tabular Figures Rule.** Every number a reader compares (scores, counts, tokens, money, dates in the title block, revision rounds) is set with `font-variant-numeric: tabular-nums`. Tables inherit it.
+**The Tabular Figures Rule.** Every score, count, age, token total and table number sets with tabular figures so columns align.
 
 ## Layout
 
-The desktop shell is a 216px rail (`rail` tint, 1px `rule` right edge, sticky, full height) beside the sheet. The sheet pads 24px 28px 40px and centers its content at a 1320px maximum. From 861px up, the content sits inside the sheet frame: a 1px `rule-strong` border plus a 1px `rule-strong` outline offset 4px (the trim line), padded 24px 28px 36px. The Jobs title block is set into the frame's top-right corner, the way a drawing's title block sits in its corner.
+A two-column app shell: a sticky 240px sidebar (brand mark with next-scan time, ⌘K search button, Add a job, a "Workspace" nav group with counts on Jobs and Board, theme button and account at the foot) and a main column capped at 1280px with 22px/32px/56px padding. The sidebar ground and its right hairline run the full page height.
 
-Pages follow one rhythm: a page head (h1, a one-line lede in ink-2, the primary actions at the right) with 20px below it, then sections spaced 28px apart. Two-column pages use a 1.35fr / 1fr split or auto-fit columns with a 360px minimum, both with 28px gaps. Inside panels: 16px 18px padding. Table cells: 10px 12px; headers 9px 12px. Tags and chips gap 6px; controls in a row gap 8px.
+Pages open with a compact bar (min 48px): title, view tabs, a spacer, then a meta line of facts. Detail pages split into a flexible main column and a 320px sticky properties panel (96px label column). Two-up sections use an auto-fit grid of 360px minimum columns with 20px gaps. Sections sit 28px apart.
 
-Filters live in a single ruled strip (heavy rule above, hairline below, 10px vertical padding), not a boxed toolbar. Summaries that are not the title block are ledgers: auto-fit 160px cells between a heavy top rule and a hairline bottom rule, no box.
+**Job list.** A single panel of status groups, each with a sticky 36px group head. Every row is its own grid with fixed columns (26px status, 42px match, flexible title, 92px sources, 48px ATS, 64px age, 176px actions) at 12px gaps, so pills align across groups. Between 861px and 1180px the sources column drops. At 860px and below each row becomes a two-line item (status, title and scores on line one; meta and actions on line two), the reason line and sources hide, and the shortcut legend disappears.
 
-At 860px and below the rail disappears: a sticky phone header in the rail tint carries the wordmark, Add, theme and sign-out; a fixed five-item bottom bar (52px minimum targets, safe-area padding) names the sheets. The sheet gutter becomes 16px with 88px bottom clearance. The frame drops away. The title block stretches to four equal columns and hides its sub-values. Observation tables marked as entries reflow into two-line ruled entries: role and status on the left, scores and the next action on the right. Secondary filters fold behind a Filters toggle. Nothing scrolls horizontally at 360px except a wide table inside its own scroll wrapper.
+**Row actions.** On hover-capable screens wider than 860px the action cell (Tailor now, Resume, Apply) is transparent until the row is hovered, focused within, or holds the keyboard cursor; an in-progress "Tailoring" indicator always shows. On phones and touch screens the actions are always visible.
+
+**Phones (≤860px).** The sidebar is replaced by a sticky header (brand, search, add, theme) and a fixed five-tab bottom bar (54px targets, safe-area padding). Main padding becomes 16px with 92px at the foot. Tables marked as entries become two-line grid items. Controls grow to 36px. The board stacks vertically. Usable at 360px without horizontal scroll.
+
+**Board.** Horizontal columns of min 250px, 12px apart; on desktop the right edge fades over 56px to signal more columns.
 
 ### Named Rules
+**The Fixed Columns Rule.** List rows share one fixed column template; never size a row's meta columns with auto widths.
 
-**The One Title Block Rule.** A sheet carries at most one framed metadata box, the title block. Every other summary is a ledger or a ruled strip.
-
-**The Next Action Rule.** In any row of jobs, the one next action (Tailor now, Resume, Apply) sits at the right edge, right-aligned, on desktop and phone alike.
+**The Hidden-Until-Needed Rule.** Row actions appear on hover, focus or cursor on hover-capable desktops and are always shown on phones. Keyboard focus must always reveal them.
 
 ## Elevation & Depth
 
-Fairsheet is flat. Depth is conveyed by three line weights and two tonal steps: page to surface-1 (raised a hair lighter in light, a step lighter in dark) and surface-2 for hover and quiet grounds. The rail is its own tint. The active nav item is marked with a 1px inset ring in `rule`, which is a line drawn with `box-shadow`, not elevation.
+Depth is tonal: canvas, then sidebar, then surface-1, 2 and 3, each separated by a 1px hairline. Resting surfaces carry no shadow. Shadows appear only on layers that float above the page (command menu, chart tooltip, login card) and as a brief lift on hover for the primary button, act button and board cards. The aurora (a 16% violet radial at the top of the main column, 8% in light) is atmosphere, not elevation.
 
 ### Shadow Vocabulary
-- **Floating layer** (`box-shadow: 0 4px 16px rgb(0 0 0 / 0.14)`): the chart tooltip, the one element that floats above the sheet. It also carries a 1px `rule-strong` border.
+- **Pop** (`box-shadow: 0 16px 48px -12px rgb(0 0 0 / 0.7), 0 2px 8px -2px rgb(0 0 0 / 0.5)`; light: `0 16px 40px -12px rgb(20 20 40 / 0.22), 0 2px 6px -2px rgb(20 20 40 / 0.12)`): command menu, tooltip, login card.
+- **Primary bevel** (`box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 1px 2px rgb(0 0 0 / 0.3)`): the primary button at rest.
+- **Hover lift** (`box-shadow: 0 6px 16px -6px rgb(0 0 0 / 0.55)`): primary and act buttons on hover.
+- **Card lift** (`box-shadow: 0 8px 24px -12px rgb(0 0 0 / 0.6)`): board cards on hover.
+- **Tab nub** (`box-shadow: 0 1px 2px rgb(0 0 0 / 0.25)`): the active view tab.
+- **Focus halo** (`box-shadow: 0 0 0 3px` violet wash): inputs, selects and the status select on focus.
 
 ### Named Rules
-
-**The Flat Sheet Rule.** Panels, cards, buttons, notices and the title block never cast shadows. Only a layer that floats over content (a tooltip, a popover) takes the floating-layer shadow.
-
-**The Three Line Weights Rule.** `rule` separates, `control` bounds what can be operated, `rule-strong` frames and heads. Pick the weight by role, never for emphasis.
+**The Flat-At-Rest Rule.** Panels, lists and rows never cast shadows; a surface step and a hairline do the work. Shadows belong to floating layers and hover responses.
 
 ## Shapes
 
-The form language is the drawing sheet's: square containers, near-square controls, 1px lines, and 1.5px strokes for marks and the dimension chain. Panels, tables, the frame, the title block, job cards, notices, skeleton bars, meters and board columns have square corners (0). Operable controls (buttons, inputs, selects, segmented groups, tags, nav links) take a 2px corner. Chart bars take 2px on their top corners only. The one circle is the balloon, the drafting item-number mark that ties a chain segment to its row in the parts table.
+A strict radius ladder: 4px for code chips, skeletons and the score-bar track; 6px for pills, small buttons, nav items, view tabs and the focus outline; 8px for buttons, inputs, notices, board cards, tooltips and command items; 10px for panels, the job list and board columns; 12px for the command menu and the login card. Full rounding is reserved for chips, keyword tags, meters, the avatar and status circles. Every container has a 1px border; dashed borders mean "not yet" (fixable keywords, profile gaps, the New status ring, score-bar reference markers).
 
-Dashes carry meaning: a dashed line is hidden, pending or still reachable (hidden-line tags for skills not in the profile, the best-honest extension of the dimension line, reachable points in the chain, the tailor-queued mark, the pending notice). Hatching (135deg, 1.5px ink-2 lines every 6px) means earned. These two devices are the only patterned fills.
-
-**The 2px Ceiling Rule.** No corner exceeds 2px except the balloon's circle. No pills, no rounded cards.
+### Named Rules
+**The Radius Ladder Rule.** Pills 6px, controls 8px, panels 10px, dialogs 12px. A larger container never takes a smaller radius than what it holds.
 
 ## Components
 
 ### Buttons
-Tactile but drafted: a 1px line, a 2px corner, no lift.
-- **Shape:** 2px corners (`rounded.control`), 36px minimum height, 7px 14px padding, 6px icon gap, weight 500.
-- **Default:** surface-1 ground, ink text, `control` border. Hover: surface-2 ground and an ink-2 border. Active: `rule` ground.
-- **Primary:** filled accent with on-accent text, weight 600; hover moves to accent-hover. Used for Apply on the job page, Sign in, Save job and Add top-up.
-- **Act (outlined accent):** surface-1 ground, accent border and text, weight 600; hover lays down accent-wash. This is Tailor now, the per-row next action.
-- **Quiet:** transparent, ink-2 text; hover surface-2 with ink text. Dismiss, theme toggle, sign out.
-- **Small:** 30px minimum height, 4px 10px padding, body-sm. The size used inside table rows.
-- **Disabled / busy:** surface-2 ground, ink-3 text, `rule` border, not-allowed cursor; busy buttons set `aria-busy` and change their label ("Starting…").
-- **Focus:** a 2px accent outline offset 2px, global for every focusable element.
-- **Transitions:** background, border and color at 180ms on `cubic-bezier(0.16, 1, 0.3, 1)`.
+Compact and quiet until they are the next step.
+- **Shape:** gently rounded (8px); small variant 6px at 28px tall.
+- **Default:** surface-2 ground, strong hairline edge, primary text, 500 weight, 32px tall, 12px side padding, 6px icon gap.
+- **Primary:** violet ground, white text, inner top highlight; used for the page's one commit (Apply for the cursor row, Save, Sign in).
+- **Act ("Tailor now"):** violet wash with violet ink; on hover it fills solid violet and lifts.
+- **Quiet:** transparent, secondary text; surface-2 on hover. Used for Dismiss, theme and sign-out.
+- **Hover / Focus / Active:** surface-3 and control edge on hover; 2px violet outline at 2px offset on focus; a half-pixel press on active; 150ms transitions.
+- **Disabled / Busy:** tertiary text on surface-2 with a plain hairline; busy buttons show a progress cursor and a verb ("Starting…", "Opening…").
 
-### Segmented control
-A single `control`-bordered group with 2px corners; segments separated by hairlines, 32px tall. The pressed segment fills with accent and on-accent text at 600. Used for time ranges on Consumption.
+### Pills (match, ATS, revision rounds)
+- **Style:** 22px tall, 6px corners, strong hairline edge, surface-2 ground, 12px label weight 500, tabular figures.
+- **Match pill:** primary text; scores 85+ take weight 700, a control edge and surface-3.
+- **ATS pill:** "ATS" in tertiary then the figure; green wash at 90+, plain primary text at 80 to 89, red wash below 80, a dash when there is no resume.
+- **Kept round:** violet wash and violet ink marks the revision that was kept.
 
-### Tags
-- **Style:** 1px `control` border, 2px corner, surface-1 ground, body-sm, 4px 9px padding, 6px gap between tags. Link tags darken their border to ink on hover.
-- **Matched:** a green check icon before the keyword.
-- **Fixable:** dashed accent border (in the profile, not yet on the resume).
-- **Hidden line:** dashed `control` border, transparent ground, ink-2 text (not in the profile; links to Skills).
-- **Low flag:** bad border and text with an alert icon.
+### Chips and Keyword Tags
+- **Filter chips:** full-round, 26px, surface-2 with a round 18px remove button.
+- **Keyword tags:** full-round, 24px. Matched: primary text with a green check. Fixable (in profile, not yet on the resume): dashed violet edge, violet wash, violet ink. Gap (not in profile): dashed hairline, transparent, tertiary text, linking to Skills. Source tags carry an external-link icon.
 
 ### Cards / Containers
-- **Corner Style:** square (0).
-- **Background:** surface-1 on the page.
-- **Shadow Strategy:** none (see Elevation & Depth).
-- **Border:** 1px `rule`.
-- **Internal Padding:** 16px 18px for panels; 10px 12px for board job cards.
-- **Nesting:** a panel holds tables, ledgers and tag groups; it never holds another panel. A table that fills a panel sits flush inside it with no inner padding.
+- **Corner Style:** 10px for panels, the job list and board columns; 8px for board cards.
+- **Background:** surface-1 for panels; surface-2 for board cards.
+- **Shadow Strategy:** none at rest (see Flat-At-Rest).
+- **Border:** 1px hairline; board cards use the strong hairline.
+- **Internal Padding:** 16px by 18px in panels; 10px by 12px in board cards.
 
 ### Inputs / Fields
-- **Style:** surface-1 ground, 1px `control` border, 2px corner, 6px 10px padding, 36px minimum height; textareas 96px minimum (260px on Add job), vertical resize, 1.5 line height. Placeholders in ink-3 at full opacity.
-- **Hover:** border moves to ink-2.
-- **Focus:** the global 2px accent outline.
-- **Field:** label above in body-sm ink-2 at 500, hint below in body-sm ink-3, 5px gaps. Checkboxes are 16px with accent fill.
-- **Flat select:** inside table rows the status select is borderless until hover or focus, then shows the `control` border on surface-1.
-- **Error:** error text in `bad` at body-sm under the control; page-level errors use the error notice.
+- **Style:** surface-1 ground, strong hairline edge, 8px corners, 32px tall, 10px side padding, 13px text; selects carry a two-triangle caret; textareas grow vertically.
+- **Focus:** the border turns violet with a 3px violet-wash halo; no outline.
+- **Labels:** 12px weight 500 in secondary text above the field, hints in tertiary.
 
 ### Navigation
-- **Rail (desktop):** the wordmark with the sheet mark, then five sheet links (Jobs, Board, Skills, Consumption, Runs) with 16px icons, 8px 10px padding, 2px corners, weight 500 in ink-2. Hover: surface-2 and ink. Active: surface-1 ground, ink text at 600, a 1px inset `rule` ring and the icon in accent. The rail foot holds Add a job (default button, full width), the theme toggle, the signed-in email and sign out.
-- **Bottom bar (phone):** five equal cells, 20px icons over 0.75rem labels, 52px minimum height, `rule-strong` top line. Active: surface-1 ground, ink at 600, accent icon.
+- **Sidebar:** 30px nav items, 6px corners, secondary text at 500; hover surface-2; active surface-3 with primary text and a violet icon. Counts sit right-aligned in tertiary tabular figures. A 12px "Workspace" group label precedes the list.
+- **View tabs:** a segmented group on surface-1 with a hairline edge; 26px buttons, active tab on surface-3 with a hairline nub shadow, counts in tertiary.
+- **Phone:** sticky header plus a fixed five-item bottom bar, 11px labels under 20px icons, active item in primary text with a violet icon.
 
-### Notices
-A flat strip, 10px 14px, 1px border, 10px gap, 16px below. Info: surface-2 with a `rule` border. Error: bad border on bad-wash with an alert icon, `role="alert"`. Ok: good border on good-wash. Pending: dashed warn border on warn-wash. Text stays ink in every kind.
+### Status Icons (signature)
+A progress-circle family drawn at 14px, one step further round the ring per status: New is a dashed tertiary ring; Shortlisted an empty secondary ring; Resume queued a half-filled amber ring; Resume ready a three-quarter green ring; Applied a filled violet-ink disc with a check; Interviewing a filled blue disc with a centre dot; Offer a filled green disc with a check; Rejected a filled red disc with a cross; Skipped and Archived a grey ring with a slash. In lists the icon itself is the status control: a native select is laid invisibly over it. The extension reproduces the family in CSS as 12px circles.
 
-### Observation table
-The main body of every list page. Full-width, collapsed borders, tabular figures. Headers are drafting lettering in ink-2 over a 1px `rule-strong` underline, on surface-1. Cells are 10px 12px, top-aligned, separated by hairlines; the last row has none. Row hover lays down surface-2. The role cell is a 600-weight title link (underline on hover) over the company in ink-2 and a 60ch reason in ink-3. Numeric columns right-align. On phones the table reflows into two-line ruled entries (see Layout).
+### Job Row (signature)
+46px minimum, 5px by 14px padding, a hairline beneath. Title in primary text at 500, ellipsised; company and place on a tertiary line beneath. Hover and focus-within take surface-2 instantly (80ms linear). The keyboard cursor row takes surface-2 plus an inset 1px violet ring; there is no side stripe. The cursor row's Apply button is promoted to primary.
+- **Evaluation flags:** only two, and only when they should stop you. A verdict of skip shows a 12px ban icon and "Do not apply" in red; a suspicious posting shows a shield icon and "Check posting" in amber. Both sit inline at the start of the company line, weight 500, 10px apart; ordinary rows carry no flag.
 
-### Title block (signature)
-The one framed metadata box: a 1px `rule-strong` frame on surface-1 holding four cells split by hairlines, each with a drafting-lettering term in ink-3 over a 600-weight tabular value (last scan, next scan, new since last visit, resumes left today). It sits in the frame's top-right corner on desktop and becomes a full-width strip on phones.
+### ATS Score Bar (signature)
+A 12px track on a true 0 to 100 scale. Earned parts are packed from the left in violet, one hairline between each contributing part (only parts that earned points draw). After them a hatched violet ghost shows the points the owner's profile could still add, up to the best honest score. The remaining empty track is what no honest resume can reach. Dashed reference markers stand at the 80 minimum (tertiary) and the 90 target (green), labelled above. The earned run fills once, on the first sight of a given resume in this browser. A legend and a parts list (earned and best honest per part) follow.
 
-### Status marks (signature)
-A 10px square beside the status word, stroked at 1.5px, distinguished by shape as well as ink: new is a hollow ink-2 square; shortlisted a hollow accent square; tailor queued a dashed amber square; tailored a filled green square; applied a filled accent square; interviewing and offer a filled green square with a second ring 1.5px out; rejected a red square struck through by a diagonal; skipped and archived a filled hairline-grey square. In-progress work shows the working label: an amber dashed square turning once every 2.4s beside amber body-sm text.
+### Consumption Ledger
+One running line of facts that wraps like text: a tertiary term, then the figure in primary at 600 tabular, then an optional small detail, each fact separated by a middot in the strong hairline colour. It replaces stat tiles.
 
-### ATS dimension chain (signature)
-The ATS breakdown drawn as a dimension on a part. Above, a 1.5px ink dimension line with arrowheads runs from 0 to the measured score, its value lettered at the midpoint on surface-1; a dashed ink-2 extension continues to the best honest score, labeled in ink-3. Below it, a 30px bar framed at 1.5px ink is divided into the seven parts by width (required 45, preferred 15, title 10, experience 10, education 5, placement 5, format 10); each part is hatched as far as it scored, reachable points are boxed in dashed accent, and empty space means not in the profile. Dashed green verticals mark the 80 minimum and 90 target. Extension lines drop from every boundary to a balloon, the short label and the measured value; on phones only the balloons remain. A legend names each device. The dimension line draws once (520ms, scaleX from the left) the first time a browser sees that resume's score; after that it is simply drawn.
+### Command Menu (signature)
+Opened with ⌘K (Ctrl K elsewhere) or the sidebar search button. A 620px dialog with 12px corners, strong hairline, pop shadow, over a dimmed overlay 12vh from the top; it fades in over 120ms and scales from 0.98 over 160ms. A 52px input row, grouped results (Go to, Actions, Jobs) with 38px items, the selected item on surface-3 with a violet icon and an "open"/"run" hint, and a foot legend of keycaps.
 
-### Balloons
-An 18px circle with a 1px ink-2 line and a 600 tabular 11px numeral, numbering the chain's parts and the matching rows of the parts table (15px on phones).
+### Keycaps
+20px keycaps with a 2px bottom edge, 5px corners, surface-2 ground, 11px secondary text: in the search button, the command menu and the Jobs shortcut legend.
 
-### Meter
-A square-ended 8px bar on surface-2 with a hairline frame, 110px minimum. The fill is ink-2; amber (`warn-mark`) when 20 to 40 percent is left, red under 20 percent. It is a `role="meter"` with a spoken label, always beside the numbers it summarizes.
-
-### Board
-Status columns in a grid of 220px minimum, joined by hairlines under a heavy top rule, no column boxes. Each column head is the status mark in drafting lettering with a tabular count, over a hairline. Job cards are square, flat, surface-1 with a hairline border that darkens to `control` on hover; they carry the title link, company, and a meta line of place, match and ATS. A column under a dragged card takes accent-wash.
-
-### Source health grid
-A grid of 24 by 22px square cells, 3px apart, one per source per run: green, amber or red ink on its wash with a matching border, or surface-2 with ink-3 when skipped. Each cell carries a lucide icon so state is readable without hue, and is focusable with a spoken label.
-
-### Chart
-Recharts bars in `series-1`, 24px maximum width, 2px top corners, no animation. Horizontal grid lines in `rule`, the x-axis line in `rule-strong`, ticks in ink-3 at 12px, no tick marks. The hover cursor is a surface-2 band; the tooltip is the floating layer.
-
-### Icons
-lucide-react at 16px with a 1.75 stroke, `aria-hidden`, always beside a text label or inside a labeled control (14px inside tags and small links, 20px in the bottom bar). The brand mark is a custom SVG: a double-framed sheet with a title-block corner and a check stroke in accent.
-
-### Chrome extension
-The same tokens on a compact ramp. The popup is 360px wide, 14px 16px padded, headed by the sheet mark and wordmark over a heavy rule; each task is a block separated by hairlines. Buttons are 32px tall with 6px 12px padding at 600 (quiet at 500), with the same default, primary, act and quiet variants; inputs are 32px with 6px 8px padding. Job entries are hairline-bordered surface-1 blocks. Status marks use the same square vocabulary. Dark follows the OS only.
+### Chrome Extension
+The popup (360px wide) and options page share the same neutral, violet and semantic roles, the same button, input and focus treatments, and Inter from a bundled variable woff2, on a slightly tighter ramp (30px controls, 12px labels, 17px/13px headings in the popup).
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** use `var(--token)` for every color and define any new token in both the drawing-sheet and blueprint sets.
-- **Do** bound operable controls with `control` (#7b8187 light) and separate content with `rule`; frame and head with `rule-strong`.
-- **Do** keep the accent for the owner's hand: primary and next actions, selection, focus, and what the owner did or can still add.
-- **Do** draw anything hidden, pending or still reachable with a dashed line, and anything earned with the 135deg hatch.
-- **Do** set every comparable number in tabular figures and every data label in drafting lettering (0.71875rem, 600, uppercase, 0.07em).
-- **Do** put each job's single next action at the right edge of its row, as an act button (Tailor now), a small Resume button or Apply.
-- **Do** keep state transitions at 180ms on `cubic-bezier(0.16, 1, 0.3, 1)` and switch every animation off under `prefers-reduced-motion`.
-- **Do** pair every checking ink with a shape, icon or word so status reads without color.
-- **Do** reflow tables into two-line ruled entries at 860px and below instead of scrolling the page sideways.
+- **Do** keep dark as the default world and let light and "follow device" be opt-in choices remembered in localStorage.
+- **Do** use one violet accent for focus, selection, the cursor and the next action; use violet ink (`violet-text`) whenever violet is text or an icon.
+- **Do** draw single-series charts in series ink and give violet only to the hovered bar.
+- **Do** set every figure in tabular numerals and keep body copy at 13px with labels at 12px.
+- **Do** mark the keyboard cursor row with surface-2 and an inset 1px violet ring.
+- **Do** keep job-row columns fixed (26, 42, flexible, 92, 48, 64, 176px) and drop sources between 861 and 1180px.
+- **Do** show evaluation flags only for a skip verdict ("Do not apply", red) or a suspicious posting ("Check posting", amber), inline on the company line with an icon.
+- **Do** show ATS on a true 0 to 100 scale with earned parts, a hatched reachable ghost, and the 80 and 90 markers.
+- **Do** report figures as a running ledger line with middot separators rather than stat tiles.
+- **Do** follow the radius ladder: pills 6px, controls 8px, panels 10px, dialogs 12px.
+- **Do** keep transitions at 150ms ease-out and respect reduced motion by turning all animation off.
 
 ### Don't:
-- **Don't** round containers or give any control more than a 2px corner; the balloon is the only circle.
-- **Don't** add shadows to panels, cards, buttons or notices; the floating-layer shadow belongs only to layers that float over content.
-- **Don't** put a panel inside a panel, or frame a second metadata box on a sheet that already has a title block.
-- **Don't** use the accent to mean good, pending or bad, or to color headings and decorative fills.
-- **Don't** set `warn-mark` as text or let it carry meaning alone; it is a fill beside a value.
-- **Don't** place drafting lettering above a heading as an eyebrow or kicker.
-- **Don't** add page-load choreography; the dimension line's single draw and the working mark's turn are the only animations.
-- **Don't** introduce a second chart hue without validating it against the chart surface in both themes; `series-1` is the only series.
-- **Don't** add gradients beyond the two drafting fills (the earned hatch and the rejected mark's strike).
+- **Don't** mark the cursor or a selected row with a coloured side stripe.
+- **Don't** colour single-series chart bars violet at rest, or introduce extra series hues for one metric.
+- **Don't** add evaluation flags, badges or colour to rows that need no action.
+- **Don't** put shadows on resting panels, lists or rows.
+- **Don't** use stat tiles or white-card admin dashboards to report numbers.
+- **Don't** set labels in uppercase or with wide tracking.
+- **Don't** use green, amber, red or blue decoratively.
+- **Don't** choreograph page-load animation; only the command menu, skeleton shimmer and the first ATS fill move.

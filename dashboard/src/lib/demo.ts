@@ -184,6 +184,15 @@ const jobs: Job[] = Array.from({ length: 26 }, (_, i) => {
     jd_keywords: pool[i % pool.length],
     ats_score: null,
     tailor_requested_at: null,
+    verdict: i === 3 ? "skip" : score >= 70 ? "apply" : score >= 55 ? "maybe" : "skip",
+    legitimacy: i === 2 ? "suspicious" : i === 10 ? "caution" : "high",
+    legitimacy_signals:
+      i === 2
+        ? ["Asks for a registration fee before the interview", "No company website or named team"]
+        : i === 10
+          ? ["posted 34 days ago", "Same description reposted under three titles"]
+          : ["Named team and a concrete stack", "Salary band stated"],
+    hard_stops: i === 3 ? ['JD says "no relocation support; Dubai office only"'] : [],
     tailorings: [],
   };
   if (tailored) {
@@ -316,6 +325,12 @@ export const demoApi: Api = {
   async listJobs() {
     await wait();
     return jobs.map((j) => ({ ...j }));
+  },
+  async counts() {
+    return {
+      ready: jobs.filter((j) => j.status === "tailored").length,
+      triage: jobs.filter((j) => ["new", "shortlisted", "tailor_queued"].includes(j.status)).length,
+    };
   },
   async getJob(id) {
     await wait();

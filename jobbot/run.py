@@ -265,6 +265,10 @@ def run(
                         "missing_keywords": s.missing_keywords,
                         "track": s.track,
                         "jd_keywords": s.jd_keywords(),
+                        "verdict": s.verdict,
+                        "legitimacy": s.legitimacy,
+                        "legitimacy_signals": s.signals,
+                        "hard_stops": s.hard_stops,
                     },
                 )
             summary["scored"] = len(scores)

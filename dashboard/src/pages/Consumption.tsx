@@ -251,21 +251,32 @@ export default function Consumption() {
       {error && <Notice kind="error">{error}</Notice>}
 
       <dl className="ledger" aria-label="Summary">
-        <Cell term={"Tokens today"} value={compact(tokens(todayRows))} sub={`${compact(sumBy(todayRows, (r) => r.input_tokens))} in · ${compact(sumBy(todayRows, (r) => r.output_tokens))} out · ${compact(sumBy(todayRows, (r) => r.thinking_tokens))} thinking`}
+        <Cell
+          term="Today"
+          value={`${compact(tokens(todayRows))} tokens`}
+          sub={`(${compact(sumBy(todayRows, (r) => r.input_tokens))} in, ${compact(sumBy(todayRows, (r) => r.output_tokens))} out, ${compact(sumBy(todayRows, (r) => r.thinking_tokens))} thinking)`}
         />
-        <Cell term={`Tokens, ${RANGES.find((r) => r.days === rangeDays)?.label.toLowerCase()}`} value={compact(tokens(inRange))} sub={`${sumBy(inRange, (r) => r.requests).toLocaleString("en-IN")} LLM requests`}
+        <Cell
+          term={RANGES.find((r) => r.days === rangeDays)?.label ?? "In range"}
+          value={`${compact(tokens(inRange))} tokens`}
+          sub={`over ${sumBy(inRange, (r) => r.requests).toLocaleString("en-IN")} LLM requests`}
         />
-        <Cell term={"Money used this month"} value={usd(llmMoneyMonth + apiMoneyMonth)} sub={`${inr(llmMoneyMonth + apiMoneyMonth)} · LLM ${usd(llmMoneyMonth)} · scrapers ${usd(apiMoneyMonth)}`}
+        <Cell
+          term="Spent this month"
+          value={usd(llmMoneyMonth + apiMoneyMonth)}
+          sub={`(${inr(llmMoneyMonth + apiMoneyMonth)}; LLM ${usd(llmMoneyMonth)}, scrapers ${usd(apiMoneyMonth)})`}
         />
-        <Cell term={"Current balance"} value={usd(moneyBalance)} sub={`${inr(moneyBalance)} across ${rows.filter((r) => r.unit === "USD" && (r.provider === "apify" || r.provider.endsWith(":credit"))).length} paid services`}
+        <Cell
+          term="Balance"
+          value={usd(moneyBalance)}
+          sub={`(${inr(moneyBalance)}) across ${rows.filter((r) => r.unit === "USD" && (r.provider === "apify" || r.provider.endsWith(":credit"))).length} paid services`}
         />
-        <Cell term={"Free LLM requests left today"} value={quotaToday.map((q) => amount(q.remaining, q.unit)).join(" / ") || "-"} sub={
-            quotaToday.map((q) => providerLabel(q.provider).replace("Gemini · ", "")).join(" / ") +
-            " · resets 12:30 IST"
-          }
+        <Cell
+          term="Free LLM requests left today"
+          value={quotaToday.map((q) => amount(q.remaining, q.unit)).join(" / ") || "-"}
+          sub={`(${quotaToday.map((q) => providerLabel(q.provider).replace("Gemini · ", "")).join(" / ")}; resets 12:30 IST)`}
         />
-        <Cell term={"Would cost on a paid model"} value={usd(shadowRange)} sub="same usage priced at the shadow model in pricing.yaml"
-        />
+        <Cell term="On a paid model" value={usd(shadowRange)} sub="(the shadow model in pricing.yaml)" />
       </dl>
 
       <section className="section" aria-labelledby="bal-h">
@@ -374,18 +385,18 @@ export default function Consumption() {
           <div style={{ width: "100%", height: 260 }}>
             <ResponsiveContainer>
               <BarChart data={daily} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-                <CartesianGrid vertical={false} stroke="var(--rule)" />
+                <CartesianGrid vertical={false} stroke="var(--line)" />
                 <XAxis
                   dataKey="day"
                   tickFormatter={(d: string) => d.slice(5)}
-                  tick={{ fill: "var(--ink-3)", fontSize: 12 }}
-                  axisLine={{ stroke: "var(--rule-strong)" }}
+                  tick={{ fill: "var(--text-3)", fontSize: 12 }}
+                  axisLine={{ stroke: "var(--line-strong)" }}
                   tickLine={false}
                   minTickGap={16}
                 />
                 <YAxis
                   tickFormatter={(v: number) => compact(v)}
-                  tick={{ fill: "var(--ink-3)", fontSize: 12 }}
+                  tick={{ fill: "var(--text-3)", fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
                   width={44}
@@ -395,8 +406,9 @@ export default function Consumption() {
                   dataKey="total"
                   name="Tokens"
                   fill="var(--series-1)"
+                  activeBar={{ fill: "var(--accent)" }}
                   maxBarSize={24}
-                  radius={[2, 2, 0, 0]}
+                  radius={[4, 4, 0, 0]}
                   isAnimationActive={false}
                 />
               </BarChart>

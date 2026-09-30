@@ -165,6 +165,7 @@ class SupabaseStore:
                 {
                     "status": "eq.new",
                     "llm_score": f"gte.{min_score}",
+                    "or": "(verdict.is.null,verdict.neq.skip)",  # never spend a resume on a do-not-apply job
                     "order": "llm_score.desc",
                     "limit": rest,
                 }

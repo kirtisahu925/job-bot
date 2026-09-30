@@ -106,6 +106,9 @@ export interface Tailoring {
   ats?: AtsDetail | null;
 }
 
+export type Verdict = "apply" | "maybe" | "skip";
+export type Legitimacy = "high" | "caution" | "suspicious";
+
 export interface Job {
   id: string;
   title: string;
@@ -130,6 +133,12 @@ export interface Job {
   jd_keywords?: JdKeywords | null;
   ats_score?: number | null;
   tailor_requested_at?: string | null;
+  /** whether to spend an application: skip means do not apply */
+  verdict?: Verdict | null;
+  /** is this a real, active opening, judged from the posting */
+  legitimacy?: Legitimacy | null;
+  legitimacy_signals?: string[];
+  hard_stops?: string[];
   job_links: JobLink[];
   tailorings: Tailoring[];
 }

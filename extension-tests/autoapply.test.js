@@ -28,6 +28,7 @@ test("only tailored jobs at or above both minimums, best match first", () => {
     job("not-tailored", { status: "new" }),
     job("applied", { status: "applied" }),
     job("no-link", { apply_url: null }),
+    job("do-not-apply", { llm_score: 99, verdict: "skip" }),
   ];
   assert.deepEqual(
     eligible(jobs, { minAts: 80, minMatch: 70 }, {}, NOW).map((j) => j.id),

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mark } from "../App";
+import { Mark } from "../components/bits";
 import { api } from "../lib/api";
 
 export default function Login({ onSignedIn }: { onSignedIn: () => void }) {
@@ -10,12 +10,14 @@ export default function Login({ onSignedIn }: { onSignedIn: () => void }) {
 
   return (
     <div className="login">
-      <div className="login-sheet">
+      <div className="login-card">
         <div className="head">
-          <Mark size={26} />
+          <Mark size={36} />
           <div>
-            <h1 style={{ fontSize: "var(--fs-h2)" }}>Fairsheet</h1>
-            <p className="muted small">Your job tracker. Sign in with the login you created in Supabase.</p>
+            <h1>Sign in to Fairsheet</h1>
+            <p className="muted small" style={{ marginTop: 6 }}>
+              Your job tracker. Use the login you created in Supabase.
+            </p>
           </div>
         </div>
         <form
@@ -39,13 +41,7 @@ export default function Login({ onSignedIn }: { onSignedIn: () => void }) {
           </label>
           <label className="field">
             <span>Password</span>
-            <input
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </label>
           <button className="btn primary" disabled={busy} aria-busy={busy}>
             {busy ? "Signing in…" : "Sign in"}

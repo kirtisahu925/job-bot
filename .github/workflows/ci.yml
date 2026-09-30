@@ -51,14 +51,15 @@ jobs:
           printf '#!/bin/sh\nexec "%s" --no-sandbox "$@"\n' "$(command -v google-chrome || command -v chromium)" > /tmp/chrome
           chmod +x /tmp/chrome
           export IMPECCABLE_BROWSER=/tmp/chrome
-          detect=../.claude/skills/impeccable/scripts/impeccable
+          # run from the repository root so the detector reads .impeccable/config.json (its recorded exceptions)
+          detect() { (cd .. && .claude/skills/impeccable/scripts/impeccable "$@"); }
           fail=0
           for route in jobs jobs/demo-8 jobs/demo-1 skills add board consumption runs; do
             for viewport in 1440x900 390x844; do
-              "$detect" detect --no-advisory --viewport "$viewport" "http://localhost:4173/$route" || fail=1
+              detect detect --no-advisory --viewport "$viewport" "http://localhost:4173/$route" || fail=1
             done
           done
-          "$detect" detect --no-advisory ../extension/popup.html ../extension/options.html ../extension/ui.css || fail=1
+          detect detect --no-advisory extension/popup.html extension/options.html extension/ui.css || fail=1
           exit $fail
 
   extension:

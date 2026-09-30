@@ -1,8 +1,11 @@
-import { Columns3, Gauge, GraduationCap, History, LogOut, Monitor, Moon, Plus, Sun, Table2 } from "lucide-react";
+import { Columns3, Gauge, GraduationCap, History, LogOut, Monitor, Moon, Plus, Search, Sun, Table2 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
-import { ICON, Notice } from "./components/bits";
+import { ICON, Mark, Notice } from "./components/bits";
+import CommandMenu, { openCommandMenu } from "./components/CommandMenu";
 import { api } from "./lib/api";
+import { istTime, nextScan } from "./lib/format";
+import { applyTheme, currentTheme, THEME_LABEL, type Theme } from "./lib/theme";
 import AddJob from "./pages/AddJob";
 import Board from "./pages/Board";
 import JobDetail from "./pages/JobDetail";
@@ -18,55 +21,57 @@ const NAV = [
   { to: "/jobs", label: "Jobs", short: "Jobs", Icon: Table2 },
   { to: "/board", label: "Board", short: "Board", Icon: Columns3 },
   { to: "/skills", label: "Skills", short: "Skills", Icon: GraduationCap },
-  { to: "/consumption", label: "Consumption", short: "Usage", Icon: Gauge },
+  { to: "/consumption", label: "Consumption", short: "Consumption", Icon: Gauge },
   { to: "/runs", label: "Runs", short: "Runs", Icon: History },
 ];
 
-/** A drawing sheet: frame, title block, and a check mark in ballpoint ink. */
-export function Mark({ size = 22 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden>
-      <rect x="2.5" y="2.5" width="27" height="27" stroke="currentColor" strokeWidth="1.5" />
-      <rect x="5.5" y="5.5" width="21" height="21" stroke="currentColor" strokeWidth="1" />
-      <path d="M15 20.5h11.5M15 20.5v6M20.5 20.5v6" stroke="currentColor" strokeWidth="1" />
-      <path d="M8.5 11.5l2.5 2.5 5-5.5" stroke="var(--accent)" strokeWidth="2" strokeLinecap="square" />
-    </svg>
-  );
-}
+const NEXT_THEME: Record<Theme, Theme> = { dark: "light", light: "system", system: "dark" };
+const THEME_ICON: Record<Theme, typeof Moon> = { dark: Moon, light: Sun, system: Monitor };
 
-type Theme = "auto" | "light" | "dark";
-
-function ThemeToggle({ compact = false }: { compact?: boolean }) {
-  const [theme, setTheme] = useState<Theme>(() => (document.documentElement.dataset.theme as Theme) ?? "auto");
-  const next: Theme = theme === "auto" ? "light" : theme === "light" ? "dark" : "auto";
-  const Icon = theme === "auto" ? Monitor : theme === "light" ? Sun : Moon;
-  const label = theme === "auto" ? "Theme: follows your device" : theme === "light" ? "Theme: drawing sheet (light)" : "Theme: blueprint (dark)";
+function ThemeButton({ compact = false }: { compact?: boolean }) {
+  const [theme, setTheme] = useState<Theme>(currentTheme);
+  useEffect(() => {
+    const sync = () => setTheme(currentTheme());
+    window.addEventListener("fairsheet:theme", sync);
+    return () => window.removeEventListener("fairsheet:theme", sync);
+  }, []);
+  const Icon = THEME_ICON[theme];
+  const label = `Theme: ${THEME_LABEL[theme]}. Switch to ${THEME_LABEL[NEXT_THEME[theme]]}.`;
   return (
-    <button
-      className={`btn quiet small${compact ? "" : " block"}`}
-      style={compact ? undefined : { justifyContent: "flex-start" }}
-      title={`${label}. Switch to ${next}.`}
-      aria-label={`${label}. Switch to ${next}.`}
-      onClick={() => {
-        if (next === "auto") delete document.documentElement.dataset.theme;
-        else document.documentElement.dataset.theme = next;
-        try {
-          if (next === "auto") localStorage.removeItem("theme");
-          else localStorage.setItem("theme", next);
-        } catch {
-          /* storage unavailable: the choice lasts for this visit */
-        }
-        setTheme(next);
-      }}
-    >
-      <Icon {...ICON} />
-      {!compact && (theme === "auto" ? "Device theme" : theme === "light" ? "Sheet (light)" : "Blueprint (dark)")}
+    <button className={`btn quiet small${compact ? "" : " block"}`} title={label} aria-label={label} onClick={() => applyTheme(NEXT_THEME[theme])}>
+      <Icon {...ICON} size={14} />
+      {!compact && THEME_LABEL[theme]}
     </button>
   );
 }
 
+function SearchButton() {
+  const mac = /Mac|iPhone|iPad/.test(navigator.platform);
+  return (
+    <button className="search-btn" onClick={openCommandMenu} aria-label="Search or jump to (Command K)">
+      <Search {...ICON} size={14} />
+      <span className="grow">Search…</span>
+      <kbd>{mac ? "⌘" : "Ctrl"}</kbd>
+      <kbd>K</kbd>
+    </button>
+  );
+}
+
+function useCounts(signedIn: boolean) {
+  const [counts, setCounts] = useState<{ ready: number; triage: number } | null>(null);
+  useEffect(() => {
+    if (!signedIn) return;
+    const load = () => api.counts().then(setCounts, () => setCounts(null));
+    load();
+    const timer = setInterval(load, 60_000);
+    return () => clearInterval(timer);
+  }, [signedIn]);
+  return counts;
+}
+
 export default function App() {
   const [email, setEmail] = useState<string | null | undefined>(undefined);
+  const counts = useCounts(!!email);
 
   useEffect(() => {
     // a failed session check means "signed out", never a blank page
@@ -76,64 +81,84 @@ export default function App() {
   if (email === undefined) return <p className="boot">Opening Fairsheet…</p>;
   if (email === null) return <Login onSignedIn={() => api.currentEmail().then(setEmail)} />;
 
-  const signOut = () => api.signOut().then(() => setEmail(null));
+  const signOut = api.demo ? undefined : () => api.signOut().then(() => setEmail(null));
 
   return (
     <div className="shell">
-      <aside className="rail">
+      <aside className="sidebar">
         <Link to="/jobs" className="brand">
-          <Mark /> Fairsheet
+          <Mark />
+          <span className="brand-name">
+            Fairsheet
+            <span className="xs">
+              <span className="pulse" aria-hidden />
+              Next scan {istTime(nextScan())} IST
+            </span>
+          </span>
         </Link>
-        <nav className="nav" aria-label="Sheets">
-          {NAV.map(({ to, label, Icon }) => (
-            <NavLink key={to} to={to}>
-              <Icon {...ICON} />
-              {label}
-            </NavLink>
-          ))}
+        <SearchButton />
+        <Link to="/add" className="btn block">
+          <Plus {...ICON} size={14} />
+          Add a job
+        </Link>
+        <nav className="nav" aria-label="Pages">
+          <div className="nav-label">Workspace</div>
+          {NAV.map(({ to, label, Icon }) => {
+            const count = counts && (to === "/jobs" ? counts.triage : to === "/board" ? counts.ready : null);
+            const hint = to === "/jobs" ? "in the New tab" : "in the Ready tab, resumes ready to apply with";
+            return (
+              <NavLink key={to} to={to}>
+                <Icon {...ICON} />
+                {label}
+                {!!count && (
+                  <span className="count" title={`${count} ${hint}`} aria-label={`${count} ${hint}`}>
+                    {count}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
         </nav>
-        <div className="rail-foot">
-          <Link to="/add" className="btn block">
-            <Plus {...ICON} />
-            Add a job
-          </Link>
-          <ThemeToggle />
-          <div className="who">{email}</div>
-          {!api.demo && (
-            <button className="btn quiet small block" style={{ justifyContent: "flex-start" }} onClick={signOut}>
-              <LogOut {...ICON} />
-              Sign out
-            </button>
-          )}
+        <div className="sidebar-foot">
+          <ThemeButton />
+          <div className="account">
+            <span className="avatar" aria-hidden>
+              {email.slice(0, 1).toUpperCase()}
+            </span>
+            <span className="who" title={email}>
+              {email}
+            </span>
+            {signOut && (
+              <button className="btn quiet small" onClick={signOut} aria-label="Sign out" title="Sign out">
+                <LogOut {...ICON} size={14} />
+              </button>
+            )}
+          </div>
         </div>
       </aside>
 
       <header className="mobile-head">
         <Link to="/jobs" className="brand" style={{ padding: 0 }}>
-          <Mark /> Fairsheet
+          <Mark size={22} /> Fairsheet
         </Link>
         <div className="spacer" />
-        <Link to="/add" className="btn small" aria-label="Add a job">
+        <button className="btn quiet" onClick={openCommandMenu} aria-label="Search or jump to">
+          <Search {...ICON} />
+        </button>
+        <Link to="/add" className="btn" aria-label="Add a job">
           <Plus {...ICON} />
-          Add
         </Link>
-        <ThemeToggle compact />
-        {!api.demo && (
-          <button className="btn quiet small" onClick={signOut} aria-label="Sign out">
-            <LogOut {...ICON} />
-          </button>
-        )}
+        <ThemeButton compact />
       </header>
 
-      <main className="sheet">
-        <div className="sheet-inner">
+      <main className="main">
+        <div className="main-inner">
           {api.demo && (
             <Notice>
-              Demo mode: sample data, nothing is saved. Set <code>VITE_SUPABASE_URL</code> and{" "}
-              <code>VITE_SUPABASE_ANON_KEY</code> to open your own tracker.
+              Demo mode: sample data, nothing is saved. Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> to open
+              your own tracker.
             </Notice>
           )}
-          <div className="frame">
           <Routes>
             <Route path="/" element={<Navigate to="/jobs" replace />} />
             <Route path="/jobs" element={<Jobs />} />
@@ -152,11 +177,10 @@ export default function App() {
             <Route path="/runs" element={<Runs />} />
             <Route path="*" element={<Navigate to="/jobs" replace />} />
           </Routes>
-          </div>
         </div>
       </main>
 
-      <nav className="bottom-nav" aria-label="Sheets">
+      <nav className="tabbar" aria-label="Pages">
         {NAV.map(({ to, short, Icon }) => (
           <NavLink key={to} to={to}>
             <Icon {...ICON} size={20} />
@@ -164,6 +188,8 @@ export default function App() {
           </NavLink>
         ))}
       </nav>
+
+      <CommandMenu onSignOut={signOut} />
     </div>
   );
 }

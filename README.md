@@ -241,8 +241,11 @@ restrict accounts it thinks are automated.
 
 ## Using it day to day
 
-- **Jobs**: everything found, best match first, with each job's ATS score and next step (Tailor now,
-  Resume, Apply). The title block shows the last and next scan and how many free resumes are left today.
+- **Jobs**: everything found, grouped by status and best match first, with each job's ATS score and next
+  step (Tailor now, Resume, Apply). The header shows the last scan, what is new since your last visit, and
+  how many free resumes are left today. Keys: `j`/`k` move, `Enter` opens, `t` tailors, `a` applies, `/`
+  searches, and `⌘K` / `Ctrl+K` opens the command menu anywhere. A job the evaluation marks **Do not apply**
+  or **Check posting** says so on its company line.
 - **Job page**: the **ATS panel** (score, what earned it, what your profile could still add, the skills
   you lack, and each revision round), the resume's checks and PDF, the job description, and your notes.
 - **Tailor now**: on any job, in the dashboard or the extension. A GitHub Action tailors and scores the
@@ -259,6 +262,19 @@ restrict accounts it thinks are automated.
 Tune `config/search.yaml` (queries, cities, title rules, `max_required_years`, `tailor_per_run`,
 `min_score`, `ats.target`, `ats.minimum`, `ats.max_rounds`) and `config/companies.yaml` (find a company's
 board with `python -m jobbot probe-company <slug>`).
+
+## Evaluation: do not apply, and is the posting real
+
+The scoring call also judges each job the way [career-ops](https://github.com/career-ops-hq/career-ops)
+(MIT) does, kept separate from fit:
+
+- **Verdict**: *worth applying*, *could go either way* or **do not apply**. An explicit hard stop (for
+  example "no visa sponsorship" or an on-site office you cannot move to) always means do not apply. Those
+  jobs are never tailored automatically and the extension's apply queue skips them.
+- **Posting**: *looks like a real, open role*, *check it is still open*, or **suspicious** (fees, no named
+  company, the same ad reposted under many titles). A posting older than 30 days is flagged in code.
+
+The reasons are listed on the job page under "Why not to apply" and "What the posting shows".
 
 ## The ATS score
 
@@ -323,9 +339,10 @@ cd extension-tests && npm install && npm test && npm run test:browser
 The dashboard and the extension were designed with [impeccable](https://github.com/pbakaus/impeccable),
 installed in `.claude/skills/impeccable/` for Claude Code. `PRODUCT.md` records who the product is for,
 `DESIGN.md` the visual system, and `.impeccable/surfaces/` the direction for each surface. The direction is
-an engineering drawing sheet: graphite on a cool white sheet by day, a blueprint at night, one ballpoint-blue
-(or sodium-yellow) accent for actions, and the ATS score drawn as a dimension line. CI runs impeccable's
-detector on every dashboard page (desktop and phone) and on the extension; a finding fails the build.
+a Linear-style dark workspace: near-black violet-tinted surfaces, one violet accent for focus, selection
+and the primary action, Inter with tabular figures, progress-circle status icons, a ⌘K command menu, and
+a light theme (or follow-the-device) from the sidebar. CI runs impeccable's detector on every dashboard
+page (desktop and phone) and on the extension; a finding fails the build.
 
 ## Known limits
 

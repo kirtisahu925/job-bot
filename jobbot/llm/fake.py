@@ -98,10 +98,12 @@ class FakeProvider:
             hits = [s for s in skills if re.search(rf"(?<![a-z0-9]){re.escape(s)}(?![a-z0-9])", text)]
             track = next((t for t in tracks if t in job["title"].lower()), tracks[0])
             found = skills_in(f"{job['title']} {job['description']}")
+            score = min(95, 40 + 8 * len(hits))
             results.append(
                 {
                     "job_id": job["job_id"],
-                    "score": min(95, 40 + 8 * len(hits)),
+                    "verdict": "apply" if score >= 70 else "maybe" if score >= 55 else "skip",
+                    "score": score,
                     "track": track,
                     "reason": f"{len(hits)} of your skills appear in the ad",
                     "missing_keywords": [],

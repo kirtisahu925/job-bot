@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-09-29T19:40:06.538Z",
+        "reason": "Owner pinned the Linear-style redesign with Inter or Geist type"
+      }
+    ]
+  }
+}

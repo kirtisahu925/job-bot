@@ -45,14 +45,14 @@
   }
 
   /**
-   * Jobs to open, best match first: a tailored resume, ATS and match at or above the minimums, an apply link,
-   * LinkedIn only when allowed, and not opened within `retryAfterHours`.
+   * Jobs to open, best match first: a tailored resume, not marked do-not-apply, ATS and match at or above the
+   * minimums, an apply link, LinkedIn only when allowed, and not opened within `retryAfterHours`.
    */
   function eligible(jobs, settings, tried = {}, now = Date.now()) {
     const s = settingsOf(settings);
     const retryMs = s.retryAfterHours * 3600 * 1000;
     return jobs
-      .filter((j) => j.status === "tailored" && j.apply_url)
+      .filter((j) => j.status === "tailored" && j.apply_url && j.verdict !== "skip")
       .filter((j) => (j.ats_score ?? 0) >= s.minAts && (j.llm_score ?? 0) >= s.minMatch)
       .filter((j) => s.linkedin || !isLinkedIn(j.apply_url))
       .filter((j) => !tried[j.id] || now - Date.parse(tried[j.id]) >= retryMs)

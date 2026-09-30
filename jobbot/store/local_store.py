@@ -38,8 +38,18 @@ create table if not exists profile_snapshot (id integer primary key, data text, 
 """
 
 # columns added after the first release; applied to older local databases on open
-LATER_COLUMNS = {"jobs": ("jd_keywords text", "ats_score integer", "tailor_requested_at text")}
-JSON_FIELDS = ("missing_keywords", "jd_keywords")
+LATER_COLUMNS = {
+    "jobs": (
+        "jd_keywords text",
+        "ats_score integer",
+        "tailor_requested_at text",
+        "verdict text",
+        "legitimacy text",
+        "legitimacy_signals text",
+        "hard_stops text",
+    )
+}
+JSON_FIELDS = ("missing_keywords", "jd_keywords", "legitimacy_signals", "hard_stops")
 
 
 def _now() -> str:
@@ -165,8 +175,8 @@ class LocalStore:
         best = []
         if rest > 0:
             best = self.db.execute(
-                "select * from jobs where status='new' and llm_score>=? and id not in (select job_id from tailorings) "
-                "order by llm_score desc limit ?",
+                "select * from jobs where status='new' and llm_score>=? and coalesce(verdict,'')<>'skip' "
+                "and id not in (select job_id from tailorings) order by llm_score desc limit ?",
                 (min_score, rest),
             ).fetchall()
         return [self._row_to_job(r) for r in [*queued, *best]]

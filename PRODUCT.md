@@ -52,4 +52,4 @@ Honest match, fast apply. Every tailored resume is built only from the owner's m
 
 ## Accessibility & Inclusion
 
-WCAG 2.1 AA contrast and full keyboard use. Usable at phone width (360px) without horizontal scrolling. Light and dark themes, following the OS by default.
+WCAG 2.1 AA contrast and full keyboard use. Usable at phone width (360px) without horizontal scrolling. Dark theme by default (the owner's pick), with light and follow-the-device options in the sidebar.
