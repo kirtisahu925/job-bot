@@ -194,12 +194,23 @@ class LocalStore:
             if pdf is not None:
                 (folder / "resume.pdf").write_bytes(pdf)
                 pdf_path = str(folder / "resume.pdf")
+        tailoring_id = str(uuid.uuid4())
         self.db.execute(
             "insert into tailorings values (?,?,?,?,?,?)",
-            (str(uuid.uuid4()), job_id, json.dumps(record, default=str), tex_path, pdf_path, _now()),
+            (tailoring_id, job_id, json.dumps(record, default=str), tex_path, pdf_path, _now()),
         )
         self.db.commit()
-        return {"tex_path": tex_path, "pdf_path": pdf_path}
+        return {"id": tailoring_id, "tex_path": tex_path, "pdf_path": pdf_path}
+
+    def get_tailoring(self, tailoring_id: str) -> dict[str, Any]:
+        row = self.db.execute("select record from tailorings where id=?", (tailoring_id,)).fetchone()
+        return json.loads(row["record"]) if row else {}
+
+    def resume_edits(self, ids: list[str] | None = None) -> list[dict[str, Any]]:
+        return []  # the dashboard's LaTeX editor saves edits in Supabase only
+
+    def update_edit(self, edit_id: str, fields: dict[str, Any]) -> None:
+        pass
 
     # usage ----------------------------------------------------------------
     def record_api_usage(self, run_id: str, rows: list[ApiUsage]) -> None:

@@ -73,3 +73,40 @@ def test_prerank_orders_by_profile_skill_overlap(profile):
     a = _job("Java Developer", desc="Java, Spring Boot, PostgreSQL, Docker, Redis")
     b = _job("Developer", desc="Cobol and mainframes")
     assert [j.title for j in prerank([b, a], profile)] == ["Java Developer", "Developer"]
+
+
+def _ad(title="Java Backend Developer", description="", job_type=None):
+    return Job(
+        fingerprint="f", title=title, company="C", apply_url="u", description=description, job_type=job_type
+    )
+
+
+def test_internships_under_plain_titles_are_dropped():
+    from jobbot.pipeline.filters import is_internship
+
+    # the ad says so up front, or in a telltale line further down, or the site's job type says it
+    assert is_internship(
+        _ad(description="Internship Opportunity: Java Backend Developer (12 Months), Remote")
+    )
+    assert is_internship(
+        _ad(description="About us ... " * 40 + "Position: Software Development Intern. Openings: 3")
+    )
+    assert is_internship(_ad(description="x " * 200 + "Company: Acme\nJob Type: Full-time Internship"))
+    assert is_internship(_ad(description="x " * 200 + "Internship Type: Unpaid, Project-Based"))
+    assert is_internship(_ad(job_type="fulltime, internship"))
+    assert is_internship(_ad(job_type="INTERN"))
+    # full-time roles that merely mention the word in passing are kept
+    assert not is_internship(
+        _ad(description="x " * 200 + "You will mentor our summer interns. Internet stipend.")
+    )
+    assert not is_internship(_ad(description="x " * 200 + "Benefits: unpaid leave, learning stipend"))
+    assert not is_internship(_ad(job_type="fulltime"))
+
+
+def test_new_graduate_roles_are_dropped_by_title():
+    from jobbot.config import load_settings
+
+    f = Filters(load_settings().search)
+    assert not f.title_ok("Software Engineer (New Graduates)")
+    assert not f.title_ok("Graduate Software Engineer")
+    assert f.title_ok("Full Stack Java Developer")

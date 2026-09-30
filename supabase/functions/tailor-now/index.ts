@@ -1,4 +1,5 @@
 // "Tailor now": queue one job and start the GitHub Actions workflow that tailors it (about 3 minutes).
+// With {edit_id} instead: start compiling a resume you edited in the dashboard's LaTeX editor (about 2 minutes).
 //
 // Called by the dashboard and the Chrome extension with the signed-in user's token. Only the owner
 // (public.app_owner) may call it. The GitHub token lives only here, as a function secret:
@@ -43,6 +44,41 @@ export function tokenShape(token: string): string {
     : `The saved value starts like a classic token but is ${n} characters long instead of 40: part of it is missing.`;
 }
 
+/** Start tailor.yml; on failure, say exactly what to fix (never the token itself). */
+async function dispatch(inputs: Record<string, string>): Promise<string | null> {
+  // a secret pasted with a trailing newline, spaces or quotes is still the token
+  const token = (Deno.env.get("GH_DISPATCH_TOKEN") ?? "").trim().replace(/^["']|["']$/g, "");
+  if (!token) return "The GH_DISPATCH_TOKEN secret is not set, so GitHub cannot be started from here.";
+  const repo = Deno.env.get("GH_REPO") ?? "ankit-shilarkar/sde-job-bot";
+  const ref = Deno.env.get("GH_REF") ?? "main";
+  const res = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/tailor.yml/dispatches`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "jobbot-tailor-now",
+    },
+    body: JSON.stringify({ ref, inputs }),
+  });
+  if (res.status === 204) return null;
+  const fixes: Record<number, string> = {
+    401:
+      "GitHub does not recognise the GH_DISPATCH_TOKEN secret (401 Bad credentials). " + tokenShape(token) +
+      " Fix: GitHub, Settings, Developer settings, Fine-grained tokens, Generate new token (Repository access: only " +
+      "sde-job-bot; Permissions: Actions, Read and write), copy it with the copy button, then Supabase, Edge " +
+      "Functions, Secrets: replace GH_DISPATCH_TOKEN and press Save.",
+    403:
+      "GitHub accepted the token but it may not start workflows (403): give it Actions, Read and write, on the " +
+      "sde-job-bot repository.",
+    404:
+      `GitHub cannot see ${repo} or its tailor.yml with this token (404): make sure the token's repository access ` +
+      "includes sde-job-bot.",
+    422: `GitHub could not start tailor.yml on "${ref}" (422): the workflow must exist on that branch, with its inputs.`,
+  };
+  return fixes[res.status] ?? `GitHub refused to start the workflow (${res.status}): ${(await res.text()).slice(0, 300)}`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "use POST" }, 405);
@@ -55,12 +91,32 @@ Deno.serve(async (req) => {
   const { data: isOwner, error: ownerError } = await supabase.rpc("is_owner");
   if (ownerError || isOwner !== true) return json({ error: "Sign in as the tracker's owner first." }, 403);
 
-  let jobId = "";
+  let body: { job_id?: unknown; edit_id?: unknown } = {};
   try {
-    jobId = String((await req.json()).job_id ?? "");
+    body = await req.json();
   } catch {
-    return json({ error: "Body must be JSON: {\"job_id\": \"...\"}" }, 400);
+    return json({ error: "Body must be JSON: {\"job_id\": \"...\"} or {\"edit_id\": \"...\"}" }, 400);
   }
+
+  // a resume edited by hand: it is already saved (resume_edits); start compiling it
+  if (body.edit_id !== undefined) {
+    const editId = String(body.edit_id);
+    if (!UUID.test(editId)) return json({ error: "edit_id must be an edit's id" }, 400);
+    const { data: edit, error: editError } = await supabase
+      .from("resume_edits")
+      .select("id, job_id")
+      .eq("id", editId)
+      .maybeSingle();
+    if (editError) return json({ error: editError.message }, 400);
+    if (!edit) return json({ error: "Edit not found" }, 404);
+    const problem = await dispatch({ job_id: edit.job_id, edit_id: editId });
+    if (problem) {
+      return json({ error: problem + " Your edit is saved, so the next scheduled scan (10:00 or 22:00 IST) compiles it anyway." }, 502);
+    }
+    return json({ ok: true, message: "Compiling your edit. The new PDF and its ATS score appear in about 2 minutes." }, 202);
+  }
+
+  const jobId = String(body.job_id ?? "");
   if (!UUID.test(jobId)) return json({ error: "job_id must be a job's id" }, 400);
 
   const { data: job, error: jobError } = await supabase
@@ -82,43 +138,11 @@ Deno.serve(async (req) => {
     .eq("id", jobId);
   if (updateError) return json({ error: updateError.message }, 400);
 
-  // a secret pasted with a trailing newline, spaces or quotes is still the token
-  const token = (Deno.env.get("GH_DISPATCH_TOKEN") ?? "").trim().replace(/^["']|["']$/g, "");
-  if (!token) {
-    return json({ ok: true, message: "Queued. Add the GH_DISPATCH_TOKEN secret to start it immediately; otherwise the next scheduled run tailors it." }, 202);
-  }
-  const repo = Deno.env.get("GH_REPO") ?? "ankit-shilarkar/sde-job-bot";
-  const ref = Deno.env.get("GH_REF") ?? "main";
-  const res = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/tailor.yml/dispatches`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "jobbot-tailor-now",
-    },
-    body: JSON.stringify({ ref, inputs: { job_id: jobId } }),
-  });
-  if (res.status !== 204) {
+  const problem = await dispatch({ job_id: jobId });
+  if (problem) {
     // nothing is running: no "tailoring" spinner, and pressing again is not blocked; the job stays queued for the scan
     await supabase.from("jobs").update({ tailor_requested_at: job.tailor_requested_at }).eq("id", jobId);
-    const fallback = " The job stays queued, so the next scheduled scan (10:00 or 22:00 IST) tailors it anyway.";
-    const fixes: Record<number, string> = {
-      401:
-        "GitHub does not recognise the GH_DISPATCH_TOKEN secret (401 Bad credentials). " + tokenShape(token) +
-        " Fix: GitHub, Settings, Developer settings, Fine-grained tokens, Generate new token (Repository access: only " +
-        "sde-job-bot; Permissions: Actions, Read and write), copy it with the copy button, then Supabase, Edge " +
-        "Functions, Secrets: replace GH_DISPATCH_TOKEN and press Save.",
-      403:
-        "GitHub accepted the token but it may not start workflows (403): give it Actions, Read and write, on the " +
-        "sde-job-bot repository.",
-      404:
-        `GitHub cannot see ${repo} or its tailor.yml with this token (404): make sure the token's repository access ` +
-        "includes sde-job-bot.",
-      422: `GitHub could not start tailor.yml on "${ref}" (422): the workflow must exist on that branch.`,
-    };
-    const detail = fixes[res.status] ?? `GitHub refused to start the workflow (${res.status}): ${(await res.text()).slice(0, 300)}`;
-    return json({ error: detail + fallback }, 502);
+    return json({ error: problem + " The job stays queued, so the next scheduled scan (10:00 or 22:00 IST) tailors it anyway." }, 502);
   }
   return json({ ok: true, message: `Tailoring "${job.title}". The resume and ATS score appear in about 3 minutes.` }, 202);
 });

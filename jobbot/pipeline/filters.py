@@ -16,6 +16,25 @@ _MIN = re.compile(rf"(?:minimum|min\.?|at\s*least|atleast)\s*(?:of\s*)?(\d{{1,2}
 _PLAIN = re.compile(rf"(\d{{1,2}})\s*{_UNIT}\s*(?:of\s*)?(?:\w+\s+){{0,3}}(?:experience|exp\b)", re.I)
 _EXP_CONTEXT = re.compile(r"experience|exp\b|work(?:ing)?\b|industry|professional|hands[- ]on", re.I)
 
+# Internships posted under a plain title ("Java Backend Developer") say so in the site's job type or in the
+# ad itself. Benefits text ("internet stipend", "unpaid leave") must not trip it, so only these count.
+_INTERN_TYPE = re.compile(r"intern", re.I)
+_INTERN_LEAD = re.compile(r"\b(?:interns?|internships?)\b", re.I)  # in the ad's opening lines
+_INTERN_ANYWHERE = re.compile(
+    r"\binternship\s+(?:opportunity|type|duration|program(?:me)?|role|position|period|offer)\b"
+    r"|\b(?:job|employment|position|engagement)\s+type\s*[:\-]?\s*(?:full[- ]?time\s+|part[- ]?time\s+)?internship"
+    r"|\bunpaid\s+(?:internship|intern|role|position|project)"
+    r"|\bintern(?:ship)?\s*\(\s*\d+\s*(?:months?|weeks?|days?)\s*\)"
+    r"|\bposition\s*:\s*[^\n.]{0,60}\bintern\b",
+    re.I,
+)
+
+
+def is_internship(job: Job) -> bool:
+    if job.job_type and _INTERN_TYPE.search(job.job_type):
+        return True
+    return bool(_INTERN_LEAD.search(job.description[:300]) or _INTERN_ANYWHERE.search(job.description))
+
 
 def _term_re(term: str) -> re.Pattern[str]:
     # word-ish boundaries that also work for terms like ".net" and "c#"
@@ -91,6 +110,9 @@ class Filters:
         for job in jobs:
             if not self.title_ok(job.title):
                 dropped["title"] += 1
+                continue
+            if is_internship(job):
+                dropped["internship"] += 1
                 continue
             if not self.location_ok(job):
                 dropped["location"] += 1

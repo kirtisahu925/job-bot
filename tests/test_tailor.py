@@ -113,3 +113,25 @@ def test_tailor_job_with_fake_llm(profile):
     assert outcome.revisions == 2
     assert [r.purpose for r in ledger.rows] == ["tailor", "review", "review"]
     assert [r["title"] for r in outcome.rounds] == ["Build", "Hiring manager review", "VP of hiring review"]
+
+
+def test_header_links_show_their_names_and_keep_the_address_behind_them():
+    from jobbot.tailor.latex import header
+
+    h = header(
+        {
+            "contact": {
+                "name": "A B",
+                "location": "Gurgaon, India",
+                "email": "a_b@example.com",
+                "phone": "+91 90000 00000",
+                "links": {"linkedin": "linkedin.com/in/someone", "github": "https://github.com/someone"},
+            }
+        }
+    )
+    assert (
+        h["line2"]
+        == r"\href{https://linkedin.com/in/someone}{LinkedIn}, \href{https://github.com/someone}{GitHub}"
+    )
+    # the e-mail stays readable text for ATS parsers, and is also a mailto link
+    assert r"\href{mailto:a_b@example.com}{a\_b@example.com}" in h["line1"]

@@ -52,7 +52,15 @@ def compile_tex(tex: str, engine: str, assets: dict[str, bytes] | None = None) -
         if engine == "tectonic":
             cmd = ["tectonic", "--chatter", "minimal", "--outdir", tmp, str(src)]
         else:
-            cmd = [engine, "-interaction=nonstopmode", "-halt-on-error", f"-output-directory={tmp}", str(src)]
+            # no \write18 at all: resumes you edit by hand compile on a runner that holds your API keys
+            cmd = [
+                engine,
+                "-no-shell-escape",
+                "-interaction=nonstopmode",
+                "-halt-on-error",
+                f"-output-directory={tmp}",
+                str(src),
+            ]
         proc = subprocess.run(cmd, cwd=tmp, capture_output=True, text=True, timeout=180)
         pdf = Path(tmp) / "resume.pdf"
         if proc.returncode != 0 or not pdf.exists():

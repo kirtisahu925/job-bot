@@ -76,8 +76,15 @@ def build_sources(
 
     cfg = settings.search
     s = settings.secrets
-    queries = [q for t in cfg.tracks.values() for q in t.queries[:1]]  # one query per track per site
-    all_queries = [q for t in cfg.tracks.values() for q in t.queries]
+
+    def with_titles(base: list[str]) -> list[str]:
+        """The job titles from your Preferences are searched on every site, after the configured queries."""
+        return list(dict.fromkeys([*base, *cfg.extra_queries]))
+
+    queries = with_titles(
+        [q for t in cfg.tracks.values() for q in t.queries[:1]]
+    )  # one query per track per site
+    all_queries = with_titles([q for t in cfg.tracks.values() for q in t.queries])
     month = calls_this_month or (lambda _src: 0)
     today = calls_today or (lambda _src: 0)
     max_age = cfg.limits.board_max_age_days
@@ -89,9 +96,11 @@ def build_sources(
             continue
         method = conf.get("method", "native")
         if method == "jobspy":
-            candidates.append(JobSpySource(site, conf.get("queries") or queries, conf))
+            candidates.append(JobSpySource(site, with_titles(conf.get("queries") or queries), conf))
         elif method == "apify":
-            candidates.append(ApifySource(site, client, s.apify_token, conf, conf.get("queries") or queries))
+            candidates.append(
+                ApifySource(site, client, s.apify_token, conf, with_titles(conf.get("queries") or queries))
+            )
         elif site == "foundit":
             candidates.append(FounditSource(client, queries, conf))
     if cfg.source_enabled("adzuna"):

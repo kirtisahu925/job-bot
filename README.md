@@ -305,13 +305,28 @@ restrict accounts it thinks are automated.
   `greenhouse/remotecom`, is already in).
 - **Activity**: one timeline of scans, resumes (with their round-by-round ATS), application changes and,
   with the Contacts add-on, messages to contacts, grouped by day.
-- **Preferences**: what you are aiming for (level such as SDE-2, roles, what to bring forward or play down,
-  notes for the writer; the resume rounds read these) and what the scans look for (kinds of role, cities,
-  remote, maximum years asked, extra title words to skip, a minimum salary).
+- **Preferences**: what you are aiming for (level such as SDE-2, **job titles you want**, what to bring
+  forward or play down, notes for the writer; the resume rounds read these) and what the scans look for
+  (kinds of role, cities, remote, maximum years asked, extra title words to skip, a minimum salary). Each
+  job title you add (for example "Full Stack Java Developer") is searched on every job site at each scan,
+  passes the title rules even if one of its words is on the skip list, and may be used as your resume
+  headline.
 - **Settings**: which review rounds run, the ATS target and minimum, fix-up calls, the AI for resumes
   (free Gemini, Claude Sonnet 5.5 or Claude Opus 5.5, with the cost of each), resumes per scheduled scan,
   cover letters, and your account.
+- **Edit LaTeX**: on a job's page, open the resume's LaTeX source, make small fixes and press **Compile**.
+  The GitHub Action compiles it (no AI calls, about 2 minutes, shell escape off), re-scores it and saves it
+  as the job's newest resume; if it does not compile, the editor shows the LaTeX error. **Show LinkedIn and
+  GitHub by name** turns visible addresses such as `linkedin.com/in/you` into the words LinkedIn and GitHub
+  with the link behind them. New resumes already do this: the header shows LinkedIn and GitHub as links, and
+  keeps the e-mail readable (ATS parsers read it). When Tailor now cannot start GitHub, the edit is saved and
+  the next scan compiles it.
 - **Consumption**: tokens, money used, current balances, top-ups, and the health of each job source.
+
+Scans skip internships and new-graduate roles even when their title looks ordinary: the site's own job type
+(LinkedIn, Indeed, JSearch, Lever, Ashby, Jooble, Remotive) or the ad itself ("Internship Opportunity",
+"Position: ... Intern", "Job Type: Internship") gives them away, and titles with graduate, campus,
+apprentice or student are skipped.
 
 Preferences and Settings live in Supabase (`user_settings`, migration 0008) and are laid over the repo's
 config at the start of every scan and Tailor now; anything left blank keeps `config/search.yaml`

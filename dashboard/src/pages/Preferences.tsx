@@ -13,6 +13,16 @@ const TRACKS: [string, string][] = [
 ];
 const CITIES = ["Gurugram", "Noida", "Delhi", "Bengaluru", "Hyderabad", "Pune", "Chennai", "Mumbai"];
 const LEVELS = ["SDE-1", "SDE-2", "SDE-3", "Senior Software Engineer"];
+const TITLE_SUGGESTIONS = [
+  "Full Stack Java Developer",
+  "Java Developer",
+  "Java Spring Boot Developer",
+  "Backend Engineer",
+  "Software Engineer II",
+  "SDE 2",
+  "Python Backend Developer",
+  "Node.js Developer",
+];
 
 const BLANK: Prefs = {
   target_level: "",
@@ -108,7 +118,14 @@ export default function Preferences() {
                 ))}
               </datalist>
             </label>
-            <ChipInput label="Roles" value={p.target_roles} onChange={(v) => set("target_roles", v)} placeholder="e.g. Backend Engineer, then Enter" />
+            <ChipInput
+              label="Job titles you want"
+              value={p.target_roles}
+              onChange={(v) => set("target_roles", v)}
+              suggestions={TITLE_SUGGESTIONS}
+              placeholder="e.g. Full Stack Java Developer, then Enter"
+              hint="Searched on every job site at each scan, allowed as your resume headline, and never skipped by the title rules."
+            />
           </div>
           <div className="two">
             <ChipInput

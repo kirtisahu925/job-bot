@@ -121,7 +121,7 @@ export interface Finding {
 
 /** One round of a tailored resume (jobbot/tailor/rounds.py round_record). */
 export interface RoundRecord {
-  name: "build" | "hiring_manager" | "vp_hiring" | "fix";
+  name: "build" | "hiring_manager" | "vp_hiring" | "fix" | "edit";
   title: string;
   ats_score: number | null;
   analysis: {

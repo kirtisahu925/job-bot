@@ -115,6 +115,7 @@ class JSearchSource(Source):
                     salary_max=r.get("job_max_salary"),
                     currency=r.get("job_salary_currency"),
                     posted_at=parse_dt(r.get("job_posted_at_datetime_utc")),
+                    job_type=", ".join(r.get("job_employment_types") or []) or r.get("job_employment_type"),
                 )
             )
         return [j for j in jobs if j.title and j.url]
@@ -172,6 +173,7 @@ class JoobleSource(Source):
                 url=r.get("link") or "",
                 description=r.get("snippet") or "",
                 posted_at=parse_dt(r.get("updated")),
+                job_type=r.get("type") or None,
             )
             for r in payload.get("jobs") or []
             if r.get("title") and r.get("link")
@@ -222,6 +224,7 @@ class RemotiveSource(Source):
                 url=r.get("url") or "",
                 description=r.get("description") or "",
                 posted_at=parse_dt(r.get("publication_date")),
+                job_type=r.get("job_type") or None,
             )
             for r in payload.get("jobs") or []
             if r.get("title") and r.get("url")

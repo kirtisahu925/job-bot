@@ -786,3 +786,7 @@ fieldset.plain legend { padding: 0; font-size: var(--fs-xs); font-weight: 500; c
 .round-steps label.check strong { font-weight: 600; }
 .c-company .icon.star { color: var(--warn); fill: currentColor; }
 .form p.small, .panel > p.small, .panel .stack > p.small { max-width: 62ch; }
+
+/* LaTeX editor on a job's page */
+textarea.code { font-family: "JetBrains Mono Variable", ui-monospace, monospace; font-size: 12px; line-height: 1.55; min-height: 360px; white-space: pre; overflow: auto; tab-size: 2; }
+.latex-log pre { margin: 8px 0 0; padding: 10px 12px; max-height: 260px; overflow: auto; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); font: 12px/1.5 "JetBrains Mono Variable", ui-monospace, monospace; color: var(--text-2); white-space: pre-wrap; }

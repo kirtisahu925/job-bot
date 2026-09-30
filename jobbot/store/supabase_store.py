@@ -187,8 +187,34 @@ class SupabaseStore:
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         tex_path = self._upload(f"{job_id}/{stamp}/resume.tex", tex, "text/plain") if tex else None
         pdf_path = self._upload(f"{job_id}/{stamp}/resume.pdf", pdf, "application/pdf") if pdf else None
-        self._post("tailorings", {"job_id": job_id, **record, "tex_path": tex_path, "pdf_path": pdf_path})
-        return {"tex_path": tex_path, "pdf_path": pdf_path}
+        rows = self._post(
+            "tailorings",
+            {"job_id": job_id, **record, "tex_path": tex_path, "pdf_path": pdf_path},
+            returning=True,
+        )
+        return {"id": rows[0]["id"] if rows else None, "tex_path": tex_path, "pdf_path": pdf_path}
+
+    def get_tailoring(self, tailoring_id: str) -> dict[str, Any]:
+        rows = self._get("tailorings", {"select": "*", "id": f"eq.{tailoring_id}", "limit": 1})
+        return rows[0] if rows else {}
+
+    # resumes edited by hand on the dashboard --------------------------------
+    def resume_edits(self, ids: list[str] | None = None) -> list[dict[str, Any]]:
+        """The given edits (queued or stuck compiling), or every queued one, oldest first."""
+        params: dict[str, Any] = {
+            "select": "id,job_id,base_tailoring_id,tex,status",
+            "order": "created_at.asc",
+        }
+        if ids:
+            params |= {"id": _in(ids), "status": "in.(queued,compiling)"}
+        else:
+            params |= {"status": "eq.queued", "limit": 10}
+        return self._get("resume_edits", params)
+
+    def update_edit(self, edit_id: str, fields: dict[str, Any]) -> None:
+        self._patch(
+            "resume_edits", {"id": f"eq.{edit_id}"}, {**fields, "updated_at": datetime.now(UTC).isoformat()}
+        )
 
     # usage ----------------------------------------------------------------
     def record_api_usage(self, run_id: str, rows: list[ApiUsage]) -> None:

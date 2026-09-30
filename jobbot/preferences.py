@@ -4,6 +4,7 @@ Supabase), laid over config/*.yaml for one run. Anything left blank on the dashb
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, ValidationError
@@ -17,7 +18,7 @@ log = logging.getLogger(__name__)
 class Preferences(BaseModel):
     # what you are aiming for: shapes the resume rounds
     target_level: str = ""  # e.g. "SDE-2"
-    target_roles: list[str] = Field(default_factory=list)
+    target_roles: list[str] = Field(default_factory=list)  # job titles: searched, and allowed as the headline
     emphasize: list[str] = Field(default_factory=list)  # e.g. "Java and Spring Boot", "system design"
     de_emphasize: list[str] = Field(default_factory=list)
     resume_notes: str = ""  # anything else the writer and reviewers should know
@@ -46,6 +47,29 @@ def resume_preferences(p: Preferences) -> dict[str, Any]:
     """The part of your preferences the resume writer and reviewers see (blank ones left out)."""
     fields = ("target_level", "target_roles", "emphasize", "de_emphasize", "resume_notes")
     return {k: getattr(p, k) for k in fields if getattr(p, k)}
+
+
+def _word(term: str) -> re.Pattern[str]:
+    return re.compile(rf"(?<![a-z0-9]){re.escape(term.lower())}(?![a-z0-9])")
+
+
+def _search_titles(settings: Settings, titles: list[str], note) -> None:
+    """The job titles you want (e.g. "Full Stack Java Developer") are searched on every job site, pass the title
+    filter even if a word in them is on the skip list, and may be used as your resume headline."""
+    search = settings.search
+    known = {q.lower() for q in search.extra_queries}
+    search.extra_queries = [*search.extra_queries, *(t for t in titles if t.lower() not in known)]
+    for title in titles:
+        low = title.lower()
+        if low not in search.title_include:
+            search.title_include = [*search.title_include, low]
+        freed = [w for w in search.title_exclude if _word(w).search(low)]
+        if freed:
+            search.title_exclude = [w for w in search.title_exclude if w not in freed]
+            note(f"no longer skipping titles with ({title})", ", ".join(freed))
+    allowed = settings.profile.setdefault("allowed_titles", [])
+    allowed += [t for t in titles if t not in allowed]
+    note("job titles searched", ", ".join(titles))
 
 
 def apply_user_settings(settings: Settings, row: dict | None) -> list[str]:
@@ -84,6 +108,9 @@ def apply_user_settings(settings: Settings, row: dict | None) -> list[str]:
     if prefs.min_salary_lpa is not None:
         search.candidate["min_salary_lpa"] = prefs.min_salary_lpa
         note("minimum salary (LPA)", prefs.min_salary_lpa)
+    titles = list(dict.fromkeys(t.strip() for t in prefs.target_roles if t.strip()))
+    if titles:
+        _search_titles(settings, titles, note)
     search.preferences = resume_preferences(prefs)
 
     if bot.llm_provider == "anthropic" and not settings.secrets.anthropic_api_key:

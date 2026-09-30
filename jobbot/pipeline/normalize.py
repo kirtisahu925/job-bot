@@ -206,6 +206,7 @@ def normalize(raw: RawJob, locations: Locations) -> Job:
         posted_at=raw.posted_at,
         remote_region=raw.remote_region,
         experience_text=raw.experience_text,
+        job_type=raw.job_type,
         links=[
             JobLink(source=raw.source, url=raw.url, url_key=url_key(raw.url), source_job_id=raw.source_job_id)
         ]
@@ -252,4 +253,6 @@ def merge(jobs: list[Job]) -> list[Job]:
         base.salary_max = base.salary_max or job.salary_max
         base.city = base.city or job.city
         base.experience_text = base.experience_text or job.experience_text
+        types = [t for t in (base.job_type, job.job_type) if t]
+        base.job_type = ", ".join(dict.fromkeys(types)) or None  # any site calling it an internship counts
     return list(by_fp.values())

@@ -42,6 +42,8 @@ class RawJob(BaseModel):
     posted_at: datetime | None = None
     experience_text: str | None = None
     remote_region: str | None = None
+    # as the site states it, e.g. "fulltime, internship" or "INTERN"; used by the filters only
+    job_type: str | None = None
 
 
 class SourceResult(BaseModel):
@@ -92,6 +94,7 @@ class Job(BaseModel):
     links: list[JobLink] = Field(default_factory=list)
     remote_region: str | None = None
     experience_text: str | None = None
+    job_type: str | None = None  # from the site, used by the filters, not stored
     jd_keywords: dict | None = None
     ats_score: int | None = None
 

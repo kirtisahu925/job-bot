@@ -24,6 +24,7 @@ from jobbot.tailor.compile import find_engine
 from jobbot.tailor.cover_letter import write_cover_letter
 from jobbot.tailor.generate import pdf_text, tailor_job
 from jobbot.tailor.own_resume import load_own, tailor_own_resume
+from jobbot.tailor.recompile import process_edits
 
 log = logging.getLogger(__name__)
 
@@ -303,6 +304,9 @@ def run(
             limit = cfg.limits.tailor_per_run if opts.max_tailor is None else opts.max_tailor
             jobs = store.tailor_candidates(limit, cfg.limits.min_score)
             tailor_jobs(settings, store, ledger, provider, jobs, summary, compile_pdf=opts.compile_pdf)
+        if opts.compile_pdf:
+            # resumes edited on the dashboard that Tailor now could not start (no AI calls)
+            summary["edits"] = process_edits(settings, store, find_engine())
     except Exception as exc:
         status = "error"
         summary["errors"].append(repr(exc)[:500])

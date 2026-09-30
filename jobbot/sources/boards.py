@@ -91,6 +91,7 @@ class LeverSource(_BoardSource):
                     apply_url=p.get("applyUrl"),
                     description=desc,
                     posted_at=parse_dt(p.get("createdAt")),
+                    job_type=cats.get("commitment") or None,
                 )
             )
         return [j for j in jobs if j.title and j.url]
@@ -122,6 +123,7 @@ class AshbySource(_BoardSource):
                     apply_url=j.get("applyUrl"),
                     description=j.get("descriptionPlain") or j.get("descriptionHtml") or "",
                     posted_at=parse_dt(j.get("publishedAt")),
+                    job_type=j.get("employmentType") or None,
                 )
             )
         return [j for j in jobs if j.title and j.url]

@@ -58,6 +58,7 @@ def rows_to_jobs(site: str, rows: list[dict[str, Any]]) -> list[RawJob]:
                 currency=r.get("currency"),
                 posted_at=parse_dt(r.get("date_posted")),
                 experience_text=r.get("experience_range"),
+                job_type=str(r["job_type"]) if r.get("job_type") else None,
             )
         )
     return jobs

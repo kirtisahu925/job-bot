@@ -1,8 +1,9 @@
-import { ChevronRight, ExternalLink, RefreshCw } from "lucide-react";
+import { ChevronRight, ExternalLink, PencilLine, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import AtsPanel from "../components/AtsPanel";
 import CoverLetter from "../components/CoverLetter";
+import LatexEditor from "../components/LatexEditor";
 import ResumeRounds from "../components/ResumeRounds";
 import { PeopleAtCompany } from "../components/contacts";
 import {
@@ -41,6 +42,7 @@ export default function JobDetail() {
   const [notes, setNotes] = useState("");
   const [saved, setSaved] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   useTitle(job?.title ?? "Job");
 
   const onJob = useCallback((j: Job) => setJob((prev) => (prev && prev.id === j.id ? { ...prev, ...j } : prev)), []);
@@ -137,6 +139,15 @@ export default function JobDetail() {
 
       <div className="split">
         <div className="stack">
+          {editing && t && (
+            <LatexEditor
+              jobId={job.id}
+              tailoring={t}
+              onClose={() => setEditing(false)}
+              onCompiled={() => api.getJob(job.id).then((j) => j && setJob(j), () => undefined)}
+            />
+          )}
+
           <AtsPanel job={job} have={have} onTailor={tailor.start} busy={tailor.busy === job.id} />
 
           {!!t?.rounds?.length && <ResumeRounds rounds={t.rounds} target={t.ats?.target} />}
@@ -235,6 +246,19 @@ export default function JobDetail() {
               <div className="row">
                 <PdfButton path={t.pdf_path} label="Open PDF" small={false} />
                 <PdfButton path={t.tex_path} label="LaTeX" small={false} />
+                {t.tex_path && (
+                  <button
+                    className="btn"
+                    aria-pressed={editing}
+                    onClick={() => {
+                      setEditing(true);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
+                    <PencilLine {...ICON} size={14} />
+                    Edit LaTeX
+                  </button>
+                )}
               </div>
               <dl className="prop-list">
                 <Prop term="Checks">

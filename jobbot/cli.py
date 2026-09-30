@@ -303,6 +303,36 @@ def tailor_queued_cmd(
         raise typer.Exit(code=1)
 
 
+@app.command("recompile-edits")
+def recompile_edits_cmd(
+    edit_id: list[str] = typer.Option(
+        None, "--edit-id", help="edit id(s); omit to compile every queued edit"
+    ),
+    store: str = typer.Option("supabase", help="supabase | local"),
+    out: Path = typer.Option(ROOT / "out"),
+    verbose: bool = typer.Option(False, "-v"),
+):
+    """Compile resumes edited by hand in the dashboard's LaTeX editor, score them and save them (no AI calls)."""
+    from jobbot.tailor.compile import find_engine
+    from jobbot.tailor.recompile import process_edits
+
+    _setup_logging(verbose)
+    settings = load_settings()
+    out.mkdir(parents=True, exist_ok=True)
+    st = _store(store, out, settings)
+    engine = find_engine()
+    if engine is None:
+        raise typer.BadParameter("no LaTeX engine found (install tectonic or pdflatex)")
+    results = process_edits(settings, st, engine, edit_id or None)
+    for r in results:
+        detail = f"ATS {r.get('ats_score')}" if r["status"] == "done" else (r.get("error") or "")[-300:]
+        typer.echo(f"edit {r['edit_id']}: {r['status']} {detail}")
+    if not results:
+        typer.echo("no queued edits")
+    if any(r["status"] == "failed" for r in results):
+        raise typer.Exit(code=1)
+
+
 @app.command()
 def models():
     """List the Gemini models your GEMINI_API_KEY can use."""

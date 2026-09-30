@@ -67,6 +67,9 @@ class SearchConfig(BaseModel):
     ats: AtsConfig = Field(default_factory=AtsConfig)
     resume: ResumeRoundsConfig = Field(default_factory=ResumeRoundsConfig)
     preferences: dict[str, Any] = Field(default_factory=dict)  # resume preferences from the dashboard
+    extra_queries: list[str] = Field(
+        default_factory=list
+    )  # job titles from the dashboard, searched on every site
     cover_letter: CoverLetterConfig = Field(default_factory=CoverLetterConfig)
     sources: dict[str, dict[str, Any]] = Field(default_factory=dict)
 

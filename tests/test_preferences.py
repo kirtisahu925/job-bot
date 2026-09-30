@@ -72,3 +72,21 @@ def test_boards_from_the_companies_page_join_the_scan_once():
     )
     assert [c.slug for c in settings.companies.greenhouse].count("remotecom") == 1
     assert [c.slug for c in settings.companies.lever] == ["acme"]
+
+
+def test_job_titles_you_want_are_searched_everywhere_and_may_head_the_resume():
+    from jobbot.pipeline.filters import Filters
+    from jobbot.sources.base import build_sources
+
+    settings = load_settings()
+    notes = apply_user_settings(
+        settings, {"preferences": {"target_roles": ["Full Stack Java Developer", "Salesforce Developer"]}}
+    )
+    search = settings.search
+    assert search.extra_queries == ["Full Stack Java Developer", "Salesforce Developer"]
+    # a title you asked for passes even though "salesforce" is on the skip list
+    assert Filters(search).title_ok("Salesforce Developer")
+    assert any("salesforce" in n for n in notes)
+    assert "Full Stack Java Developer" in settings.profile["allowed_titles"]
+    linkedin = next(s for s in build_sources(settings, client=None) if s.name == "linkedin")
+    assert linkedin.queries[-2:] == ["Full Stack Java Developer", "Salesforce Developer"]

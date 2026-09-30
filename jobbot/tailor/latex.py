@@ -100,11 +100,35 @@ def _dates(entry: dict) -> str:
     return str(start or end or "")
 
 
+LINK_LABELS = {"linkedin": "LinkedIn", "github": "GitHub", "leetcode": "LeetCode", "gitlab": "GitLab"}
+
+
+def _href(url: str, label: str) -> str:
+    """A clickable word: \\href{https://...}{LinkedIn}. The URL keeps its characters; only TeX specials are escaped."""
+    target = url if re.match(r"^[a-z]+:", url) else f"https://{url}"
+    target = (
+        target.replace("\\", "").replace("%", r"\%").replace("#", r"\#").replace("{", "").replace("}", "")
+    )
+    return rf"\href{{{target}}}{{{escape(label)}}}"
+
+
 def header(profile: dict, headline: str = "") -> dict[str, str]:
-    """Contact header from the local profile only. Commas, never pipes (Phase 3 ATS rule)."""
+    """Contact header from the local profile only. Commas, never pipes (Phase 3 ATS rule). The e-mail stays
+    visible (ATS parsers read it) and is also a mailto link; profile links show as their name (LinkedIn, GitHub)
+    with the address behind it."""
     c = profile.get("contact") or {}
-    line1 = ", ".join(escape(x) for x in (c.get("location"), c.get("email"), c.get("phone")) if x)
-    links = [escape(v) for v in (c.get("links") or {}).values() if v]
+    email = c.get("email")
+    parts = [
+        escape(c.get("location")),
+        rf"\href{{mailto:{email}}}{{{escape(email)}}}" if email else "",
+        escape(c.get("phone")),
+    ]
+    line1 = ", ".join(p for p in parts if p)
+    links = [
+        _href(str(url), LINK_LABELS.get(key.lower(), key.replace("_", " ").title()))
+        for key, url in (c.get("links") or {}).items()
+        if url
+    ]
     return {
         "name": escape(c.get("name", "")),
         "headline": escape(headline or profile.get("headline") or ""),

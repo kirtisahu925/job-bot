@@ -9,9 +9,13 @@ on:
         description: "Job id (blank = every queued job)"
         required: false
         default: ""
+      edit_id:
+        description: "A resume you edited by hand on the dashboard: compile and score it (no AI calls)"
+        required: false
+        default: ""
 
 concurrency:
-  group: jobbot-tailor-${{ inputs.job_id || 'queued' }}
+  group: jobbot-tailor-${{ inputs.edit_id || inputs.job_id || 'queued' }}
   cancel-in-progress: false
 
 permissions:
@@ -49,7 +53,8 @@ jobs:
         run: |
           pkgs="texlive-latex-base texlive-latex-recommended texlive-fonts-recommended lmodern"
           # your own resume (profile/resume.tex, e.g. Jake's template) needs titlesec, enumitem, fullpage...
-          if [ -f profile/resume.tex ]; then
+          # ...and so may a resume you edited by hand
+          if [ -f profile/resume.tex ] || [ -n "${{ inputs.edit_id }}" ]; then
             pkgs="$pkgs texlive-latex-extra"
             if grep -q fontawesome profile/resume.tex; then pkgs="$pkgs texlive-fonts-extra"; fi
           fi
@@ -68,8 +73,11 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           JOB_ID: ${{ inputs.job_id }}
+          EDIT_ID: ${{ inputs.edit_id }}
         run: |
-          if [ -n "$JOB_ID" ]; then
+          if [ -n "$EDIT_ID" ]; then
+            python -m jobbot recompile-edits --store supabase --edit-id "$EDIT_ID"
+          elif [ -n "$JOB_ID" ]; then
             python -m jobbot tailor-queued --store supabase --job-id "$JOB_ID"
           else
             python -m jobbot tailor-queued --store supabase

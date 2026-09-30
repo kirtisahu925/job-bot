@@ -55,3 +55,24 @@ describe("the next step for an application", () => {
     expect(f).toMatchObject({ total: 4, waiting: 1, heardBack: 3 });
   });
 });
+
+describe("the LaTeX quick fix for profile links", () => {
+  it("shows LinkedIn and GitHub by name with the address behind them", async () => {
+    const { linkProfiles } = await import("./latexEdit");
+    const header = String.raw`Gurgaon, India\par
+linkedin.com/in/some-one, github.com/some\_one\par
+% linkedin.com/in/commented-out
+\href{https://github.com/jake}{\underline{github.com/jake}} and \href{https://example.com}{Portfolio}
+\url{https://www.linkedin.com/in/url-form}.`;
+    const { tex, changed } = linkProfiles(header);
+    expect(tex.split("\n")).toEqual([
+      String.raw`Gurgaon, India\par`,
+      String.raw`\href{https://linkedin.com/in/some-one}{LinkedIn}, \href{https://github.com/some_one}{GitHub}\par`,
+      "% linkedin.com/in/commented-out",
+      String.raw`\href{https://github.com/jake}{\underline{GitHub}} and \href{https://example.com}{Portfolio}`,
+      String.raw`\href{https://linkedin.com/in/url-form}{LinkedIn}.`,
+    ]);
+    expect(changed).toBe(4);
+    expect(linkProfiles(tex).changed).toBe(0); // running it again changes nothing
+  });
+});
