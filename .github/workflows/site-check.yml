@@ -32,6 +32,17 @@ jobs:
           fi
           ok "Page loads: $(grep -o '<title>[^<]*' <<<"$page" | sed 's/<title>//')"
 
+          build=$(grep -o 'name="fairsheet-build" content="[^"]*"' <<<"$page" | sed 's/.*content="//; s/"$//')
+          if [ -z "$build" ]; then
+            echo "::warning::The page carries no build stamp: it was built before the stamp existed"
+            echo "- ⚠️ No build stamp: the live site predates it" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$build" = "${GITHUB_SHA::7}" ]; then
+            ok "Serving the latest commit on ${GITHUB_REF_NAME} ($build)"
+          else
+            echo "::warning::Serving commit $build, not ${GITHUB_SHA::7}: Cloudflare may still be building, or its last build failed"
+            echo "- ⚠️ Serving commit $build, not ${GITHUB_SHA::7} (still building, or the last Cloudflare build failed)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
           js=$(grep -o 'src="/assets/[^"]*\.js"' <<<"$page" | head -1 | cut -d'"' -f2)
           [ -n "$js" ] || { echo "$page" | head -40; fail "The page references no built bundle (/assets/*.js)"; }
           type=$(curl -fsS -o /dev/null -w '%{content_type}' "$base$js") || fail "$js did not load"
