@@ -35,7 +35,11 @@ export interface Preferences {
   max_required_years: number | null;
   exclude_title_words: string[];
   min_salary_lpa: number | null;
+  /** Only jobs posted within this many days are fetched and scored; null keeps each site's own window. */
+  max_job_age_days: JobAge | null;
 }
+
+export type JobAge = 1 | 3 | 7 | 30;
 
 export type Reviewer = "hiring_manager" | "vp_hiring";
 
@@ -204,7 +208,7 @@ let demoCompanies: Company[] = [
 ];
 
 let demoSettings: UserSettings = {
-  preferences: { target_level: "SDE-2", target_roles: ["Backend Engineer", "Software Development Engineer II"], emphasize: ["Java and Spring Boot", "production ownership"] },
+  preferences: { target_level: "SDE-2", target_roles: ["Backend Engineer", "Software Development Engineer II"], emphasize: ["Java and Spring Boot", "production ownership"], max_job_age_days: 3 },
   settings: {},
   updated_at: null,
 };

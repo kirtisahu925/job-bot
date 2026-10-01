@@ -310,7 +310,12 @@ restrict accounts it thinks are automated.
   (kinds of role, cities, remote, maximum years asked, extra title words to skip, a minimum salary). Each
   job title you add (for example "Full Stack Java Developer") is searched on every job site at each scan,
   passes the title rules even if one of its words is on the skip list, and may be used as your resume
-  headline.
+  headline. **Jobs posted within** (24 hours, 3 days, 7 days or 30 days) sets how old a job may be: every
+  site is asked for that window (LinkedIn, Indeed and Naukri `hours_old`, JSearch `date_posted`, Adzuna
+  `max_days_old`, company boards), and anything older is dropped before scoring, including from sites with
+  no date filter (Foundit, Wellfound, Remotive, Jooble). Each run scores at most `score_top_k` (30) new
+  jobs, so a longer window spends that allowance on older jobs, and a shorter one often leaves part of it
+  unused. Until you choose, each site keeps its own window in `config/search.yaml`.
 - **Settings**: which review rounds run, the ATS target and minimum, fix-up calls, the AI for resumes
   (free Gemini, Claude Sonnet 5.5 or Claude Opus 5.5, with the cost of each), resumes per scheduled scan,
   cover letters, and your account.

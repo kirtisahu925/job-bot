@@ -72,6 +72,8 @@ class SearchConfig(BaseModel):
     )  # job titles from the dashboard, searched on every site
     cover_letter: CoverLetterConfig = Field(default_factory=CoverLetterConfig)
     sources: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    # only jobs posted within this many days (Preferences); None keeps each site's own window below
+    max_job_age_days: int | None = None
 
     @property
     def max_required_years(self) -> int:

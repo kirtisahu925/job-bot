@@ -61,6 +61,10 @@ def run_sources(sources: list[Source], timeout_s: float = 420) -> list[SourceRes
     return sorted(results, key=lambda r: order.get(r.source, 99))
 
 
+# JSearch's date_posted values for the Preferences choices
+JSEARCH_DATE_POSTED = {1: "today", 3: "3days", 7: "week", 30: "month"}
+
+
 def build_sources(
     settings: Settings,
     client: httpx.Client,
@@ -87,7 +91,12 @@ def build_sources(
     all_queries = with_titles([q for t in cfg.tracks.values() for q in t.queries])
     month = calls_this_month or (lambda _src: 0)
     today = calls_today or (lambda _src: 0)
-    max_age = cfg.limits.board_max_age_days
+    # the job age from Preferences replaces each site's own date filter; sites without one are filtered later
+    age = cfg.max_job_age_days
+    max_age = age or cfg.limits.board_max_age_days
+
+    def dated(conf: dict, **window) -> dict:
+        return {**conf, **window} if age else conf
 
     candidates: list[Source] = []
     for site in ("linkedin", "indeed", "naukri", "foundit", "wellfound"):
@@ -96,7 +105,11 @@ def build_sources(
             continue
         method = conf.get("method", "native")
         if method == "jobspy":
-            candidates.append(JobSpySource(site, with_titles(conf.get("queries") or queries), conf))
+            candidates.append(
+                JobSpySource(
+                    site, with_titles(conf.get("queries") or queries), dated(conf, hours_old=(age or 0) * 24)
+                )
+            )
         elif method == "apify":
             candidates.append(
                 ApifySource(site, client, s.apify_token, conf, with_titles(conf.get("queries") or queries))
@@ -105,10 +118,18 @@ def build_sources(
             candidates.append(FounditSource(client, queries, conf))
     if cfg.source_enabled("adzuna"):
         candidates.append(
-            AdzunaSource(client, s.adzuna_app_id, s.adzuna_app_key, queries, cfg.source("adzuna"), today)
+            AdzunaSource(
+                client,
+                s.adzuna_app_id,
+                s.adzuna_app_key,
+                queries,
+                dated(cfg.source("adzuna"), max_days_old=age),
+                today,
+            )
         )
     if cfg.source_enabled("jsearch"):
-        candidates.append(JSearchSource(client, s.rapidapi_key, queries, cfg.source("jsearch"), month))
+        conf = dated(cfg.source("jsearch"), date_posted=JSEARCH_DATE_POSTED.get(age or 0, "month"))
+        candidates.append(JSearchSource(client, s.rapidapi_key, queries, conf, month))
     if cfg.source_enabled("jooble"):
         candidates.append(JoobleSource(client, s.jooble_api_key, queries, cfg.source("jooble"), today))
     if cfg.source_enabled("remotive"):

@@ -103,11 +103,23 @@ class Filters:
         best = max(scores, key=scores.get) if scores else None
         return best if best and scores[best] > 0 else None
 
-    def apply(self, jobs: list[Job]) -> tuple[list[Job], Counter]:
+    def recent(self, job: Job, now: datetime) -> bool:
+        """Posted within the Preferences window, by calendar day (many sites give only a date). A job with no
+        posting date is kept: there is nothing to judge it by."""
+        days = self.cfg.max_job_age_days
+        if not days or job.posted_at is None:
+            return True
+        return job.posted_at.date() >= (now - timedelta(days=days)).date()
+
+    def apply(self, jobs: list[Job], now: datetime | None = None) -> tuple[list[Job], Counter]:
         """Returns kept jobs (with track and min_years set) and a count of drop reasons."""
+        now = now or datetime.now(UTC)
         kept: list[Job] = []
         dropped: Counter = Counter()
         for job in jobs:
+            if not self.recent(job, now):
+                dropped["too old"] += 1
+                continue
             if not self.title_ok(job.title):
                 dropped["title"] += 1
                 continue

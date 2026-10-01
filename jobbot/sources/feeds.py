@@ -21,6 +21,7 @@ class AdzunaSource(Source):
         self.client, self.app_id, self.app_key, self.queries = client, app_id, app_key, queries
         self.pages = int(conf.get("pages", 2))
         self.daily_cap = int(conf.get("daily_cap", 200))
+        self.max_days_old = int(conf.get("max_days_old", 1))
         self.calls_today = calls_today
 
     @staticmethod
@@ -65,7 +66,7 @@ class AdzunaSource(Source):
                         "app_id": self.app_id,
                         "app_key": self.app_key,
                         "what": query,
-                        "max_days_old": 1,
+                        "max_days_old": self.max_days_old,
                         "results_per_page": 50,
                         "content-type": "application/json",
                     },
@@ -90,6 +91,7 @@ class JSearchSource(Source):
         self.client, self.api_key, self.queries = client, api_key, queries
         self.monthly_cap = int(conf.get("monthly_cap", 190))
         self.url = conf.get("url") or self.URL
+        self.date_posted = conf.get("date_posted", "today")  # all | today | 3days | week | month
         self.calls_this_month = calls_this_month
 
     @staticmethod
@@ -139,7 +141,7 @@ class JSearchSource(Source):
                     "query": f"{query} in India",
                     "num_pages": 1,
                     "country": "in",
-                    "date_posted": "today",
+                    "date_posted": self.date_posted,
                 },
             )
             remaining = resp.headers.get("x-ratelimit-requests-remaining")

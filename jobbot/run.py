@@ -266,7 +266,7 @@ def run(
         )
         raw = [job for r in results for job in r.jobs]
         merged = merge([normalize(job, cfg.locations) for job in raw])
-        kept, dropped = Filters(cfg).apply(merged)
+        kept, dropped = Filters(cfg).apply(merged, now)
         ranked = prerank(kept, profile, now)
         new_jobs, known = store.upsert_jobs(run_id, ranked)
         summary.update(

@@ -3,7 +3,7 @@ import { Notice } from "../components/bits";
 import { ChipInput } from "../components/ChipInput";
 import { ago } from "../lib/format";
 import { useTitle } from "../lib/useTitle";
-import { workspaceApi, type Preferences as Prefs } from "../lib/workspace";
+import { workspaceApi, type JobAge, type Preferences as Prefs } from "../lib/workspace";
 
 // the tracks and cities in config/search.yaml; leaving them all unticked keeps the file's choice
 const TRACKS: [string, string][] = [
@@ -24,6 +24,14 @@ const TITLE_SUGGESTIONS = [
   "Node.js Developer",
 ];
 
+// how recent a job must be: shorter windows give the scoring budget to fresh jobs, where replies are likelier
+const JOB_AGES: [JobAge, string, string][] = [
+  [1, "24 hours", "Freshest; what the twice-daily scans are built for"],
+  [3, "3 days", "Also catches jobs a site listed late"],
+  [7, "7 days", "A week of jobs; more to sort through"],
+  [30, "30 days", "The most jobs; older ones are likelier filled"],
+];
+
 const BLANK: Prefs = {
   target_level: "",
   target_roles: [],
@@ -36,6 +44,7 @@ const BLANK: Prefs = {
   max_required_years: null,
   exclude_title_words: [],
   min_salary_lpa: null,
+  max_job_age_days: null,
 };
 
 export default function Preferences() {
@@ -161,6 +170,26 @@ export default function Preferences() {
             <h2 id="scan-h">What the scans look for</h2>
             <p className="small muted">Filters run before any AI call, so tightening them also saves your free quota.</p>
           </div>
+          <fieldset className="plain">
+            <legend>Jobs posted within</legend>
+            <div className="age-options">
+              {JOB_AGES.map(([days, label, note]) => (
+                <label className="provider" key={days}>
+                  <input type="radio" name="job-age" checked={p.max_job_age_days === days} onChange={() => set("max_job_age_days", days)} />
+                  <span>
+                    <strong>{label}</strong>
+                    <span className="small muted provider-note">{note}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <span className="hint">
+              Every job site is asked for this window, and anything older is dropped before scoring. Each run scores at most 30 new jobs,
+              so a longer window spends that allowance on older jobs; a shorter one often leaves part of it unused. Jobs without a posting
+              date are kept.{" "}
+              {p.max_job_age_days == null && "Not chosen yet: each site uses its own window (24 hours on LinkedIn, 13 hours on Indeed and Naukri, 30 days on company boards)."}
+            </span>
+          </fieldset>
           <fieldset className="plain">
             <legend>Kinds of role</legend>
             <div className="row" style={{ gap: 16 }}>

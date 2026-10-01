@@ -90,3 +90,49 @@ def test_job_titles_you_want_are_searched_everywhere_and_may_head_the_resume():
     assert "Full Stack Java Developer" in settings.profile["allowed_titles"]
     linkedin = next(s for s in build_sources(settings, client=None) if s.name == "linkedin")
     assert linkedin.queries[-2:] == ["Full Stack Java Developer", "Salesforce Developer"]
+
+
+def test_job_age_sets_every_sites_window_and_drops_older_jobs():
+    from datetime import UTC, datetime, timedelta
+
+    import httpx
+
+    from jobbot.sources.base import build_sources
+
+    settings = load_settings()
+    notes = apply_user_settings(settings, {"preferences": {"max_job_age_days": 3}})
+    assert "jobs posted within: 3 days" in notes
+    sources = {s.name: s for s in build_sources(settings, httpx.Client())}
+    assert sources["linkedin"].conf["hours_old"] == 72 and sources["naukri"].conf["hours_old"] == 72
+    assert sources["adzuna"].max_days_old == 3
+    assert sources["jsearch"].date_posted == "3days"
+    assert sources["greenhouse"].max_age == timedelta(days=3)
+
+    now = datetime(2026, 10, 1, 9, 0, tzinfo=UTC)
+
+    def posted(days_ago: float | None) -> Job:
+        when = None if days_ago is None else now - timedelta(days=days_ago)
+        return Job(
+            fingerprint=str(days_ago), title="Java Developer", company="Acme", city="Gurugram", posted_at=when
+        )
+
+    kept, dropped = Filters(settings.search).apply([posted(1), posted(3.2), posted(4), posted(None)], now)
+    # by calendar day: 3.2 days back is still the third day; a job with no date is kept
+    assert [j.fingerprint for j in kept] == ["1", "3.2", "None"]
+    assert dropped["too old"] == 1
+
+
+def test_without_a_job_age_each_site_keeps_its_own_window():
+    import httpx
+
+    from jobbot.sources.base import build_sources
+
+    settings = load_settings()
+    apply_user_settings(settings, {"preferences": {}})
+    sources = {s.name: s for s in build_sources(settings, httpx.Client())}
+    assert sources["linkedin"].conf["hours_old"] == 24 and sources["indeed"].conf["hours_old"] == 13
+    assert sources["adzuna"].max_days_old == 1 and sources["jsearch"].date_posted == "today"
+    invalid = apply_user_settings(load_settings(), {"preferences": {"max_job_age_days": 5}})
+    assert (
+        len(invalid) == 1 and "ignored" in invalid[0]
+    )  # not one of the choices: ignored, the run carries on
