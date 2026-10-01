@@ -113,3 +113,26 @@ def test_supabase_upsert_splits_known_and_new():
 def test_supabase_new_secret_key_goes_in_apikey_only():
     store = SupabaseStore("https://x.supabase.co", "sb_secret_abc")
     assert store.headers == {"apikey": "sb_secret_abc"}
+
+
+@respx.mock
+def test_a_job_with_empty_columns_still_loads():
+    # a job saved from the extension has no prefilter score; one added by hand may have no location
+    base = "https://proj.supabase.co"
+    row = {
+        "id": "j1",
+        "fingerprint": "ext:manual:1",
+        "title": "Full Stack Java Developer",
+        "company": "Acme",
+        "location": None,
+        "apply_url": None,
+        "description": None,
+        "prefilter_score": None,
+        "remote": None,
+        "missing_keywords": None,
+        "job_links": [],
+    }
+    respx.get(f"{base}/rest/v1/jobs").mock(return_value=httpx.Response(200, json=[row]))
+    job = SupabaseStore(base, "eyJservice-key", httpx.Client()).get_job("j1")
+    assert job is not None and job.title == "Full Stack Java Developer"
+    assert (job.location, job.apply_url, job.description, job.prefilter_score) == ("", "", "", 0.0)

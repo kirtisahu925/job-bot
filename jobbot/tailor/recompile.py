@@ -59,7 +59,24 @@ def _record(base: dict, pages: int, ats) -> dict[str, Any]:
 
 
 def process_edit(settings: Settings, store, edit: dict, engine: str) -> dict[str, Any]:
-    """Compile one queued edit. Returns {"edit_id", "status", "error" | "tailoring_id", "ats_score"}."""
+    """Compile one queued edit. Returns {"edit_id", "status", "error" | "tailoring_id", "ats_score"}.
+    Any failure ends as "failed" with a reason, so the editor never waits on an edit stuck at "compiling"."""
+    edit_id = edit["id"]
+    try:
+        return _process(settings, store, edit, engine)
+    except Exception as exc:  # noqa: BLE001 - reported on the edit, which is what the editor shows
+        log.exception("edit %s failed", edit_id)
+        error = (
+            f"The edit could not be saved ({type(exc).__name__}: {str(exc)[:400]}). Compile again to retry."
+        )
+        try:
+            store.update_edit(edit_id, {"status": "failed", "error": error})
+        except Exception:  # noqa: BLE001
+            log.exception("edit %s: could not record the failure", edit_id)
+        return {"edit_id": edit_id, "status": "failed", "error": error}
+
+
+def _process(settings: Settings, store, edit: dict, engine: str) -> dict[str, Any]:
     edit_id = edit["id"]
     store.update_edit(edit_id, {"status": "compiling"})
     job = store.get_job(edit["job_id"])

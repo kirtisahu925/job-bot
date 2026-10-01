@@ -139,7 +139,10 @@ class SupabaseStore:
         out = []
         for row in rows:
             row["links"] = [JobLink(**link) for link in row.pop("job_links", []) or []]
-            out.append(Job.model_validate({k: v for k, v in row.items() if k in Job.model_fields}))
+            # empty columns (a job saved from the extension has no prefilter score) take the model's defaults
+            out.append(
+                Job.model_validate({k: v for k, v in row.items() if k in Job.model_fields and v is not None})
+            )
         return out
 
     def unscored_jobs(self, limit: int, since: datetime) -> list[Job]:

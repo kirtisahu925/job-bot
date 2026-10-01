@@ -77,7 +77,7 @@ class Job(BaseModel):
     location: str = ""
     city: str | None = None
     remote: bool = False
-    apply_url: str
+    apply_url: str = ""
     description: str = ""
     salary_min: float | None = None
     salary_max: float | None = None

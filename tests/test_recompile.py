@@ -91,3 +91,14 @@ def test_edited_latex_cannot_run_shell_commands(tmp_path: Path):
     tex = rf"\documentclass{{article}}\begin{{document}}\immediate\write18{{touch {marker}}}x\end{{document}}"
     compile_tex(tex, find_engine())
     assert not marker.exists()
+
+
+def test_an_edit_that_breaks_for_another_reason_is_marked_failed(settings):
+    class Broken(EditStore):
+        def get_job(self, job_id):
+            raise ValueError("the job row could not be read")
+
+    store = Broken(_job(), BASE)
+    out = process_edit(settings, store, {"id": "e3", "job_id": "j1", "tex": "x"}, "pdflatex")
+    assert out["status"] == "failed" and "could not be read" in out["error"]
+    assert store.edit_updates[-1] == {"status": "failed", "error": out["error"]}  # not left at "compiling"
