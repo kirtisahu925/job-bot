@@ -163,7 +163,7 @@ export default function JobDetail() {
         </div>
 
         <aside className="props" aria-label="Properties">
-          <section className="panel panel-pad">
+          <section className="panel panel-pad props-lead">
             <dl className="prop-list">
               <Prop term="Status">
                 <StatusSelect status={job.status} onChange={(s: JobStatus) => update({ status: s })} label="Status" showLabel />
@@ -238,7 +238,7 @@ export default function JobDetail() {
           </section>
 
           {t && (
-            <section className="panel panel-pad" aria-labelledby="resume-h">
+            <section className="panel panel-pad props-lead" aria-labelledby="resume-h">
               <div className="section-head" style={{ marginBottom: 0 }}>
                 <h2 id="resume-h">Tailored resume</h2>
                 <span className="muted xs">{ago(t.created_at)}</span>

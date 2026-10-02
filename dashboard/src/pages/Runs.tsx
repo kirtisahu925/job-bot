@@ -32,7 +32,7 @@ export default function Runs() {
       </div>
       {error && <Notice kind="error">{error}</Notice>}
       <div className="panel table-wrap">
-        <table>
+        <table className="runs">
           <thead>
             <tr>
               <th>Started (IST)</th>
@@ -51,22 +51,28 @@ export default function Runs() {
             {(runs ?? []).map((r) => {
               const llm = r.summary?.llm;
               const bad = (r.summary?.sources ?? []).filter((s) => !["ok", "skipped"].includes(s.status));
+              const kind = r.trigger === "schedule" ? "Scan" : r.trigger === "tailor-now" ? "Tailor now" : "Manual";
               return (
                 <tr key={r.id}>
-                  <td className="num">{istDateTime(r.started_at)}</td>
-                  <td>{r.trigger === "schedule" ? "Scan" : r.trigger === "tailor-now" ? "Tailor now" : "Manual"}</td>
-                  <td className={r.status === "ok" ? "good" : r.status === "running" ? "warn" : "bad"}>
+                  <td className="num r-when">{istDateTime(r.started_at)}</td>
+                  <td className="only-wide">{kind}</td>
+                  <td className={`r-status ${r.status === "ok" ? "good" : r.status === "running" ? "warn" : "bad"}`}>
                     {r.status === "ok" ? "Finished" : r.status === "running" ? "Running" : r.status}
                   </td>
-                  <td className="right num">{r.fetched ?? "-"}</td>
-                  <td className="right num">{r.new_jobs ?? "-"}</td>
-                  <td className="right num">{r.scored ?? "-"}</td>
-                  <td className="right num">{r.tailored ?? "-"}</td>
-                  <td className="right num">
+                  <td className="only-narrow r-sum">
+                    {[kind, `${r.fetched ?? 0} fetched`, `${r.new_jobs ?? 0} new`, `${r.scored ?? 0} scored`, `${r.tailored ?? 0} resumes`]
+                      .concat(llm ? [`${compact(llm.input_tokens + llm.output_tokens + llm.thinking_tokens)} tokens`] : [])
+                      .join(" · ")}
+                  </td>
+                  <td className="right num only-wide">{r.fetched ?? "-"}</td>
+                  <td className="right num only-wide">{r.new_jobs ?? "-"}</td>
+                  <td className="right num only-wide">{r.scored ?? "-"}</td>
+                  <td className="right num only-wide">{r.tailored ?? "-"}</td>
+                  <td className="right num only-wide">
                     {llm ? compact(llm.input_tokens + llm.output_tokens + llm.thinking_tokens) : "-"}
                     {llm && llm.cost_usd > 0 && <div className="muted small">{usd(llm.cost_usd)}</div>}
                   </td>
-                  <td>
+                  <td className="r-problems">
                     {bad.map((s) => (
                       <div key={s.source} className="small warn" title={s.error ?? undefined}>
                         {s.source}: {SOURCE_PROBLEM[s.status] ?? s.status}

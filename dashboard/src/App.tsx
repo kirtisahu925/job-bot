@@ -6,6 +6,7 @@ import {
   GraduationCap,
   History,
   LogOut,
+  Menu,
   Monitor,
   Moon,
   Plus,
@@ -17,8 +18,8 @@ import {
   Table2,
   UsersRound,
 } from "lucide-react";
-import { lazy, Suspense, useEffect, useState } from "react";
-import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { Link, NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ICON, Mark, Notice } from "./components/bits";
 import CommandMenu, { openCommandMenu } from "./components/CommandMenu";
 import { api } from "./lib/api";
@@ -48,7 +49,7 @@ const loading = <p className="muted">Loading…</p>;
 
 type NavItem = { to: string; label: string; short: string; Icon: typeof Table2; feature?: string; group: "work" | "insight" | "you"; tab?: number };
 
-// `tab`: the order on the phone tab bar, which shows the first five the account has
+// `tab`: the order on the phone tab bar, which shows the first four the account has; the rest are under More
 const NAV: NavItem[] = [
   { to: "/jobs", label: "Jobs", short: "Jobs", Icon: Table2, group: "work", tab: 1 },
   { to: "/board", label: "Board", short: "Board", Icon: Columns3, group: "work", tab: 5 },
@@ -86,6 +87,53 @@ function ThemeButton({ compact = false }: { compact?: boolean }) {
       <Icon {...ICON} size={14} />
       {!compact && THEME_LABEL[theme]}
     </button>
+  );
+}
+
+/** The phone tab bar's last button: a sheet with every page that has no tab of its own. */
+function MoreTab({ items }: { items: NavItem[] }) {
+  const sheet = useRef<HTMLDialogElement>(null);
+  const { pathname } = useLocation();
+  const here = items.some((n) => pathname === n.to || pathname.startsWith(`${n.to}/`));
+  const close = () => sheet.current?.close();
+  useEffect(close, [pathname]);
+  return (
+    <>
+      <button type="button" className={`tab-more${here ? " active" : ""}`} onClick={() => sheet.current?.showModal()} aria-haspopup="dialog">
+        <Menu {...ICON} size={20} />
+        More
+      </button>
+      <dialog
+        ref={sheet}
+        className="sheet"
+        aria-label="More pages"
+        // a tap on the dimmed backdrop lands on the dialog itself
+        onClick={(e) => e.target === e.currentTarget && close()}
+      >
+        <div className="sheet-body">
+          <nav className="nav" aria-label="More pages">
+            {NAV_GROUPS.map(([group, title]) => {
+              const list = items.filter((n) => n.group === group);
+              if (!list.length) return null;
+              return (
+                <div key={group} className="nav-group">
+                  <div className="nav-label">{title}</div>
+                  {list.map(({ to, label, Icon }) => (
+                    <NavLink key={to} to={to} onClick={close}>
+                      <Icon {...ICON} />
+                      {label}
+                    </NavLink>
+                  ))}
+                </div>
+              );
+            })}
+          </nav>
+          <button type="button" className="btn block" onClick={close}>
+            Close
+          </button>
+        </div>
+      </dialog>
+    </>
   );
 }
 
@@ -136,6 +184,10 @@ export default function App() {
   const features = useFeatures(!!email);
   const nav = NAV.filter((n) => !n.feature || !!features?.includes(n.feature));
   const contacts = !!features?.includes("contacts");
+  const tabs = nav
+    .filter((n) => n.tab)
+    .sort((a, b) => a.tab! - b.tab!)
+    .slice(0, 4);
 
   useEffect(() => {
     // a failed session check means "signed out", never a blank page
@@ -263,17 +315,14 @@ export default function App() {
       </main>
 
       <nav className="tabbar" aria-label="Pages">
-        {/* five tabs fit a phone; the rest are in the search menu and the header's Settings button */}
-        {nav
-          .filter((n) => n.tab)
-          .sort((a, b) => a.tab! - b.tab!)
-          .slice(0, 5)
-          .map(({ to, short, Icon }) => (
-            <NavLink key={to} to={to}>
-              <Icon {...ICON} size={20} />
-              {short}
-            </NavLink>
-          ))}
+        {/* four tabs and More fit a phone */}
+        {tabs.map(({ to, short, Icon }) => (
+          <NavLink key={to} to={to}>
+            <Icon {...ICON} size={20} />
+            {short}
+          </NavLink>
+        ))}
+        <MoreTab items={nav.filter((n) => !tabs.includes(n))} />
       </nav>
 
       <CommandMenu onSignOut={signOut} contacts={contacts} />

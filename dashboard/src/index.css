@@ -414,8 +414,9 @@ a.tag:hover { border-color: var(--control); color: var(--text); }
 .jrow .role-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .jrow .role-sub { display: flex; align-items: center; min-width: 0; white-space: nowrap; }
 .jrow .role-sub .clip { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.jrow .role-sub .age-sub { flex: none; margin-left: 4px; font-variant-numeric: tabular-nums; }
 .jrow .reason { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: none; }
-.jrow .age { color: var(--text-3); font-size: var(--fs-xs); text-align: right; font-variant-numeric: tabular-nums; }
+.jrow .age { color: var(--text-3); font-size: var(--fs-xs); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .jrow .act { display: flex; gap: 6px; justify-content: flex-end; min-width: 0; }
 .jrow .c-sources { display: flex; justify-content: flex-end; }
 .jrow .c-ats { display: flex; justify-content: flex-end; }
@@ -580,9 +581,9 @@ a.src:hover { color: var(--text); border-color: var(--control); }
     display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
     background: var(--sidebar); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom);
   }
-  .tabbar a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; min-width: 0; font-size: 11px; white-space: nowrap; color: var(--text-3); text-decoration: none; font-weight: 500; }
-  .tabbar a.active { color: var(--text); }
-  .tabbar a.active .icon { color: var(--accent-text); }
+  .tabbar > a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; min-width: 0; font-size: 11px; white-space: nowrap; color: var(--text-3); text-decoration: none; font-weight: 500; }
+  .tabbar > a.active { color: var(--text); }
+  .tabbar > a.active .icon { color: var(--accent-text); }
   .main-inner { padding: 16px 16px 92px; }
   .split, .cols-2 { grid-template-columns: 1fr; }
   .props { position: static; }
@@ -597,7 +598,10 @@ a.src:hover { color: var(--text); border-color: var(--control); }
   .jrow .c-scores { grid-area: scores; display: flex; gap: 6px; }
   .jrow .c-meta { grid-area: meta; display: flex; gap: 8px; align-items: center; }
   .jrow .act { grid-area: act; min-width: 0; }
-  .jrow .c-sources { display: none; }
+  .jrow .c-sources, .jrow .c-age { display: none; }
+  .jrow .role-sub { flex-wrap: wrap; white-space: normal; }
+  .jrow .role-sub .clip { overflow: visible; }
+  .jrow .role-sub .age-sub { white-space: nowrap; }
   .jrow .reason { display: none; }
   .shortcuts { display: none; }
   .part, .parts-head { grid-template-columns: minmax(0, 1fr) 58px 78px; font-size: var(--fs-xs); }
@@ -792,3 +796,55 @@ fieldset.plain legend { padding: 0; font-size: var(--fs-xs); font-weight: 500; c
 /* LaTeX editor on a job's page */
 textarea.code { font-family: "JetBrains Mono Variable", ui-monospace, monospace; font-size: 12px; line-height: 1.55; min-height: 360px; white-space: pre; overflow: auto; tab-size: 2; }
 .latex-log pre { margin: 8px 0 0; padding: 10px 12px; max-height: 260px; overflow: auto; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); font: 12px/1.5 "JetBrains Mono Variable", ui-monospace, monospace; color: var(--text-2); white-space: pre-wrap; }
+
+/* phones and touch screens ---------------------------------------------------------------------- */
+@media (max-width: 860px) {
+  /* 16px text in fields: below that, iPhones zoom the page in when a field is tapped */
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) { font-size: 16px; }
+  /* tabs and time ranges wrap instead of hiding options past the edge */
+  .tabs, .seg { flex-wrap: wrap; overflow-x: visible; }
+  .seg button { white-space: nowrap; }
+  /* a job: what you act on first (status, the PDF, Apply), then the ATS detail and the description */
+  .split { display: flex; flex-direction: column; }
+  .split > aside.props { display: contents; }
+  .split .props-lead { order: -1; }
+  /* runs: one entry per run, the counts on one line */
+  table.runs thead { display: none; }
+  table.runs tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  table.runs td { padding: 0; border: 0; text-align: left; }
+  table.runs td.only-wide { display: none; }
+  table.runs td.r-when { font-weight: 500; }
+  table.runs td.r-status { grid-column: 2; grid-row: 1; text-align: right; }
+  table.runs td.r-sum, table.runs td.r-problems { grid-column: 1 / -1; }
+  table.runs td.r-sum { color: var(--text-2); font-size: var(--fs-small); }
+  table.runs td.r-problems:empty { display: none; }
+  /* the "More" sheet from the tab bar */
+  .tabbar .tab-more { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; min-width: 0; border: 0; background: none; font: inherit; font-size: 11px; font-weight: 500; color: var(--text-3); cursor: pointer; }
+  .tabbar .tab-more.active { color: var(--text); }
+  .tabbar .tab-more.active .icon { color: var(--accent-text); }
+}
+@media (min-width: 861px) {
+  table.runs td.only-narrow { display: none; }
+}
+dialog.sheet {
+  margin: auto 0 0; width: 100%; max-width: 100%; max-height: 85vh; padding: 0; border: 0; border-top: 1px solid var(--line);
+  border-radius: 14px 14px 0 0; background: var(--sidebar); color: var(--text); overflow-y: auto;
+}
+dialog.sheet::backdrop { background: rgb(0 0 0 / 0.55); }
+.sheet-body { padding: 8px 12px calc(12px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 4px; }
+.sheet-body .nav a { min-height: 44px; }
+.sheet-body .btn { margin-top: 8px; height: 44px; }
+/* fingers need bigger targets than a mouse pointer */
+@media (pointer: coarse) {
+  .tabs button, .seg button { height: 36px; padding: 0 12px; }
+  .status-select { height: 36px; }
+  .filters select, .filters input[type="number"], select.compact, input.compact { height: 40px; }
+  .icon-btn { width: 36px; height: 36px; }
+  .chip button { width: 28px; height: 28px; }
+  label.check, .check { min-height: 36px; }
+  .only-fine { display: none !important; }
+}
+@media (pointer: fine) {
+  .only-coarse { display: none !important; }
+}
+.jobcard .status-select { margin-top: 8px; border-color: var(--line); }

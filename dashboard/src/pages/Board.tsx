@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { AtsScore, MatchScore, Notice, StatusIcon } from "../components/bits";
+import { AtsScore, MatchScore, Notice, StatusIcon, StatusSelect } from "../components/bits";
 import { STATUS_LABEL, type Job, type JobStatus } from "../lib/types";
 import { useJobs } from "../lib/useJobs";
 import { useTitle } from "../lib/useTitle";
 
 const COLUMNS: JobStatus[] = ["new", "shortlisted", "tailor_queued", "tailored", "applied", "interviewing", "offer", "rejected"];
 
-function Card({ job }: { job: Job }) {
+function Card({ job, onMove }: { job: Job; onMove: (s: JobStatus) => void }) {
   return (
     <div className="jobcard" draggable onDragStart={(e) => e.dataTransfer.setData("text/plain", job.id)} aria-label={`${job.title} at ${job.company}`}>
       <Link className="role-title" to={`/jobs/${job.id}`}>
@@ -20,6 +20,9 @@ function Card({ job }: { job: Job }) {
           <AtsScore pill score={job.ats_score ?? job.tailorings[0]?.ats_score} />
         </span>
         <span>{job.remote ? "Remote" : job.city ?? job.location}</span>
+      </div>
+      <div className="only-coarse">
+        <StatusSelect status={job.status} onChange={onMove} label={`Move ${job.title} to`} showLabel />
       </div>
     </div>
   );
@@ -35,7 +38,10 @@ export default function Board() {
       <div className="page-head">
         <div>
           <h1>Board</h1>
-          <p className="lede">Drag a card to another column to change its status. Scroll sideways for the columns after Applied.</p>
+          <p className="lede">
+            <span className="only-fine">Drag a card to another column to change its status. Scroll sideways for the columns after Applied.</span>
+            <span className="only-coarse">Change a card's status from the menu on the card; it moves to that column.</span>
+          </p>
         </div>
       </div>
       {error && <Notice kind="error">{error}</Notice>}
@@ -67,7 +73,7 @@ export default function Board() {
                 <span className="num">{jobs ? items.length : "…"}</span>
               </div>
               {items.map((j) => (
-                <Card key={j.id} job={j} />
+                <Card key={j.id} job={j} onMove={(s) => setStatus(j.id, s)} />
               ))}
               {jobs && items.length === 0 && <p className="muted xs" style={{ padding: "4px 6px" }}>Nothing here.</p>}
             </section>

@@ -328,6 +328,11 @@ restrict accounts it thinks are automated.
   the next scan compiles it.
 - **Consumption**: tokens, money used, current balances, top-ups, and the health of each job source.
 
+On a phone the dashboard has a bottom tab bar: Jobs, Applied, Contacts (with the add-on) and Companies,
+plus **More** for every other page. A job's page opens on its status and tailored resume, with the ATS
+detail below. On the Board, each card has a status menu, because touch screens cannot drag cards between
+columns. Fields use 16px text, so iPhones do not zoom in when you tap one.
+
 Scans skip internships and new-graduate roles even when their title looks ordinary: the site's own job type
 (LinkedIn, Indeed, JSearch, Lever, Ashby, Jooble, Remotive) or the ad itself ("Internship Opportunity",
 "Position: ... Intern", "Job Type: Internship") gives them away, and titles with graduate, campus,

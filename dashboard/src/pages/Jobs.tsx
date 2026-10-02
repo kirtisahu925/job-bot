@@ -307,6 +307,7 @@ export default function Jobs() {
                         <span className="clip">
                           {j.company} · {j.remote ? "Remote" : j.city ?? j.location}
                         </span>
+                        <span className="only-narrow age-sub">· {ago(j.created_at)}</span>
                       </div>
                     </div>
                     <div className="c-meta">
