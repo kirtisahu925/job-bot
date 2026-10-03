@@ -10,6 +10,7 @@ from typing import Any
 from jobbot.ats.score import JDKeywords
 from jobbot.ats.score import compute as ats_compute
 from jobbot.config import Settings, load_own_resume
+from jobbot.store.base import resume_file_name
 from jobbot.tailor.compile import CompileError, compile_tex
 from jobbot.tailor.generate import pdf_text
 from jobbot.tailor.own_resume import page_count
@@ -116,7 +117,10 @@ def _process(settings: Settings, store, edit: dict, engine: str) -> dict[str, An
             },
             target=settings.search.ats.target,
         )
-    saved = store.save_tailoring(job.id, _record(base or {}, pages, ats), edit["tex"].encode(), pdf)
+    name = resume_file_name(settings.profile, job.company, job.title)
+    saved = store.save_tailoring(
+        job.id, _record(base or {}, pages, ats), edit["tex"].encode(), pdf, name=name
+    )
     store.update_job(job.id, {"ats_score": ats.score if ats else None})
     store.update_edit(edit_id, {"status": "done", "result_tailoring_id": saved.get("id"), "error": None})
     return {

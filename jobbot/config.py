@@ -74,6 +74,11 @@ class SearchConfig(BaseModel):
     sources: dict[str, dict[str, Any]] = Field(default_factory=dict)
     # only jobs posted within this many days (Preferences); None keeps each site's own window below
     max_job_age_days: int | None = None
+    # deal-breakers from Preferences, applied before any AI call
+    skip_companies: list[str] = Field(default_factory=list)
+    skip_phrases: list[str] = Field(default_factory=list)  # e.g. "night shift", "service agreement"
+    skip_it_services: bool = False
+    it_services: list[str] = Field(default_factory=list)  # the firms skip_it_services drops
 
     @property
     def max_required_years(self) -> int:

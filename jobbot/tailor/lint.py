@@ -18,6 +18,64 @@ SUMMARY_RANGES = ((205, 226), (318, 339))
 PASSIVE = re.compile(
     r"^(responsible for|helped( with)?|worked on|assisted|involved in|participated in|tasked with)\b", re.I
 )
+# Wording that makes a resume read as machine-written: recruiters skim past it even when the keywords match.
+CLICHES = (
+    "spearheaded",
+    "spearheading",
+    "leveraged",
+    "leveraging",
+    "results-driven",
+    "results driven",
+    "passionate",
+    "proven track record",
+    "synergy",
+    "synergies",
+    "seamless",
+    "seamlessly",
+    "cutting-edge",
+    "cutting edge",
+    "state-of-the-art",
+    "world-class",
+    "best-in-class",
+    "self-starter",
+    "go-getter",
+    "detail-oriented",
+    "team player",
+    "dynamic professional",
+    "harnessed",
+    "revolutionized",
+    "game-changing",
+    "delved",
+)
+_CLICHE = re.compile(r"(?<![a-z-])(" + "|".join(re.escape(c) for c in CLICHES) + r")(?![a-z-])", re.I)
+# "utilize" always means "use": fixed in code
+_UTILIZE = re.compile(r"\butili[sz](e|es|ed|ing)\b", re.I)
+_UTILIZE_TO = {"e": "use", "es": "uses", "ed": "used", "ing": "using"}
+
+
+def plain_words(text: str) -> str:
+    def swap(m: re.Match[str]) -> str:
+        word = _UTILIZE_TO[m.group(1).lower()]
+        return word.capitalize() if m.group(0)[0].isupper() else word
+
+    return _UTILIZE.sub(swap, text)
+
+
+def cliche_issues(text: str, where: str) -> list[Issue]:
+    """One issue per clichéd text; the next review round rewrites it in plain words (no extra AI call)."""
+    found = sorted({m.group(1).lower() for m in _CLICHE.finditer(text)})
+    if not found:
+        return []
+    words = ", ".join(repr(f) for f in found)
+    return [
+        Issue(
+            "cliche",
+            where,
+            f"reads as AI-written ({words}); say plainly what was built or changed: {text[:80]!r}",
+        )
+    ]
+
+
 RULE3 = (
     r"\setlength{\spaceskip}{0.333em plus 0.2em minus 0.03em}",
     r"\hyphenpenalty=10000",
@@ -28,7 +86,7 @@ RULE3 = (
 
 @dataclass
 class Issue:
-    code: str  # length | passive | stub | pages | underfill | unknown_id | rule3 | markdown | emdash | pipe
+    code: str  # length | passive | cliche | stub | pages | underfill | unknown_id | rule3 | markdown | emdash | pipe
     where: str  # e.g. "experience:current#2", "summary", "document"
     message: str
     llm_fixable: bool = True
@@ -45,6 +103,14 @@ class LintReport:
 
 
 def _clean_text(text: str) -> tuple[str, list[str]]:
+    text, notes = _clean_marks(text)
+    plain = plain_words(text)
+    if plain != text:
+        notes.append('"utilize" changed to "use"')
+    return plain, notes
+
+
+def _clean_marks(text: str) -> tuple[str, list[str]]:
     notes = []
     new = text
     if "**" in new or "__" in new or "`" in new:
@@ -130,9 +196,11 @@ def check_content(resume: TailoredResume) -> list[Issue]:
                     f"achievement {_range_hint(len(text), BULLET_RANGES)}: {text!r}",
                 )
             )
+        issues += cliche_issues(text, f"achievement#{i + 1}")
     n = len(resume.summary)
     if not _in_ranges(n, SUMMARY_RANGES):
         issues.append(Issue("length", "summary", f"summary {_range_hint(n, SUMMARY_RANGES)}"))
+    issues += cliche_issues(resume.summary, "summary")
     for kind, section in (("experience", resume.experience), ("project", resume.projects)):
         for entry in section:
             for i, b in enumerate(sorted(entry.bullets, key=lambda x: x.impact_rank)):
@@ -147,6 +215,7 @@ def check_content(resume: TailoredResume) -> list[Issue]:
                     issues.append(
                         Issue("passive", where, f"bullet starts with a passive opener: {b.text[:40]!r}")
                     )
+                issues += cliche_issues(b.text, where)
     return issues
 
 

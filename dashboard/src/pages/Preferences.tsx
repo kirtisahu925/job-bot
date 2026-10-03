@@ -32,6 +32,18 @@ const JOB_AGES: [JobAge, string, string][] = [
   [30, "30 days", "The most jobs; older ones are likelier filled"],
 ];
 
+// common deal-breakers in Indian job ads; matched as whole words in the title and description
+const DEAL_BREAKERS = [
+  "night shift",
+  "rotational shift",
+  "service agreement",
+  "bond period",
+  "contract to hire",
+  "C2H",
+  "third-party payroll",
+  "6 days working",
+];
+
 const BLANK: Prefs = {
   target_level: "",
   target_roles: [],
@@ -45,6 +57,9 @@ const BLANK: Prefs = {
   exclude_title_words: [],
   min_salary_lpa: null,
   max_job_age_days: null,
+  skip_companies: [],
+  skip_phrases: [],
+  skip_it_services: null,
 };
 
 export default function Preferences() {
@@ -252,6 +267,27 @@ export default function Preferences() {
               <span className="hint">Only drops jobs that state a lower rupee salary; most ads state none and are kept.</span>
             </label>
           </div>
+          <div className="two">
+            <ChipInput
+              label="Never show jobs from"
+              value={p.skip_companies}
+              onChange={(v) => set("skip_companies", v)}
+              placeholder="e.g. Acme Corp, then Enter"
+              hint="Their divisions too: Infosys also skips Infosys BPM, but not a company that only starts with the same letters."
+            />
+            <ChipInput
+              label="Skip jobs that mention"
+              value={p.skip_phrases}
+              onChange={(v) => set("skip_phrases", v)}
+              suggestions={DEAL_BREAKERS}
+              placeholder="e.g. night shift"
+              hint="Deal-breakers, matched as whole words in the title and description."
+            />
+          </div>
+          <label className="check">
+            <input type="checkbox" checked={!!p.skip_it_services} onChange={(e) => set("skip_it_services", e.target.checked)} />
+            Skip IT-services companies (TCS, Infosys, Wipro, Accenture, Cognizant and the others listed in config/search.yaml)
+          </label>
         </section>
 
         <div className="form-actions">

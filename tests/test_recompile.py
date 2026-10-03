@@ -26,7 +26,7 @@ class EditStore:
     def known_skills(self):
         return []
 
-    def save_tailoring(self, job_id, record, tex, pdf):
+    def save_tailoring(self, job_id, record, tex, pdf, name="resume"):
         self.saved.append(record)
         return {"id": "t-new"}
 
@@ -102,3 +102,13 @@ def test_an_edit_that_breaks_for_another_reason_is_marked_failed(settings):
     out = process_edit(settings, store, {"id": "e3", "job_id": "j1", "tex": "x"}, "pdflatex")
     assert out["status"] == "failed" and "could not be read" in out["error"]
     assert store.edit_updates[-1] == {"status": "failed", "error": out["error"]}  # not left at "compiling"
+
+
+def test_resume_files_are_named_for_the_recruiter():
+    from jobbot.store.base import resume_file_name
+
+    profile = {"contact": {"name": "Ankit Shilarkar"}}
+    assert resume_file_name(profile, "JP Morgan Chase & Co.", "SDE II, Platform") == (
+        "Ankit_Shilarkar_Resume_JP_Morgan_Chase_Co_SDE_II_Platform"
+    )
+    assert resume_file_name({}, "Acme", "Java Developer") == "Resume_Acme_Java_Developer"

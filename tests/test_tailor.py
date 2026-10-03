@@ -135,3 +135,20 @@ def test_header_links_show_their_names_and_keep_the_address_behind_them():
     )
     # the e-mail stays readable text for ATS parsers, and is also a mailto link
     assert r"\href{mailto:a_b@example.com}{a\_b@example.com}" in h["line1"]
+
+
+def test_ai_sounding_words_are_flagged_and_utilize_becomes_use():
+    from jobbot.tailor.lint import cliche_issues, plain_words
+
+    assert (
+        plain_words("Utilized Redis; utilizing queues; utilises Kafka")
+        == "Used Redis; using queues; uses Kafka"
+    )
+    issues = cliche_issues(
+        "Spearheaded a seamless, results-driven migration of the payments API", "experience:x#1"
+    )
+    assert len(issues) == 1 and issues[0].code == "cliche" and issues[0].llm_fixable
+    assert "'results-driven'" in issues[0].message and "'spearheaded'" in issues[0].message
+    # whole words only: technical terms that contain a cliché are fine
+    assert cliche_issues("Added seamlessness checks to the passionate-free release notes", "summary") == []
+    assert cliche_issues("Moved 40 services to Kubernetes and cut deploys to 10 minutes", "summary") == []

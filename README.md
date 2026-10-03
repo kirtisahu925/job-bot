@@ -316,6 +316,9 @@ restrict accounts it thinks are automated.
   no date filter (Foundit, Wellfound, Remotive, Jooble). Each run scores at most `score_top_k` (30) new
   jobs, so a longer window spends that allowance on older jobs, and a shorter one often leaves part of it
   unused. Until you choose, each site keeps its own window in `config/search.yaml`.
+  **Deal-breakers** are dropped before any AI call too: companies you never want ("Infosys" also skips
+  Infosys BPM), phrases such as "night shift" or "service agreement" in the title or description, and,
+  with one switch, the IT-services firms listed under `it_services` in `config/search.yaml`.
 - **Settings**: which review rounds run, the ATS target and minimum, fix-up calls, the AI for resumes
   (free Gemini, Claude Sonnet 5.5 or Claude Opus 5.5, with the cost of each), resumes per scheduled scan,
   cover letters, and your account.
@@ -326,6 +329,17 @@ restrict accounts it thinks are automated.
   with the link behind them. New resumes already do this: the header shows LinkedIn and GitHub as links, and
   keeps the e-mail readable (ATS parsers read it). When Tailor now cannot start GitHub, the edit is saved and
   the next scan compiles it.
+- **Why this match**: each job's match score is a weighted fit, shown part by part on its page: required
+  skills (weight 3) and experience (2) measured in code, domain (2), seniority (2) and similar work (1)
+  rated by the scoring model with a reason each, and education (1). 80 and up is a strong fit, 60 to 79
+  moderate, below 60 a stretch.
+- **Application review** (Applications page): reply rate, interviews, likely-ghosted applications (no reply
+  in 3 weeks), the typical wait for a reply, replies by job site, and what a pattern means: rejections
+  within 2 days of applying point to an automated screen (raise the ATS minimum), rejections after an
+  interview point to interview practice. With too little data it says there is no clear pattern yet.
+- Resumes are saved as `Your_Name_Resume_Company_Role.pdf`, the name a recruiter sees on the attachment,
+  and the writer avoids AI-sounding wording: "spearheaded", "leveraged", "results-driven" and similar are
+  flagged in code and rewritten in the existing review rounds; "utilize" becomes "use".
 - **Consumption**: tokens, money used, current balances, top-ups, and the health of each job source.
 
 On a phone the dashboard has a bottom tab bar: Jobs, Applied, Contacts (with the add-on) and Companies,

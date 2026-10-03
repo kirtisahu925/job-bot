@@ -2,10 +2,20 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AtsScore, Empty, Notice, PdfButton, SkeletonRows, StatusSelect } from "../components/bits";
 import { DueTag } from "../components/contacts";
-import { ACTIVE_APPLICATION, APPLICATION_STATUSES, daysSince, funnel, nextStepFor, stageSince } from "../lib/applications";
+import {
+  ACTIVE_APPLICATION,
+  APPLICATION_STATUSES,
+  daysSince,
+  funnel,
+  nextStepFor,
+  review,
+  stageSince,
+  type StatusEvent,
+} from "../lib/applications";
 import { countBy } from "../lib/companyMatch";
 import { contactsApi } from "../lib/contacts/api";
 import { dueLabel } from "../lib/contacts/cadence";
+import { sourceLabel } from "../lib/format";
 import { STATUS_LABEL, type JobStatus } from "../lib/types";
 import { useJobs } from "../lib/useJobs";
 import { useTitle } from "../lib/useTitle";
@@ -21,9 +31,14 @@ export default function Applications() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [contactCompanies, setContactCompanies] = useState<string[]>([]);
   const [view, setView] = useState<View>("active");
+  const [events, setEvents] = useState<StatusEvent[]>([]);
 
   useEffect(() => {
     workspaceApi.companies().then(setCompanies, () => setCompanies([]));
+    workspaceApi.jobEvents(2000).then(
+      (rows) => setEvents(rows.filter((e) => e.kind === "status")),
+      () => setEvents([]),
+    );
     contactsApi
       .features()
       .then(async (f) => {
@@ -38,6 +53,7 @@ export default function Applications() {
   const apps = useMemo(() => (jobs ?? []).filter((j) => APPLICATION_STATUSES.includes(j.status)), [jobs]);
   const f = funnel(apps);
   const now = new Date();
+  const weekly = useMemo(() => review(apps, events, { label: sourceLabel }), [apps, events]);
 
   const bracketOf = useMemo(() => {
     const by = countBy(
@@ -191,6 +207,68 @@ export default function Applications() {
           </Empty>
         )}
       </div>
+
+      {jobs && f.total > 0 && (
+        <section className="panel panel-pad stack review" aria-labelledby="review-h" style={{ marginTop: 20 }}>
+          <div>
+            <h2 id="review-h">How your applications are doing</h2>
+            <p className="small muted">Read from your application stages and when they changed. Updated as you move jobs along.</p>
+          </div>
+          <dl className="ledger" aria-label="Application review">
+            <div>
+              <dt>Replied</dt>
+              <dd>
+                {Math.round((weekly.replies / weekly.applied) * 100)}%<span className="small">{weekly.replies} of {weekly.applied}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Reached interview</dt>
+              <dd>{weekly.interviews}</dd>
+            </div>
+            <div>
+              <dt>Likely ghosted</dt>
+              <dd>
+                {weekly.ghosted}
+                <span className="small">no reply in 3+ weeks</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Typical wait for a reply</dt>
+              <dd>{weekly.medianDaysToReply == null ? "–" : `${weekly.medianDaysToReply} day${weekly.medianDaysToReply === 1 ? "" : "s"}`}</dd>
+            </div>
+          </dl>
+          <ul className="findings-list">
+            {weekly.findings.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          {weekly.bySource.length > 1 && (
+            <div className="table-wrap">
+              <table className="by-source">
+                <caption className="visually-hidden">Replies by job site</caption>
+                <thead>
+                  <tr>
+                    <th>Found on</th>
+                    <th className="right">Applied</th>
+                    <th className="right">Replied</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {weekly.bySource.map((r) => (
+                    <tr key={r.source}>
+                      <td>{sourceLabel(r.source)}</td>
+                      <td className="right num">{r.applied}</td>
+                      <td className="right num">
+                        {r.replies} <span className="muted xs">({Math.round((r.replies / r.applied) * 100)}%)</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
     </>
   );
 }

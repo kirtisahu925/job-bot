@@ -185,11 +185,11 @@ class SupabaseStore:
         return path
 
     def save_tailoring(
-        self, job_id: str, record: dict[str, Any], tex: bytes | None, pdf: bytes | None
+        self, job_id: str, record: dict[str, Any], tex: bytes | None, pdf: bytes | None, name: str = "resume"
     ) -> dict:
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        tex_path = self._upload(f"{job_id}/{stamp}/resume.tex", tex, "text/plain") if tex else None
-        pdf_path = self._upload(f"{job_id}/{stamp}/resume.pdf", pdf, "application/pdf") if pdf else None
+        tex_path = self._upload(f"{job_id}/{stamp}/{name}.tex", tex, "text/plain") if tex else None
+        pdf_path = self._upload(f"{job_id}/{stamp}/{name}.pdf", pdf, "application/pdf") if pdf else None
         rows = self._post(
             "tailorings",
             {"job_id": job_id, **record, "tex_path": tex_path, "pdf_path": pdf_path},

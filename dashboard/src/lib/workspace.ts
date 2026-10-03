@@ -37,6 +37,10 @@ export interface Preferences {
   min_salary_lpa: number | null;
   /** Only jobs posted within this many days are fetched and scored; null keeps each site's own window. */
   max_job_age_days: JobAge | null;
+  /** deal-breakers, dropped before any AI call */
+  skip_companies: string[];
+  skip_phrases: string[];
+  skip_it_services: boolean | null;
 }
 
 export type JobAge = 1 | 3 | 7 | 30;

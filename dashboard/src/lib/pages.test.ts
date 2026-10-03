@@ -76,3 +76,40 @@ linkedin.com/in/some-one, github.com/some\_one\par
     expect(linkProfiles(tex).changed).toBe(0); // running it again changes nothing
   });
 });
+
+describe("the weekly application review", () => {
+  const now = new Date("2026-10-03T06:00:00Z");
+  const day = (d: number) => new Date(now.getTime() - d * 86_400_000).toISOString();
+  let n = 0;
+  const app = (status: "applied" | "interviewing" | "rejected", appliedDaysAgo: number, source: string) => ({
+    id: `j${++n}`,
+    status,
+    applied_at: day(appliedDaysAgo),
+    updated_at: day(appliedDaysAgo),
+    captured_by: "bot",
+    job_links: [{ source }],
+  });
+
+  it("spots automated screens, reply rates by site and ghosted applications, and never invents a pattern", async () => {
+    const { review } = await import("./applications");
+    const fastRejected = [app("rejected", 10, "naukri"), app("rejected", 9, "naukri"), app("rejected", 8, "naukri")];
+    const linkedin = [app("interviewing", 12, "linkedin"), app("rejected", 12, "linkedin"), app("applied", 4, "linkedin"), app("applied", 3, "linkedin"), app("applied", 2, "linkedin")];
+    const quiet = [app("applied", 30, "naukri"), app("applied", 25, "naukri"), app("applied", 22, "naukri"), app("applied", 5, "naukri")];
+    const jobs = [...fastRejected, ...linkedin, ...quiet];
+    const events = [
+      ...fastRejected.map((j) => ({ job_id: j.id, at: new Date(new Date(j.applied_at).getTime() + 86_400_000).toISOString(), to_status: "rejected" as const })),
+      { job_id: linkedin[0].id, at: day(5), to_status: "interviewing" as const },
+      { job_id: linkedin[1].id, at: day(6), to_status: "interviewing" as const },
+      { job_id: linkedin[1].id, at: day(2), to_status: "rejected" as const },
+    ];
+    const r = review(jobs, events, { now });
+    expect(r).toMatchObject({ applied: 12, replies: 5, interviews: 2, ghosted: 3, medianDaysToReply: 1 });
+    expect(r.bySource).toEqual([
+      { source: "naukri", applied: 7, replies: 3 },
+      { source: "linkedin", applied: 5, replies: 2 },
+    ]);
+    expect(r.findings.join(" ")).toMatch(/3 of your 4 rejections came within 2 days/);
+    expect(r.findings.join(" ")).toMatch(/3 applications have had no reply for 3 weeks/);
+    expect(review(jobs.slice(0, 2), [], { now }).findings).toEqual(["Too few applications to see a pattern yet. This review fills in as you apply."]);
+  });
+});

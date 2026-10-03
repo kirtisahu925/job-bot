@@ -40,6 +40,10 @@ write the strongest honest version you can now.
   the same entry of the resume, or in the matching entry of `profile`. A metric the entry never states
   must not appear. Tools used in one role must not move to another.
 - No vague intensifiers ("significantly", "cutting-edge", "seamlessly", "various"): use the fact instead.
+- Write like the candidate, not like an AI. No stock resume words: "spearheaded", "leveraged",
+  "results-driven", "passionate", "proven track record", "seamless", "cutting-edge", "world-class",
+  "synergy", "utilize" (write "use"). Say plainly what was built, changed or fixed. Vary bullet shapes:
+  not every bullet is "verb + metric + impact", and keep the candidate's own phrasing where it already works.
 - Skills lines: keep every item. Put the job's keywords first, use the job's spelling, and you may add
   items from `ats.supported_by_profile` or `ats.known_skills_without_project_evidence` to the fitting line.
   Never add an item from `ats.not_in_profile`.

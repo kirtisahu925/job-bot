@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import Any, Protocol
 
@@ -37,6 +38,13 @@ def job_row(job: Job) -> dict[str, Any]:
     return {k: data[k] for k in JOB_COLUMNS}
 
 
+def resume_file_name(profile: dict, company: str, title: str) -> str:
+    """The resume's file name, as a recruiter sees it on the attachment: Ankit_Shilarkar_Resume_Acme_SDE_II."""
+    name = (profile.get("contact") or {}).get("name") or ""
+    words = re.findall(r"[A-Za-z0-9]+", f"{name} Resume {company} {title}")
+    return "_".join(words)[:90] or "resume"
+
+
 class Store(Protocol):
     def start_run(self, trigger: str) -> str: ...
 
@@ -55,7 +63,7 @@ class Store(Protocol):
         ...
 
     def save_tailoring(
-        self, job_id: str, record: dict[str, Any], tex: bytes | None, pdf: bytes | None
+        self, job_id: str, record: dict[str, Any], tex: bytes | None, pdf: bytes | None, name: str = "resume"
     ) -> dict: ...
 
     def record_api_usage(self, run_id: str, rows: list[ApiUsage]) -> None: ...

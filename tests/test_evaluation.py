@@ -68,3 +68,35 @@ def test_do_not_apply_jobs_never_spend_a_resume():
     store.update_job(ids["B"], {"llm_score": 80, "verdict": "apply", "legitimacy_signals": []})
     picked = [j.id for j in store.tailor_candidates(5, 60)]
     assert picked == [ids["B"]]
+
+
+def test_fit_is_weighted_from_measured_skills_and_years_and_the_models_judgement():
+    profile = {
+        "years_experience": 2.4,
+        "skills": {"backend": ["Java", "Spring Boot", "PostgreSQL"]},
+        "education": [{"degree": "B.Tech"}],
+    }
+    job = Job(id="j", fingerprint="f", title="Backend Engineer", company="Acme", apply_url="u", min_years=3)
+    base = {"job_id": "j", "score": 50, "track": "java", "reason": "x", "missing_keywords": []}
+    s = JobScore.model_validate(
+        base
+        | {
+            "required_skills": ["Java", "Spring Boot", "Kafka", "PostgreSQL"],
+            "fit": {
+                "domain": {"value": 5, "note": "payments is new"},
+                "seniority": {"value": 8, "note": "SDE-2 scope"},
+                "projects": {"value": 6, "note": "REST APIs at Burger Singh"},
+            },
+        }
+    )
+    s.weigh_fit(job, profile)
+    # skills 3 of 4 (x3), 0.6 years short (0.7, x2), domain 0.5 (x2), seniority 0.8 (x2), projects 0.6, education 1
+    assert s.score == round(100 * (3 * 0.75 + 2 * 0.7 + 2 * 0.5 + 2 * 0.8 + 0.6 + 1.0) / 11) == 71
+    parts = {p["key"]: p for p in s.breakdown["parts"]}
+    assert s.breakdown["label"] == "Moderate fit"
+    assert parts["skills"]["note"] == "3 of 4; missing Kafka"
+    assert parts["experience"]["note"] == "2.4 years vs 3+ asked"
+    # no ratings from the model: its own overall score stands
+    plain = JobScore.model_validate(base)
+    plain.weigh_fit(job, profile)
+    assert plain.score == 50 and plain.breakdown is None

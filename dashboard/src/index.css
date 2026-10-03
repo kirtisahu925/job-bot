@@ -848,3 +848,10 @@ dialog.sheet::backdrop { background: rgb(0 0 0 / 0.55); }
   .only-coarse { display: none !important; }
 }
 .jobcard .status-select { margin-top: 8px; border-color: var(--line); }
+
+/* a job's fit, part by part; the application review */
+.fit-parts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: var(--fs-small); }
+.fit-parts li { display: flex; flex-direction: column; gap: 1px; }
+.fit-head { display: flex; justify-content: space-between; gap: 8px; }
+.findings-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: var(--fs-small); line-height: 1.55; max-width: 72ch; }
+table.by-source { max-width: 420px; }

@@ -20,6 +20,7 @@ from jobbot.pipeline.filters import Filters, prerank
 from jobbot.pipeline.normalize import merge, normalize
 from jobbot.scoring import score_jobs
 from jobbot.sources.base import Source, run_sources
+from jobbot.store.base import resume_file_name
 from jobbot.tailor.compile import find_engine
 from jobbot.tailor.cover_letter import write_cover_letter
 from jobbot.tailor.generate import pdf_text, tailor_job
@@ -134,7 +135,8 @@ def tailor_jobs(
         record = outcome.record() | {"provider": provider.name, "model": model}
         if cfg.cover_letter.enabled:
             record |= _cover_letter(job, profile, outcome, ledger, score_models, summary)
-        store.save_tailoring(job.id, record, outcome.tex.encode(), outcome.pdf)
+        name = resume_file_name(profile, job.company, job.title)
+        store.save_tailoring(job.id, record, outcome.tex.encode(), outcome.pdf, name=name)
         store.update_job(
             job.id, {"status": "tailored", "ats_score": outcome.ats.score if outcome.ats else None}
         )
@@ -281,7 +283,7 @@ def run(
         if ledger and opts.score:
             score_models, _ = _models(settings, provider)
             pending = store.unscored_jobs(cfg.limits.score_top_k, now - timedelta(days=3))
-            scores = score_jobs(pending, profile, cfg, ledger, score_models)
+            scores = score_jobs(pending, profile, cfg, ledger, score_models, store.known_skills())
             for job_id, s in scores.items():
                 store.update_job(
                     job_id,
@@ -295,6 +297,7 @@ def run(
                         "legitimacy": s.legitimacy,
                         "legitimacy_signals": s.signals,
                         "hard_stops": s.hard_stops,
+                        "fit": s.breakdown,
                     },
                 )
             summary["scored"] = len(scores)

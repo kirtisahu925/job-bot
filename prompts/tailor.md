@@ -8,6 +8,10 @@ checks Rules 1 and 2, and measures an ATS keyword score against the job. So:
 - Plain text only inside every string: no `**`, no `__`, no backticks, no LaTeX commands, no em dashes
   (use a colon or comma), no pipe characters.
 - The candidate's contact details are deliberately withheld. Never write a name, email, phone or URL.
+- Write like the candidate, not like an AI. No stock resume words: "spearheaded", "leveraged",
+  "results-driven", "passionate", "proven track record", "seamless", "cutting-edge", "world-class",
+  "synergy", "utilize" (write "use"). Say plainly what was built, changed or fixed. Vary bullet shapes:
+  not every bullet is "verb + metric + impact", and keep the candidate's own phrasing where it already works.
 
 ## Round 1: analyse, then build
 The response has two parts, in this order. Write `analysis` first and let the resume follow from it.

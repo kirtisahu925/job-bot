@@ -150,6 +150,22 @@ export interface RoundRecord {
 export type Verdict = "apply" | "maybe" | "skip";
 export type Legitimacy = "high" | "caution" | "suspicious";
 
+/** One part of the weighted fit (migration 0010): skills, experience, domain, seniority, similar work, education. */
+export interface FitPart {
+  key: string;
+  label: string;
+  weight: number;
+  /** 0 to 1 */
+  value: number;
+  note: string;
+}
+
+export interface FitBreakdown {
+  score: number;
+  label: string;
+  parts: FitPart[];
+}
+
 export interface Job {
   id: string;
   title: string;
@@ -180,6 +196,8 @@ export interface Job {
   legitimacy?: Legitimacy | null;
   legitimacy_signals?: string[];
   hard_stops?: string[];
+  /** the weighted fit behind llm_score */
+  fit?: FitBreakdown | null;
   job_links: JobLink[];
   tailorings: Tailoring[];
 }

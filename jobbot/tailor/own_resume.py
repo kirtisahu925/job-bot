@@ -234,6 +234,8 @@ def _evaluate(
         except CompileError as exc:
             issues.append(lint.Issue("compile", "document", str(exc)[:400], llm_fixable=False))
             pdf = None
+    for slot_id, text in patches.items():
+        issues += lint.cliche_issues(text, slot_id)
     ats = None
     if jd is not None:
         full = pdf_text(pdf) if pdf else rough_text(tex)

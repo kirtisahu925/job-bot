@@ -30,6 +30,10 @@ class Preferences(BaseModel):
     exclude_title_words: list[str] = Field(default_factory=list)  # added to search.yaml's title_exclude
     min_salary_lpa: float | None = None  # drop jobs whose stated INR salary tops out below this
     max_job_age_days: Literal[1, 3, 7, 30] | None = None  # only jobs posted within this many days
+    # deal-breakers: dropped before any AI call
+    skip_companies: list[str] = Field(default_factory=list)
+    skip_phrases: list[str] = Field(default_factory=list)  # matched in the title and description
+    skip_it_services: bool | None = None  # search.yaml's it_services list
 
 
 class BotSettings(BaseModel):
@@ -113,6 +117,17 @@ def apply_user_settings(settings: Settings, row: dict | None) -> list[str]:
         search.max_job_age_days = prefs.max_job_age_days
         days = prefs.max_job_age_days
         note("jobs posted within", "24 hours" if days == 1 else f"{days} days")
+    companies = [c.strip() for c in prefs.skip_companies if c.strip()]
+    if companies:
+        search.skip_companies = companies
+        note("companies skipped", ", ".join(companies))
+    phrases = [p.strip() for p in prefs.skip_phrases if p.strip()]
+    if phrases:
+        search.skip_phrases = phrases
+        note("jobs mentioning these skipped", ", ".join(phrases))
+    if prefs.skip_it_services is not None:
+        search.skip_it_services = prefs.skip_it_services
+        note("IT-services companies skipped", prefs.skip_it_services)
     titles = list(dict.fromkeys(t.strip() for t in prefs.target_roles if t.strip()))
     if titles:
         _search_titles(settings, titles, note)

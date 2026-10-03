@@ -136,3 +136,42 @@ def test_without_a_job_age_each_site_keeps_its_own_window():
     assert (
         len(invalid) == 1 and "ignored" in invalid[0]
     )  # not one of the choices: ignored, the run carries on
+
+
+def test_deal_breakers_drop_jobs_before_any_ai_call():
+    from jobbot.pipeline.filters import same_company
+
+    settings = load_settings()
+    apply_user_settings(
+        settings,
+        {
+            "preferences": {
+                "skip_companies": ["Acme Corp"],
+                "skip_phrases": ["night shift", "service agreement"],
+                "skip_it_services": True,
+            }
+        },
+    )
+
+    def ad(company: str, description: str = "Java and Spring Boot microservices.") -> Job:
+        return Job(
+            fingerprint=company + description[:8],
+            title="Java Developer",
+            company=company,
+            city="Pune",
+            description=description,
+        )
+
+    jobs = [
+        ad("Acme Corp India Pvt Ltd"),  # a skipped company, with its legal suffixes
+        ad("Infosys BPM"),  # a division of a listed IT-services firm
+        ad("Stackfold", "Java backend. Rotational night shift for US clients."),
+        ad("Ledgerly", "Java backend. Sign a 2-year service agreement."),
+        ad("Infosysly Labs"),  # only starts with the same letters
+        ad("Ledgerly"),
+    ]
+    kept, dropped = Filters(settings.search).apply(jobs)
+    assert [j.company for j in kept] == ["Infosysly Labs", "Ledgerly"]
+    assert dropped["skipped company"] == 2 and dropped["deal-breaker"] == 2
+    assert same_company("Tata Consultancy Services", "Tata Consultancy Services Limited")
+    assert not same_company("Target", "Targetprocess")

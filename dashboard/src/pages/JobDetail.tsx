@@ -33,6 +33,20 @@ function Prop({ term, children }: { term: string; children: React.ReactNode }) {
   );
 }
 
+/** "12 Sep", with a warning once a posting is a month old (it may already be filled). */
+function posted(at: string): React.ReactNode {
+  const d = new Date(at);
+  const days = Math.floor((Date.now() - d.getTime()) / 86_400_000);
+  const when = d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+  return days > 30 ? (
+    <span>
+      {when} <span className="warn xs">· {days} days old, may be filled</span>
+    </span>
+  ) : (
+    when
+  );
+}
+
 export default function JobDetail() {
   const { id } = useParams();
   const location = useLocation();
@@ -171,7 +185,7 @@ export default function JobDetail() {
               <Prop term="Match">
                 <span className="row" style={{ gap: 6 }}>
                   <MatchScore score={job.llm_score} />
-                  <span className="muted xs">/ 100</span>
+                  <span className="muted xs">/ 100{job.fit ? ` · ${job.fit.label}` : ""}</span>
                 </span>
               </Prop>
               <Prop term="ATS">
@@ -188,9 +202,30 @@ export default function JobDetail() {
                 </Prop>
               )}
               <Prop term="Location">{job.remote ? "Remote" : job.location ?? "–"}</Prop>
+              {job.posted_at && <Prop term="Posted">{posted(job.posted_at)}</Prop>}
               <Prop term="Found">{ago(job.created_at)}</Prop>
             </dl>
             {job.score_reason && <p className="soft small">{job.score_reason}</p>}
+            {job.fit && (
+              <div>
+                <h3 className="xs muted" style={{ marginBottom: 6, fontWeight: 500 }}>
+                  Why this match
+                </h3>
+                <ul className="fit-parts">
+                  {job.fit.parts.map((p) => (
+                    <li key={p.key}>
+                      <span className="fit-head">
+                        <span>
+                          {p.label} <span className="muted xs">×{p.weight}</span>
+                        </span>
+                        <span className="num">{Math.round(p.value * 100)}%</span>
+                      </span>
+                      {p.note && <span className="muted xs">{p.note}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {!!job.hard_stops?.length && (
               <div>
                 <h3 className="xs muted" style={{ marginBottom: 6, fontWeight: 500 }}>

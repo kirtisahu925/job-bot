@@ -40,6 +40,32 @@ title_include:
   - member of technical staff
   - mts
 
+# Skipped when "Skip IT-services companies" is on in Preferences. Each name also matches its divisions
+# ("Infosys" matches "Infosys BPM"), never a company that merely starts with the same letters.
+it_services:
+  - TCS
+  - Tata Consultancy Services
+  - Infosys
+  - Wipro
+  - HCLTech
+  - HCL Technologies
+  - Tech Mahindra
+  - Cognizant
+  - Capgemini
+  - Accenture
+  - LTIMindtree
+  - Mphasis
+  - Hexaware
+  - Coforge
+  - Birlasoft
+  - NTT Data
+  - DXC Technology
+  - Zensar
+  - Sonata Software
+  - Cyient
+  - L&T Technology Services
+  - IBM Consulting
+
 # A title containing any of these is dropped.
 title_exclude:
   - staff

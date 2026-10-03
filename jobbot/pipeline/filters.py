@@ -66,9 +66,41 @@ def min_years_required(text: str, experience_text: str | None = None) -> int | N
     return max(mins) if mins else None
 
 
+_SUFFIXES = {
+    "pvt",
+    "private",
+    "ltd",
+    "limited",
+    "inc",
+    "llc",
+    "llp",
+    "plc",
+    "corp",
+    "corporation",
+    "co",
+    "the",
+    "india",
+}
+
+
+def company_tokens(name: str) -> list[str]:
+    """A company name as comparable words: lower case, no punctuation or legal suffixes ("Infosys Limited" and
+    "infosys" are the same company)."""
+    words = re.findall(r"[a-z0-9]+", name.lower().replace("&", " and "))
+    return [w for w in words if w not in _SUFFIXES]
+
+
+def same_company(listed: str, company: str) -> bool:
+    """`company` is `listed` or one of its divisions: "Infosys" matches "Infosys BPM", never "Infosysly"."""
+    want, got = company_tokens(listed), company_tokens(company)
+    return bool(want) and got[: len(want)] == want
+
+
 class Filters:
     def __init__(self, cfg: SearchConfig):
         self.cfg = cfg
+        self.skip_companies = [*cfg.skip_companies, *(cfg.it_services if cfg.skip_it_services else [])]
+        self.deal_breakers = [_term_re(p.lower()) for p in cfg.skip_phrases if p.strip()]
         self.include = [_term_re(t) for t in cfg.title_include]
         self.exclude = [_term_re(t) for t in cfg.title_exclude]
         self.track_terms = {name: [_term_re(k) for k in t.keywords] for name, t in cfg.tracks.items()}
@@ -123,6 +155,14 @@ class Filters:
             if not self.title_ok(job.title):
                 dropped["title"] += 1
                 continue
+            if any(same_company(c, job.company) for c in self.skip_companies):
+                dropped["skipped company"] += 1
+                continue
+            if self.deal_breakers:
+                text = f"{job.title}\n{job.description}".lower()
+                if any(p.search(text) for p in self.deal_breakers):
+                    dropped["deal-breaker"] += 1
+                    continue
             if is_internship(job):
                 dropped["internship"] += 1
                 continue

@@ -47,9 +47,10 @@ LATER_COLUMNS = {
         "legitimacy text",
         "legitimacy_signals text",
         "hard_stops text",
+        "fit text",
     )
 }
-JSON_FIELDS = ("missing_keywords", "jd_keywords", "legitimacy_signals", "hard_stops")
+JSON_FIELDS = ("missing_keywords", "jd_keywords", "legitimacy_signals", "hard_stops", "fit")
 
 
 def _now() -> str:
@@ -182,18 +183,18 @@ class LocalStore:
         return [self._row_to_job(r) for r in [*queued, *best]]
 
     def save_tailoring(
-        self, job_id: str, record: dict[str, Any], tex: bytes | None, pdf: bytes | None
+        self, job_id: str, record: dict[str, Any], tex: bytes | None, pdf: bytes | None, name: str = "resume"
     ) -> dict:
         tex_path = pdf_path = None
         if self.out_dir is not None:
             folder = self.out_dir / job_id
             folder.mkdir(parents=True, exist_ok=True)
             if tex is not None:
-                (folder / "resume.tex").write_bytes(tex)
-                tex_path = str(folder / "resume.tex")
+                (folder / f"{name}.tex").write_bytes(tex)
+                tex_path = str(folder / f"{name}.tex")
             if pdf is not None:
-                (folder / "resume.pdf").write_bytes(pdf)
-                pdf_path = str(folder / "resume.pdf")
+                (folder / f"{name}.pdf").write_bytes(pdf)
+                pdf_path = str(folder / f"{name}.pdf")
         tailoring_id = str(uuid.uuid4())
         self.db.execute(
             "insert into tailorings values (?,?,?,?,?,?)",

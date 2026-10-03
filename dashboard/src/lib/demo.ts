@@ -5,6 +5,8 @@ import type {
   AtsDetail,
   Balance,
   CreditBalance,
+  FitBreakdown,
+  FitPart,
   Job,
   JobStatus,
   ProfileSnapshot,
@@ -218,10 +220,34 @@ function demoTailoring(job: Job, i: number, created: string): Tailoring {
   };
 }
 
+const DOMAINS = [
+  "Franchise onboarding, close to your Burger Singh work",
+  "Fintech is new to you",
+  "Insurance documents at Netlink: a related domain",
+  "B2B SaaS, like your current work",
+  "Consumer marketplace: a new domain",
+];
+
+function demoFit(i: number, minYears: number): FitBreakdown {
+  const have = 2 + (i % 3); // never all five: the demo jobs all ask for Kafka
+  const exp = minYears <= 2.4 ? 1 : minYears - 2.4 <= 1 ? 0.7 : 0.4;
+  const parts: FitPart[] = [
+    { key: "skills", label: "Required skills", weight: 3, value: have / 5, note: `${have} of 5; missing Kafka` },
+    { key: "experience", label: "Experience", weight: 2, value: exp, note: `2.4 years vs ${minYears}+ asked` },
+    { key: "domain", label: "Domain", weight: 2, value: (4 + (i % 6)) / 10, note: DOMAINS[i % DOMAINS.length] },
+    { key: "seniority", label: "Seniority", weight: 2, value: 0.8, note: "SDE-2 scope fits 2.4 years" },
+    { key: "projects", label: "Similar work", weight: 1, value: (5 + (i % 5)) / 10, note: "REST APIs and serverless jobs, as in this role" },
+    { key: "education", label: "Education", weight: 1, value: 1, note: "no specific degree asked" },
+  ];
+  const score = Math.round((100 * parts.reduce((s, p) => s + p.weight * p.value, 0)) / 11);
+  return { score, label: score >= 80 ? "Strong fit" : score >= 60 ? "Moderate fit" : "Stretch", parts };
+}
+
 const jobs: Job[] = Array.from({ length: 26 }, (_, i) => {
   const [title, track] = titles[i % titles.length];
   const status = statuses[i % statuses.length];
-  const score = Math.round(52 + rand() * 44);
+  const fit = demoFit(i, 2 + (i % 3));
+  const score = fit.score;
   const company = companies[i % companies.length];
   const srcs = Array.from(new Set([pick(sources), pick(sources)]));
   // a scan stores its jobs a few minutes after it starts
@@ -262,6 +288,7 @@ const jobs: Job[] = Array.from({ length: 26 }, (_, i) => {
           ? ["posted 34 days ago", "Same description reposted under three titles"]
           : ["Named team and a concrete stack", "Salary band stated"],
     hard_stops: i === 3 ? ['JD says "no relocation support; Dubai office only"'] : [],
+    fit,
     tailorings: [],
   };
   if (tailored) {

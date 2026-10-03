@@ -191,6 +191,11 @@ class FakeProvider:
                     "missing_keywords": [],
                     "required_skills": found[:10],
                     "preferred_skills": found[10:15],
+                    "fit": {
+                        "domain": {"value": 6, "note": "related domain"},
+                        "seniority": {"value": 7, "note": "level matches"},
+                        "projects": {"value": min(10, 3 + len(hits)), "note": f"{len(hits)} shared skills"},
+                    },
                 }
             )
         return ScoreBatch.model_validate({"results": results})
