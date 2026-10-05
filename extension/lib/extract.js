@@ -84,11 +84,14 @@
             .join(", ");
         });
         const remote = String(item.jobLocationType || "").toUpperCase().includes("TELECOMMUTE");
+        const posted = item.datePosted ? new Date(item.datePosted) : null;
         return {
           title: item.title || "",
           company: (typeof org === "string" ? org : org.name) || "",
           location: remote ? `Remote${locs[0] ? `, ${locs[0]}` : ""}` : locs.filter(Boolean).join("; "),
           description: htmlToText(item.description),
+          posted_at: posted && !Number.isNaN(posted.getTime()) ? posted.toISOString() : null,
+          job_type: [].concat(item.employmentType || []).join(", ") || null,
         };
       }
     }

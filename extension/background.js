@@ -240,6 +240,31 @@ const handlers = {
     });
     return { id };
   },
+  async saveInbox({ jobs }) {
+    const clip = (v, n) => (v == null || v === "" ? null : String(v).slice(0, n));
+    const rows = (jobs || [])
+      .filter((j) => j.url_key && j.title && j.company && j.url)
+      .map((j) => ({
+        source: clip(j.source, 40) || "extension",
+        url: clip(j.url, 2000),
+        url_key: clip(j.url_key, 300),
+        title: clip(j.title, 300),
+        company: clip(j.company, 200),
+        location: clip(j.location, 300),
+        description: clip(j.description, 60000),
+        experience_text: clip(j.experience_text, 120),
+        job_type: clip(j.job_type, 80),
+        posted_at: j.posted_at || null,
+      }));
+    if (!rows.length) return { saved: 0, skipped: 0 };
+    const inserted = await rest("/rest/v1/job_inbox?on_conflict=url_key&select=id", {
+      method: "POST",
+      body: rows,
+      prefer: "resolution=ignore-duplicates,return=representation",
+    });
+    const saved = (inserted || []).length;
+    return { saved, skipped: rows.length - saved };
+  },
   async markApplied({ jobId }) {
     await setJobStatus(jobId, "applied");
     return {};

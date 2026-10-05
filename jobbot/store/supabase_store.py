@@ -273,6 +273,25 @@ class SupabaseStore:
     def known_skills(self) -> list[str]:
         return [r["skill"] for r in self._get("skill_status", {"select": "skill", "status": "eq.known"})]
 
+    def job_inbox(self, limit: int) -> list[dict[str, Any]]:
+        try:
+            return self._get(
+                "job_inbox",
+                {"select": "*", "processed_at": "is.null", "order": "captured_at.asc", "limit": limit},
+            )
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 404:  # before migration 0011
+                return []
+            raise
+
+    def mark_inbox_processed(self, ids: list[str]) -> None:
+        for start in range(0, len(ids), 100):  # keep the query string short
+            self._patch(
+                "job_inbox",
+                {"id": _in(ids[start : start + 100])},
+                {"processed_at": datetime.now(UTC).isoformat()},
+            )
+
     def save_profile_snapshot(self, snapshot: dict[str, Any]) -> None:
         self._post(
             "profile_snapshot",

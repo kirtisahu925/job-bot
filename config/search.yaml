@@ -196,7 +196,10 @@ sources:
     results_wanted: 30
     hours_old: 13
   naukri:
-    enabled: true
+    # Off: Naukri blocks requests from GitHub's servers (0 results in every scan since 28 Sep 2026).
+    # Save Naukri jobs from your own browser instead: open a Naukri search and press "Save N jobs from
+    # this page" (the extension); the next scan takes them like any other source.
+    enabled: false
     method: jobspy
     location: ""
     results_wanted: 30

@@ -122,6 +122,30 @@ await check("Naukri job page falls back to selectors", async () => {
   assert.equal(job.location, "Gurugram");
   assert.match(job.description, /FastAPI and Django/);
 });
+await check("A Naukri search page lists each job once, with its company, place, experience and age", async () => {
+  await page.goto(fixture("naukri_search.html"));
+  await page.addScriptTag({ path: path.join(ext, "lib/listing.js") });
+  const { jobs, posted } = await page.evaluate(() => {
+    const now = new Date("2026-10-04T06:00:00Z");
+    const L = globalThis.JobbotListing;
+    return { jobs: L.listJobs(document, "naukri", now), posted: ["Just Now", "1 Day Ago", "2 weeks ago", "Hiring"].map((t) => L.parsePosted(t, now)) };
+  });
+  assert.equal(jobs.length, 2, "the duplicate Apply link and the card without a company are skipped");
+  assert.deepEqual(jobs[0], {
+    url: "https://www.naukri.com/job-listings-java-developer-acme-payments-gurugram-2-to-4-years-031026901234",
+    title: "Java Developer",
+    company: "Acme Payments",
+    location: "Gurugram, Noida",
+    experience: "2-4 Yrs",
+    snippet: "Spring Boot microservices for the payments team.",
+    skills: ["Java", "Spring Boot", "PostgreSQL"],
+    posted_at: "2026-10-01T06:00:00.000Z",
+  });
+  assert.equal(jobs[1].url, "https://www.naukri.com/job-listings-backend-engineer-orbit-labs-bengaluru-3-to-5-years-031026905678");
+  assert.equal(jobs[1].posted_at, "2026-09-03T06:00:00.000Z", "30+ days counts as 31");
+  assert.deepEqual(posted, ["2026-10-04T06:00:00.000Z", "2026-10-03T06:00:00.000Z", "2026-09-20T06:00:00.000Z", null]);
+});
+
 // ---- Apply queue page engine: fills up to Submit, never presses it ----
 async function injectApply(page) {
   for (const f of ["lib/fieldmap.js", "content/autofill.js", "content/apply.js"]) {

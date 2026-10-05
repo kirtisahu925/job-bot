@@ -103,7 +103,7 @@ def test_job_age_sets_every_sites_window_and_drops_older_jobs():
     notes = apply_user_settings(settings, {"preferences": {"max_job_age_days": 3}})
     assert "jobs posted within: 3 days" in notes
     sources = {s.name: s for s in build_sources(settings, httpx.Client())}
-    assert sources["linkedin"].conf["hours_old"] == 72 and sources["naukri"].conf["hours_old"] == 72
+    assert sources["linkedin"].conf["hours_old"] == 72 and sources["indeed"].conf["hours_old"] == 72
     assert sources["adzuna"].max_days_old == 3
     assert sources["jsearch"].date_posted == "3days"
     assert sources["greenhouse"].max_age == timedelta(days=3)

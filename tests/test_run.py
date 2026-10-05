@@ -70,3 +70,59 @@ def test_example_profile_is_refused_for_real_llms(settings):
 
     with pytest.raises(ExampleProfileError):
         _run(settings, LocalStore(), Real())
+
+
+def test_jobs_saved_from_the_browser_pass_the_same_filters_and_are_used_once(settings, tmp_path):
+    class InboxStore(LocalStore):
+        def __init__(self, *a, **kw):
+            super().__init__(*a, **kw)
+            self.marked: list[str] = []
+
+        def job_inbox(self, limit):
+            if self.marked:
+                return []
+            row = {
+                "source": "naukri",
+                "location": "Gurugram, Haryana",
+                "experience_text": "2-4 Yrs",
+                "job_type": None,
+                "posted_at": None,
+            }
+            return [
+                row
+                | {
+                    "id": "in-1",
+                    "url": "https://www.naukri.com/job-listings-java-developer-acme-gurugram-2-to-4-years-031026901234",
+                    "url_key": "naukri:031026901234",
+                    "title": "Java Developer",
+                    "company": "Acme Payments",
+                    "description": "Build Spring Boot microservices in Java with PostgreSQL. 2-4 years of experience.",
+                },
+                row
+                | {
+                    "id": "in-2",
+                    "url": "https://www.naukri.com/job-listings-engineering-manager-acme-gurugram-031026905678",
+                    "url_key": "naukri:031026905678",
+                    "title": "Engineering Manager",
+                    "company": "Acme Payments",
+                    "description": "Lead a team of 12 Java engineers.",
+                },
+            ]
+
+        def mark_inbox_processed(self, ids):
+            self.marked += ids
+
+    store = InboxStore(tmp_path / "db.sqlite", out_dir=tmp_path)
+    summary = _run(settings, store, None)  # fetch only
+    inbox = next(s for s in summary["sources"] if s["source"] == "inbox")
+    assert inbox["results"] == 2 and store.marked == ["in-1", "in-2"]
+    titles = {r["title"] for r in store.db.execute("select title from jobs where company='Acme Payments'")}
+    assert titles == {
+        "Java Developer"
+    }  # the manager role is dropped by the title rules, like any scanned job
+    sources = {
+        r["source"] for r in store.db.execute("select source from job_links where url_key like 'naukri:%'")
+    }
+    assert sources == {"naukri"}
+    again = _run(settings, store, None)
+    assert next(s for s in again["sources"] if s["source"] == "inbox")["status"] == "empty"

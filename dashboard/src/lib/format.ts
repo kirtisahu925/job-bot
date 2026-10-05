@@ -57,6 +57,7 @@ const SOURCE_NAMES: Record<string, string> = {
   linkedin: "LinkedIn", indeed: "Indeed", naukri: "Naukri", foundit: "Foundit", wellfound: "Wellfound",
   adzuna: "Adzuna", jsearch: "JSearch", jooble: "Jooble", remotive: "Remotive", greenhouse: "Greenhouse",
   lever: "Lever", ashby: "Ashby", extension: "Saved from browser", manual: "Added by hand",
+  inbox: "Saved search pages",
 };
 
 export function sourceLabel(s: string): string {

@@ -54,6 +54,15 @@ and Naukri in particular may block GitHub's datacenter IPs. Each source fails on
 stopping the run, its health is shown on the dashboard, and two fallbacks cover the gaps: JSearch (Google
 for Jobs, which carries LinkedIn/Indeed/Naukri listings) and the extension's **Save job** button.
 
+**Naukri: save a whole search page from your browser.** Naukri blocks requests from GitHub's servers, so
+the scans skip it (`sources.naukri.enabled: false`). Instead, open a Naukri search in Chrome (your filters,
+your login) and press **Save N jobs from this page** in the bottom corner. The extension reads each job on
+the page from its own page (one at a time, with a short pause, up to 40) and saves them to the
+`job_inbox` table (migration 0011). The next scan takes them as one more source: the same title,
+location, experience and deal-breaker rules, the job-age window, de-duplication and scoring as every
+other job, so no AI is spent on what your rules would drop. Saving the same page twice keeps each job
+once.
+
 **LinkedIn search filters.** `sources.linkedin` in `config/search.yaml` holds the filters of a LinkedIn
 search URL, so the bot searches like
 `linkedin.com/jobs/search-results/?keywords=Back End Developer&geoId=102713980&distance=0&f_TPR=r86400`:

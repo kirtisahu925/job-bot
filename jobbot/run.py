@@ -20,6 +20,7 @@ from jobbot.pipeline.filters import Filters, prerank
 from jobbot.pipeline.normalize import merge, normalize
 from jobbot.scoring import score_jobs
 from jobbot.sources.base import Source, run_sources
+from jobbot.sources.inbox import InboxSource
 from jobbot.store.base import resume_file_name
 from jobbot.tailor.compile import find_engine
 from jobbot.tailor.cover_letter import write_cover_letter
@@ -239,7 +240,8 @@ def run(
     results: list[SourceResult] = []
     status = "ok"
     try:
-        results = run_sources(sources)
+        inbox = InboxSource(store) if callable(getattr(store, "job_inbox", None)) else None
+        results = run_sources([*sources, inbox] if inbox else sources)
         summary["sources"] = [
             {
                 "source": r.source,
@@ -271,6 +273,8 @@ def run(
         kept, dropped = Filters(cfg).apply(merged, now)
         ranked = prerank(kept, profile, now)
         new_jobs, known = store.upsert_jobs(run_id, ranked)
+        if inbox and inbox.ids:
+            store.mark_inbox_processed(inbox.ids)
         summary.update(
             fetched=len(raw),
             unique=len(merged),

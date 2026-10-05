@@ -319,6 +319,12 @@ class LocalStore:
     def company_boards(self) -> list[dict[str, Any]]:
         return []
 
+    def job_inbox(self, limit: int) -> list[dict[str, Any]]:
+        return []  # bulk saves from the extension go to Supabase only
+
+    def mark_inbox_processed(self, ids: list[str]) -> None:
+        return None
+
     def known_skills(self) -> list[str]:
         rows = self.db.execute("select skill from skill_status where status='known' order by skill")
         return [r["skill"] for r in rows.fetchall()]
