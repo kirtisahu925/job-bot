@@ -24,6 +24,11 @@ describe("matching a listed company to job and contact names", () => {
     expect(parseBoardUrl("https://jobs.lever.co/acme/123")).toEqual({ board: "lever", slug: "acme" });
     expect(parseBoardUrl("https://example.com/careers")).toBeNull();
     expect(boardUrl("ashby", "acme")).toBe("https://jobs.ashbyhq.com/acme");
+    expect(parseBoardUrl("https://nvidia.wd5.myworkdayjobs.com/en-US/NVIDIAExternalCareerSite/job/x_R1")).toEqual({
+      board: "workday",
+      slug: "nvidia/wd5/NVIDIAExternalCareerSite",
+    });
+    expect(boardUrl("workday", "nvidia/wd5/NVIDIAExternalCareerSite")).toBe("https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite");
   });
 });
 

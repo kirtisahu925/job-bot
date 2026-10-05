@@ -42,11 +42,18 @@ export function boardUrl(board: string | null, slug: string | null): string | nu
   if (board === "greenhouse") return `https://job-boards.greenhouse.io/${slug}`;
   if (board === "lever") return `https://jobs.lever.co/${slug}`;
   if (board === "ashby") return `https://jobs.ashbyhq.com/${slug}`;
+  if (board === "workday") {
+    const [tenant, dc, site] = slug.split("/");
+    return tenant && dc && site ? `https://${tenant}.${dc}.myworkdayjobs.com/${site}` : null;
+  }
   return null;
 }
 
-/** "greenhouse", "remotecom" from a pasted board link, or null. */
-export function parseBoardUrl(url: string): { board: "greenhouse" | "lever" | "ashby"; slug: string } | null {
+/** "greenhouse", "remotecom" from a pasted board link, or null. A Workday site is stored as "tenant/wdN/site",
+ * as jobbot/sources/discover.py reads it. */
+export function parseBoardUrl(url: string): { board: "greenhouse" | "lever" | "ashby" | "workday"; slug: string } | null {
+  const wd = url.match(/([\w-]+)\.(wd\d+)\.myworkdayjobs\.com\/(?:[a-z]{2}-[A-Z]{2}\/)?([\w-]+)/i);
+  if (wd) return { board: "workday", slug: `${wd[1]}/${wd[2]}/${wd[3]}` };
   const m =
     url.match(/(?:job-boards|boards)\.greenhouse\.io\/([\w-]+)/i) ??
     url.match(/jobs\.lever\.co\/([\w-]+)/i) ??

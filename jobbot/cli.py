@@ -50,6 +50,17 @@ def _dashboard_settings(settings, store) -> None:
     merge_company_boards(settings, store.company_boards())
 
 
+def _find_company_boards(settings, store, client) -> None:
+    """Look for the career boards of a few Companies-page companies; any found are scanned this run."""
+    from jobbot.preferences import merge_company_boards
+    from jobbot.sources.discover import discover_boards
+
+    found = discover_boards(store, client, settings)
+    merge_company_boards(settings, found)
+    for b in found:
+        logging.getLogger("jobbot").info("career board found: %s (%s %s)", b["name"], b["board"], b["slug"])
+
+
 def _provider(kind: str, settings):
     kind = kind or settings.pricing.llm.provider
     if kind == "none":
@@ -112,6 +123,7 @@ def run(
     st = _store(store, out, settings)
     _dashboard_settings(settings, st)
     with make_client() as client:
+        _find_company_boards(settings, st, client)
         summary = run_pipeline(
             settings,
             st,

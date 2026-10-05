@@ -10,3 +10,22 @@ greenhouse:
 lever: []
 
 ashby: []
+
+workday: []   # - {slug: nvidia/wd5/NVIDIAExternalCareerSite, name: NVIDIA}
+
+# Workday career sites of companies on the dashboard's Companies page. Each scan checks a few companies
+# that have no board yet: their own careers link first, then their name as a Greenhouse, Lever or Ashby
+# board, then this list. An entry is used only if the site answers with jobs, so a stale one is harmless.
+# From a career page address https://<tenant>.<wdN>.myworkdayjobs.com/<site> write "<tenant>/<wdN>/<site>".
+workday_sites:
+  NVIDIA: nvidia/wd5/NVIDIAExternalCareerSite
+  Salesforce: salesforce/wd12/External_Career_Site
+  Adobe: adobe/wd5/external_experienced
+  Walmart Global Tech: walmart/wd5/WalmartExternal
+  Target: target/wd5/targetcareers
+  Workday: workday/wd5/Workday
+  Intel: intel/wd1/External
+  Qualcomm: qualcomm/wd5/External
+  AMD: amd/wd1/External
+  BlackRock: blackrock/wd1/BlackRock_Professional
+  CrowdStrike: crowdstrike/wd5/crowdstrikecareers

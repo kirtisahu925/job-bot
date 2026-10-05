@@ -9,7 +9,7 @@ import type { Job } from "../lib/types";
 import { useTitle } from "../lib/useTitle";
 import { workspaceApi, type Board, type Company, type CompanyInput } from "../lib/workspace";
 
-const BOARD_LABEL: Record<Board, string> = { greenhouse: "Greenhouse", lever: "Lever", ashby: "Ashby" };
+const BOARD_LABEL: Record<Board, string> = { greenhouse: "Greenhouse", lever: "Lever", ashby: "Ashby", workday: "Workday" };
 const OPEN = new Set(["new", "shortlisted", "tailor_queued", "tailored"]);
 type Sort = "pay" | "name" | "jobs";
 
@@ -67,7 +67,7 @@ function Editor({ initial, onSave, onDelete, onCancel }: {
       onSubmit={async (e) => {
         e.preventDefault();
         const parsed = boardLink.trim() ? parseBoardUrl(boardLink) : null;
-        if (boardLink.trim() && !parsed) return setError("That is not a Greenhouse, Lever or Ashby board link.");
+        if (boardLink.trim() && !parsed) return setError("That is not a Greenhouse, Lever, Ashby or Workday career page link.");
         if (c.salary_min_lpa != null && c.salary_max_lpa != null && c.salary_max_lpa < c.salary_min_lpa)
           return setError("The top of the bracket is below the bottom.");
         setBusy(true);
@@ -113,7 +113,10 @@ function Editor({ initial, onSave, onDelete, onCancel }: {
       <label>
         Job board to scan
         <input value={boardLink} onChange={(e) => setBoardLink(e.target.value)} placeholder="https://job-boards.greenhouse.io/remotecom" />
-        <span className="hint">A Greenhouse, Lever or Ashby board link. Each scan (10:00 and 22:00 IST) reads its openings directly, free.</span>
+        <span className="hint">
+          A Greenhouse, Lever, Ashby or Workday career page link. Leave it empty and the scans look for one by the company's name; each scan
+          then reads its openings directly, free.
+        </span>
       </label>
       <label>
         Notes
@@ -376,7 +379,8 @@ export default function Companies() {
                   <td className="only-wide small">
                     {url ? (
                       <a href={url} target="_blank" rel="noreferrer" title="Scanned twice a day">
-                        {BOARD_LABEL[c.board!]}: {c.board_slug}
+                        {BOARD_LABEL[c.board!]}
+                        {c.board !== "workday" && `: ${c.board_slug}`}
                         <ExternalLink {...ICON} size={12} />
                       </a>
                     ) : c.careers_url ? (
@@ -384,8 +388,12 @@ export default function Companies() {
                         Careers page
                         <ExternalLink {...ICON} size={12} />
                       </a>
+                    ) : c.board_checked_at ? (
+                      <span className="muted" title="Checked again two weeks after this">
+                        None found {new Date(c.board_checked_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                      </span>
                     ) : (
-                      <span className="muted">None yet</span>
+                      <span className="muted">Looked for at the next scan</span>
                     )}
                   </td>
                   <td className="act">

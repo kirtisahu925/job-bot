@@ -325,6 +325,12 @@ class LocalStore:
     def mark_inbox_processed(self, ids: list[str]) -> None:
         return None
 
+    def companies_to_check(self, limit: int, checked_before) -> list[dict[str, Any]]:
+        return []  # the Companies page lives in Supabase only
+
+    def update_company(self, company_id: str, fields: dict[str, Any]) -> None:
+        return None
+
     def known_skills(self) -> list[str]:
         rows = self.db.execute("select skill from skill_status where status='known' order by skill")
         return [r["skill"] for r in rows.fetchall()]

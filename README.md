@@ -54,6 +54,15 @@ and Naukri in particular may block GitHub's datacenter IPs. Each source fails on
 stopping the run, its health is shown on the dashboard, and two fallbacks cover the gaps: JSearch (Google
 for Jobs, which carries LinkedIn/Indeed/Naukri listings) and the extension's **Save job** button.
 
+**Career pages of the companies you list.** Each scan looks up to 8 companies on the Companies page that
+have no job board yet: the careers link you pasted first, then the company's name as a Greenhouse, Lever or
+Ashby board ("BrowserStack" -> `browserstack`), then the known Workday sites in `config/companies.yaml`
+(`workday_sites`). A board counts only when it answers with at least one job; found boards are saved on the
+company and scanned in the same run, and misses are checked again after two weeks (migration 0012). Workday
+sites (Walmart, Salesforce, Adobe, NVIDIA, Target and others) are searched for your job titles, and their
+postings in India are read in full. To connect one by hand, paste its career page link on the company
+(`https://<company>.wd5.myworkdayjobs.com/<site>` works too).
+
 **Naukri: save a whole search page from your browser.** Naukri blocks requests from GitHub's servers, so
 the scans skip it (`sources.naukri.enabled: false`). Instead, open a Naukri search in Chrome (your filters,
 your login) and press **Save N jobs from this page** in the bottom corner. The extension reads each job on

@@ -145,6 +145,9 @@ class CompaniesConfig(BaseModel):
     greenhouse: list[Company] = Field(default_factory=list)
     lever: list[Company] = Field(default_factory=list)
     ashby: list[Company] = Field(default_factory=list)
+    workday: list[Company] = Field(default_factory=list)  # slug: "tenant/wdN/site"
+    # career sites of Companies-page companies, tried when their name is not a Greenhouse/Lever/Ashby board
+    workday_sites: dict[str, str] = Field(default_factory=dict)
 
 
 class Secrets(BaseModel):

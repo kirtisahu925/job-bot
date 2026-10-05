@@ -284,6 +284,21 @@ class SupabaseStore:
                 return []
             raise
 
+    def companies_to_check(self, limit: int, checked_before: datetime) -> list[dict[str, Any]]:
+        return self._get(
+            "companies",
+            {
+                "select": "id,name,careers_url",
+                "board": "is.null",
+                "or": f"(board_checked_at.is.null,board_checked_at.lt.{checked_before.isoformat()})",
+                "order": "target.desc,board_checked_at.asc.nullsfirst",
+                "limit": limit,
+            },
+        )
+
+    def update_company(self, company_id: str, fields: dict[str, Any]) -> None:
+        self._patch("companies", {"id": f"eq.{company_id}"}, fields)
+
     def mark_inbox_processed(self, ids: list[str]) -> None:
         for start in range(0, len(ids), 100):  # keep the query string short
             self._patch(

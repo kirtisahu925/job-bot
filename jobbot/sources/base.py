@@ -141,6 +141,10 @@ def build_sources(
             candidates.append(LeverSource(client, settings.companies.lever, max_age))
         if settings.companies.ashby:
             candidates.append(AshbySource(client, settings.companies.ashby, max_age))
+        if settings.companies.workday:
+            from jobbot.sources.workday import WorkdaySource
+
+            candidates.append(WorkdaySource(client, settings.companies.workday, max_age, queries))
 
     if only:
         wanted = set(only)

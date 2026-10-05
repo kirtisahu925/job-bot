@@ -3,7 +3,7 @@
 import { api, supabase } from "./api";
 import type { JobStatus, RoundRecord, Run } from "./types";
 
-export type Board = "greenhouse" | "lever" | "ashby";
+export type Board = "greenhouse" | "lever" | "ashby" | "workday";
 
 export interface Company {
   id: string;
@@ -15,6 +15,8 @@ export interface Company {
   careers_url: string | null;
   board: Board | null;
   board_slug: string | null;
+  /** when a scan last looked for this company's board (migration 0012); it checks again after two weeks */
+  board_checked_at?: string | null;
   target: boolean;
   notes: string | null;
   updated_at: string;
