@@ -1,153 +1,114 @@
-# Ankit Shilarkar: master profile (single source of truth for every tailored resume).
-# Transcribed from Ankit_Shilarkar_V2-08072026.pdf. Edit freely; the next run uses it.
+# MASTER PROFILE: the single source of truth the bot tailors from.
 #
-# Rules the tailoring follows:
-#   - The LLM may reword, reorder and choose; it may not invent facts, numbers, employers or dates.
-#   - A skill can appear on a resume only if it is listed under `skills` or `extra_vocabulary`
-#     (or marked "I know this" on the dashboard's Skills tab).
-#   - `contact` is never sent to any LLM.
+# Save as profile/master_profile.yaml (git-ignored) for local runs, or paste the whole file into the
+# GitHub secret MASTER_PROFILE_YAML for scheduled runs.
+#
+# Rules that keep the tailoring honest:
+#   - Only write what you can defend in an interview. The LLM may reword and reorder, never invent.
+#   - Every skill the resume may mention must appear in `skills` or `extra_vocabulary`.
+#   - `contact` never leaves your machine or GitHub: it is not sent to any LLM.
+#   - Bullets read best at 100-113 characters (one line) or 205-226 (two lines).
 
 contact:
-  name: Ankit Shilarkar
-  email: ankitshilarkar2504@gmail.com
-  phone: "+91 9891037790"
-  location: Gurgaon, India
+  name: Kirti Sahu
+  email: kirtisahu925@gmail.com
+  phone: "+91 83491 53267"
+  location: Indore, India
   links:
-    linkedin: linkedin.com/in/ankit-shilarkar2504
-    github: github.com/ankit-shilarkar
+    linkedin: linkedin.com/in/kirti-sahu-95b9ab209
+    github: github.com/kirtisahu925
 
-headline: Backend Software Engineer
-# Headline variants the tailor may choose from to mirror a job's title honestly.
+headline: Full Stack Developer
 allowed_titles:
-  - Backend Software Engineer
+  - Full Stack Developer
+  - Full Stack Engineer
+  - Frontend Developer
+  - Frontend Engineer
+  - React Developer
+  - React.js Developer
+  - Software Developer
   - Software Engineer
-  - Backend Engineer
-  - Software Development Engineer
-  - Java Backend Developer
-  - Backend Developer
-years_experience: 2.4  # Apr 2024 to Sep 2026
+  - Node.js Developer
+  - MERN Stack Developer
+years_experience: 2.1
 
 summary: >-
-  Backend Software Engineer with 2+ years of experience building scalable microservices, secure REST APIs, and
-  data pipelines in production environments. Proficient in Java, Spring Boot, and PostgreSQL, with hands-on
-  exposure to multi-tenant SaaS architecture, event-driven systems, and cloud deployments on Azure and AWS.
-  Track record of shipping end-to-end features, from DB schema design and RLS policies to API security,
-  third-party integrations, and containerized deployments.
+  Full Stack developer with 2+ years building React.js, TypeScript and Node.js applications for telecom, healthcare
+  and government analytics platforms serving 1,500+ users, with a focus on reusable components, state management and
+  secure REST APIs.
 
 experience:
-  - id: burger-singh
-    company: Burger Singh India
-    role: Software Development Engineer
-    location: Gurgaon, India
-    start: Feb 2026
+  - id: current
+    company: BestPeers Infosystem Private Limited
+    role: Full Stack Developer
+    location: Indore, India
+    start: Sep 2024
     end: Present
-    groups:
-      - id: burger-singh/franchise
-        title: Franchise Management Platform (Full-Stack Backend + Supabase)
-        bullets:
-          - Redesigned frontend architecture of the Franchise app end-to-end; participated in complete DB schema design and post-migration data validation.
-          - Implemented Row-Level Security (RLS) policies on Supabase to enforce tenant-level data isolation across the platform.
-          - Auditing and optimizing existing RPCs; developing new Supabase RPCs for business logic encapsulation.
-          - Designing a centralized notification system to consolidate cross-feature alerts and events.
-          - Integrated a Zoho-backed ticketing system as a wrapper service within the platform.
-      - id: burger-singh/aadhaar
-        title: Aadhaar Onboarding Portal (Identity Verification Pipeline)
-        bullets:
-          - Architected and shipped an Aadhaar onboarding portal integrating Surepass DigiLocker verification API for real-time identity validation.
-          - Replaced legacy OTP system with a secure, configurable flow and implemented AES encryption for all stored Aadhaar data at rest.
-          - Actively migrating file uploads from on-premise VM storage to Azure Blob Storage for scalability and cost reduction.
-          - "Leading DB migration from MongoDB to Snowflake-managed PostgreSQL to reduce infrastructure costs (current MongoDB spend: $90/month)."
-      - id: burger-singh/serverless
-        title: Serverless Automation & Backend Infrastructure
-        bullets:
-          - Built and deployed serverless workflows using Azure Functions for data pipelines and scheduled backend jobs (offer validation, call log ingestion to Snowflake).
-          - Developed secure wrapper APIs to abstract sensitive third-party keys and enable safe external integrations.
-          - Provisioned infrastructure (VMs, Docker environments) and managed configurations across UAT and production.
-      - id: burger-singh/knowlarity
-        title: Knowlarity Mobile Middleware App (React Native)
-        bullets:
-          - Developed a mobile application acting as a middleware layer for Knowlarity's telephony platform.
-          - Implemented incoming call interception with real-time caller identification and outbound call initiation via Knowlarity APIs.
+    bullets:
+      - Developed and maintained enterprise web applications using React.js, Redux Toolkit, Node.js and Express.js, serving 1,500+ active users across multiple production platforms for telecom, healthcare and government clients
+      - Built reusable, responsive UI components with React.js, HTML5, CSS3 and Tailwind, cutting redundant code by 30%
+      - Designed REST APIs with Node.js, Express and Prisma ORM and tuned PostgreSQL and MySQL queries, reducing API response time and improving overall application performance across the enterprise web applications
+      - Implemented JWT tokens, cookie-based sessions, role-based access control and protected routes for secure access
+      - Improved frontend performance through lazy loading, memoization (React.memo, useMemo, useCallback) and efficient rendering strategies, enhancing overall page load speed across multiple production web applications
+      - Wrote unit and integration tests with Jest and React Testing Library to validate UI and prevent regressions
+      - Worked in Agile/Scrum teams using Git feature branching, pull requests and code reviews to ship on time
 
-  - id: netlink
-    company: Netlink America Private Limited
-    role: Associate Software Engineer
-    location: Bhopal, India
-    start: Apr 2024
-    end: Feb 2026
-    groups:
-      - id: netlink/kmi-ovie
-        title: "KMI Ovie: Insurance Insights Platform (B2B SaaS Microservices)"
-        bullets:
-          - Built and maintained backend microservices using Java and Spring Boot in a distributed microservice architecture serving multiple enterprise clients.
-          - Designed and implemented secure REST APIs with JWT authentication and role-based authorization (Spring Security).
-          - Modeled and optimized PostgreSQL schemas and complex queries, measurably improving API response times.
-          - Implemented ORM layer using Hibernate/JPA for efficient data access, transaction management, and lazy-loading optimization.
-          - Debugged production incidents using Kubernetes logs and monitoring tooling, reducing system downtime.
-          - Delivered features end-to-end in a CI/CD-enabled Agile environment with cross-functional teams (Product, QA, DevOps).
-      - id: netlink/onbase
-        title: "OnBase: Enterprise Document Management System"
-        bullets:
-          - Enhanced backend APIs using Java and Spring Boot for enterprise document workflows at scale.
-          - Implemented audit logging and compliance features for tracking document access and changes.
-          - Optimized slow SQL queries, improving response time and system stability.
-          - Refactored legacy backend code, reducing technical debt and improving long-term maintainability.
-          - Managed feature branches, PR reviews, and deployments using Git/GitLab workflows.
+  - id: previous
+    company: Y&NOW
+    role: Full Stack Developer Intern
+    location: ""
+    start: Aug 2023
+    end: Dec 2023
+    bullets:
+      - Built Market Mingle, a role-based loyalty platform for Admin, Company, Vendor and Shopkeeper users that rewards shopkeepers for buying authentic branded products, using React.js, Node.js, Express.js and MySQL
+      - Implemented vendor-led shopkeeper onboarding and a points reward system credited on verified company purchases
 
 projects:
-  - id: url-shortener
-    name: URL Shortener Service
-    tech: [Java, Spring Boot, PostgreSQL]
+  - id: voiped
+    name: VOIPED, VoIP Telecom Management Platform
+    tech: [Node.js, Express.js, PostgreSQL, Prisma ORM, Redis, React.js, TypeScript]
     bullets:
-      - Designed and built a scalable URL shortening service with REST APIs, persistent PostgreSQL storage, and efficient unique ID generation with redirection handling.
-  - id: chat-app
-    name: Real-Time Chat Application
-    tech: [Java, WebSockets]
+      - Built customer onboarding workflows covering company and user registration, profile setup and account activation
+      - Implemented two-factor authentication to strengthen login security and protect user accounts on the platform
+      - Built role-based access control to manage module-level permissions and secure access across different user roles
+      - Developed supplier management and newsletter management workflows to maintain vendor records and support customer communication, supporting day-to-day telecom service operations across the entire VoIP platform
+      - Contributed to voice module workflows for VoIP service configuration, DID operations and provisioning, and to platform modules that improved security, access control and overall telecom operational efficiency
+  - id: hellobackpack
+    name: HelloBackpack, Mental Healthcare Platform
+    tech: [React.js, TypeScript, Redux Toolkit, Node.js, Express.js, REST APIs]
     bullets:
-      - Developed a real-time bidirectional chat system using WebSockets with message broadcasting and concurrent user handling.
+      - Built frontend features across four healthcare portals (Patient, Clinician, Front Desk and Ready-to-Discharge) using React.js and TypeScript for a mental healthcare platform that includes an AI-powered assistant
+      - Designed patient-facing interfaces for care-plan management and communication with an AI-powered assistant
+      - Developed clinician portal tools for appointment scheduling, patient information and treatment workflow tracking
+      - Integrated secure REST APIs with async/await and managed state with Redux Toolkit across all four portals
+  - id: linksveda
+    name: LINKS Veda, Government Accident Analysis Platform (Japan)
+    tech: [React.js, TypeScript, Redux Toolkit, Material UI, REST APIs]
+    bullets:
+      - Built responsive, interactive React.js dashboards visualizing road, sea and air transportation accident data for an AI-powered Japanese government analytics platform, processing large-scale historical datasets
+      - Developed statistical trend and regional insight views with Material UI to help analysts read the data
+      - Built reusable, type-safe components with TypeScript and Redux Toolkit, optimizing rendering for large datasets
+      - Integrated multiple REST APIs with async/await for accident records, yearly analysis and data exploration
 
 skills:
-  Languages: [Java, Python, SQL, JavaScript, TypeScript]
-  Backend: [Spring Boot, Spring Framework, Spring Security, REST APIs, Microservices, Hibernate/JPA, WebSockets]
-  Databases: [PostgreSQL, "Supabase (RLS, RPC)", MySQL, MongoDB, Snowflake]
-  Security: [JWT, OAuth2, Role-Based Authorization, Data Encryption, API Key Management]
-  Cloud & DevOps: ["Azure (Functions, Blob Storage, VM)", Docker, Kubernetes, CI/CD Pipelines, GitLab, GitHub Actions]
-  Tools: [Git, Postman, DBeaver, Linux]
-  Concepts:
-    - Microservices Architecture
-    - Multi-tenant SaaS
-    - Event-Driven Design
-    - Data Structures
-    - OOP
-    - System Design
-    - API Design
-    - Database Optimization
+  Languages: [JavaScript, TypeScript, Java]
+  Frontend: [React.js, Next.js, Redux Toolkit, Zustand, React Query, React Hook Form, Zod, HTML5, CSS3, Sass, Tailwind CSS, Material UI, Responsive Design]
+  Backend: [Node.js, Express.js, REST APIs, Prisma ORM, JWT Authentication, Two-Factor Authentication, RBAC, RabbitMQ]
+  Data: [PostgreSQL, MySQL, MongoDB, Redis]
+  Cloud and DevOps: [AWS, Docker, Turborepo]
+  Testing: [Jest, React Testing Library]
 
-# Other terms your resume already evidences (in bullets or summary), allowed on tailored resumes.
-extra_vocabulary:
-  - AWS
-  - React Native
-  - AES Encryption
-  - Row-Level Security
-  - Data Pipelines
-  - Serverless
-  - Agile
-  - Zoho
-  - DigiLocker
-  - Containerization
-  - Distributed Systems
-  - Audit Logging
+# Extra terms you genuinely know that may appear on a tailored resume (anti-mirroring allowlist).
+extra_vocabulary: [Git, GitHub, Postman, VS Code, Jira, Agile, Scrum, Code Reviews, Component Architecture, Performance Optimization, Lazy Loading, Memoization, Code Splitting, Query Optimization, OOP, DBMS]
 
 education:
-  - institution: SISTec Gandhinagar
-    degree: Bachelor of Technology, Computer Science and Engineering
-    location: Bhopal
+  - institution: Sagar Institute of Science and Technology (SISTec)
+    degree: B.Tech, Computer Science and Engineering
+    location: Bhopal, India
     start: "2020"
     end: "2024"
-    score: "CGPA: 9.03"
+    score: "CGPA 8.59/10"
 
-achievements:
-  - Solved 200+ DSA problems on LeetCode and GeeksforGeeks.
-  - Built and maintained backend-focused projects on GitHub demonstrating API design, microservices, and system design principles.
-
-certifications: []
+certifications:
+  - "NPTEL: Programming in Java"
+  - "Coursera: Accelerated Computer Science Fundamentals"

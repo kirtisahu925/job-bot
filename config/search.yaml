@@ -3,22 +3,22 @@
 
 candidate:
   # Skip jobs whose stated minimum experience is above this. Jobs that state nothing are kept.
-  max_required_years: 4
+  max_required_years: 3
 
 # One track per kind of role. Queries go to the job sites; keywords decide which track a job belongs to.
 tracks:
-  java:
-    label: Java backend
-    queries: ["java backend developer", "java spring boot developer"]
-    keywords: ["java", "spring", "spring boot", "hibernate", "jvm", "kotlin", "microservices"]
-  python:
-    label: Python backend
-    queries: ["python backend developer", "python django fastapi developer"]
-    keywords: ["python", "django", "fastapi", "flask", "celery"]
+  frontend:
+    label: Frontend React
+    queries: ["react developer", "frontend developer react", "next.js developer"]
+    keywords: ["react", "react.js", "reactjs", "next.js", "nextjs", "redux", "typescript", "javascript", "frontend", "front end", "front-end", "tailwind"]
   fullstack:
     label: Full-stack JS / Node
-    queries: ["full stack developer node react", "node.js backend developer"]
-    keywords: ["node", "node.js", "nodejs", "express", "react", "next.js", "typescript", "javascript", "full stack", "fullstack", "mern"]
+    queries: ["full stack developer node react", "mern stack developer"]
+    keywords: ["node", "node.js", "nodejs", "express", "react", "next.js", "typescript", "javascript", "full stack", "fullstack", "mern", "prisma"]
+  backend:
+    label: Node backend
+    queries: ["node.js backend developer", "node.js express developer"]
+    keywords: ["node", "node.js", "nodejs", "express", "prisma", "postgresql", "rest api"]
 
 # A title must contain one of these (case-insensitive) to be considered at all.
 title_include:
@@ -32,9 +32,15 @@ title_include:
   - full stack
   - fullstack
   - full-stack
-  - java
-  - python
+  - frontend
+  - front-end
+  - front end
+  - react
+  - web developer
+  - ui developer
+  - javascript
   - node
+  - mern
   - developer
   - programmer
   - member of technical staff
@@ -71,6 +77,7 @@ title_exclude:
   - staff
   - principal
   - lead
+  - senior
   - manager
   - director
   - head of
@@ -131,20 +138,14 @@ title_exclude:
   - pega
 
 locations:
-  cities: [Gurugram, Noida, Delhi, Bengaluru, Hyderabad, Pune, Chennai]
+  cities: [Indore, Pune, Hyderabad, Bengaluru]
   include_remote: true
   # Remote roles must be open to candidates in one of these regions (checked on "remote" jobs only).
   remote_regions: [india, anywhere, worldwide, global, apac, asia]
   aliases:
-    gurgaon: Gurugram
-    "new delhi": Delhi
-    "delhi ncr": Delhi
-    ncr: Delhi
-    "greater noida": Noida
     bangalore: Bengaluru
     bengaluru: Bengaluru
     secunderabad: Hyderabad
-    madras: Chennai
 
 limits:
   score_top_k: 30        # new jobs sent to the LLM for scoring per run
@@ -180,7 +181,7 @@ sources:
     enabled: true
     method: jobspy
     # The filters of a LinkedIn search URL. Build a search on linkedin.com/jobs, then copy its values here.
-    queries: ["back end developer", "java backend developer", "full stack developer node react"]   # keywords=
+    queries: ["react developer", "frontend developer", "full stack developer node react", "node.js backend developer"]   # keywords=
     location: India
     geo_id: 102713980      # geoId= (India)
     distance: 0            # distance=
@@ -214,7 +215,7 @@ sources:
     method: apify
     # Open the actor on apify.com, check its Input tab, and adjust `input` to match.
     actor_id: igolaizola~wellfound-jobs-scraper
-    queries: ["backend engineer", "full stack engineer"]
+    queries: ["frontend engineer", "full stack engineer"]
     input:
       keyword: "{query}"
       location: India

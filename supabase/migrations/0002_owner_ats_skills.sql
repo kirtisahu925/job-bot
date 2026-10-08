@@ -3,7 +3,7 @@
 -- your per-skill choices, and demand for each skill across scanned jobs).
 
 -- owner: only this login can read or change anything through the dashboard / extension
-insert into public.app_owner (email) values ('ankitshilarkar2504@gmail.com') on conflict do nothing;
+insert into public.app_owner (email) values ('kirtisahu925@gmail.com') on conflict do nothing;
 
 -- Functions are callable by signed-in users only (Supabase grants new functions to anon by default).
 revoke execute on function public.is_owner() from public, anon;
