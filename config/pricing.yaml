@@ -4,8 +4,8 @@
 
 llm:
   provider: gemini            # gemini | anthropic | fake
-  score_models: [gemini-flash-lite-latest, gemini-flash-latest]   # Flash only when Flash-Lite is down (uses its daily cap)
-  tailor_models: [gemini-flash-latest, gemini-flash-lite-latest]   # first is preferred; rest are fallbacks on 429
+  score_models: [gemini-3.5-flash-lite, gemini-3.8-flash]   # Flash only when Flash-Lite is down (uses its daily cap)
+  tailor_models: [gemini-3.8-flash, gemini-3.5-flash-lite]   # first is preferred; rest are fallbacks on 429
 
   # Used when provider: anthropic (the dashboard's Settings page can switch it). Pick any row from `models` below.
   anthropic_score_model: claude-haiku-4-5
@@ -13,8 +13,8 @@ llm:
 
 models:
   # Gemini free tier: Google adjusts these caps without notice; check your limits in AI Studio.
-  gemini-flash-latest:      {provider: gemini, tier: free, daily_request_cap: 18, input: 0, output: 0}
-  gemini-flash-lite-latest: {provider: gemini, tier: free, daily_request_cap: 450, input: 0, output: 0}
+  gemini-3.8-flash:      {provider: gemini, tier: free, daily_request_cap: 18, input: 0, output: 0}
+  gemini-3.5-flash-lite: {provider: gemini, tier: free, daily_request_cap: 450, input: 0, output: 0}
 
   # Anthropic list prices (per MTok).
   claude-opus-5-5:   {provider: anthropic, tier: paid, input: 4.00, output: 20.00, cache_read: 0.20}
